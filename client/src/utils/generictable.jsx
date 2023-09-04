@@ -357,7 +357,10 @@ export default function EnhancedTable(props) {
                     </TableCell>
                     <TableCell align="left">{row.model}</TableCell>
                     <TableCell align="right">{row.year}</TableCell>
-                    <TableCell align="left">{row.color}</TableCell>
+                    <TableCell
+                      align="left"
+                      sx={{ backgroundColor: row.color }}
+                    ></TableCell>
                   </TableRow>
                 );
               })}
