@@ -37,7 +37,10 @@ const AddVehicle = () => {
   };
 
   const handleSubmit = async (event) => {
-    //event.preventDefault();
+    if (vehicleYear === null) {
+      event.preventDefault();
+      return;
+    }
     const response = await fetch(
       `${process.env.REACT_APP_SERVERURL}/createvehicle`,
       {
@@ -99,12 +102,15 @@ const AddVehicle = () => {
           >
             <Autocomplete
               id="year-options"
+              required
               value={vehicleYear}
               onChange={(e, newValue) => setVehicleYear(newValue)}
               options={yearList()}
               sx={{ width: 200 }}
               getOptionLabel={(option) => option.toString()}
-              renderInput={(params) => <TextField {...params} label="Year" />}
+              renderInput={(params) => (
+                <TextField required {...params} label="Year" />
+              )}
             />
           </div>
           <p></p>

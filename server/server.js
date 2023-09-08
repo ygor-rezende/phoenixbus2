@@ -184,7 +184,7 @@ app.delete("/users/:username", async (req, res) => {
     res.json(deletedUser);
   } catch (err) {
     console.error(err);
-    if (err) res.json({ detail: err.detain });
+    if (err) res.json({ detail: err.detail });
   }
 });
 
@@ -216,6 +216,26 @@ app.get("/getallvehicles", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
+  }
+});
+
+//Delete vehicle
+app.delete("/deletevehicle", async (req, res) => {
+  try {
+    const { vehicleIds } = req.body;
+    const deletedVehicles = [];
+    vehicleIds.forEach(async (vehicle) => {
+      const deletedVehicle = await pool.query(
+        "DELETE from vehicles WHERE vehicle_id = $1",
+        [vehicle]
+      );
+      deletedVehicles.push(deletedVehicle);
+    });
+    //if (deletedVehicles.length < 1) res.sendStatus(500);
+    res.json("Vechicle(s) deleted");
+  } catch (err) {
+    console.error(err);
+    if (err) res.json({ detail: err.detail });
   }
 });
 

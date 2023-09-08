@@ -19,9 +19,18 @@ import Tooltip from "@mui/material/Tooltip";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import { TextField } from "@mui/material";
+import {
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -119,7 +128,42 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-  const { numSelected } = props;
+  const { numSelected, onFilter, onDelete, onEdit } = props;
+
+  //Logic to display delete and edit buttons
+  let buttons;
+  if (numSelected === 1) {
+    buttons = (
+      <Box sx={{ display: "flex" }}>
+        <Tooltip title="Delete">
+          <IconButton onClick={onDelete}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Edit">
+          <IconButton onClick={onEdit}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  } else if (numSelected > 0) {
+    buttons = (
+      <Tooltip title="Delete">
+        <IconButton onClick={onDelete}>
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
+    );
+  } else {
+    buttons = (
+      <Tooltip title="Filter list">
+        <IconButton>
+          <FilterListIcon />
+        </IconButton>
+      </Tooltip>
+    );
+  }
 
   return (
     <Toolbar
@@ -154,23 +198,10 @@ function EnhancedTableToolbar(props) {
           >
             Search by name:
           </Typography>
-          <TextField size="small" />
+          <TextField size="small" onChange={onFilter} />
         </div>
       )}
-
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
+      {buttons}
     </Toolbar>
   );
 }
@@ -187,6 +218,9 @@ export default function EnhancedTable(props) {
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [vehiclesData, setVehiclesData] = React.useState([]);
+  const [filteredData, setFilteredData] = React.useState([]);
+  const [isTableUpdated, setIsTableUpdated] = React.useState(false);
+  const [openDialog, setOpenDialog] = React.useState(false);
   const { headings } = props;
 
   //Get all vehicles data
@@ -198,6 +232,7 @@ export default function EnhancedTable(props) {
       let responseData = await response.json();
       responseData = responseData.map((item) => {
         const vehicles = {
+          id: item.vehicle_id,
           name: item.vehicle_name,
           model: item.vehicle_model,
           year: item.vehicle_year,
@@ -206,12 +241,15 @@ export default function EnhancedTable(props) {
         return vehicles;
       });
       setVehiclesData(responseData);
+      setFilteredData(responseData);
     } catch (err) {
       console.error(err);
     }
   };
 
-  getData();
+  React.useEffect(() => {
+    getData();
+  }, [isTableUpdated]);
 
   const headCells = [
     {
@@ -248,19 +286,19 @@ export default function EnhancedTable(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = vehiclesData.map((n) => n.name);
+      const newSelected = filteredData.map((n) => n.id);
       setSelected(newSelected);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -288,25 +326,78 @@ export default function EnhancedTable(props) {
     setDense(event.target.checked);
   };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1;
+  const filterBySearch = (event) => {
+    const query = event.target.value;
+
+    let updatedList = [...vehiclesData];
+
+    updatedList = updatedList.filter((e) => {
+      return e.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+    });
+
+    setFilteredData(updatedList);
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/deletevehicle`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vehicleIds: selected }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      const data = await response.json();
+      console.log(data);
+      if (data.detail) {
+      } else {
+        //reload the data
+        setIsTableUpdated((update) => !update);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  //Delete Dialog control
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleEdition = () => {};
+
+  const isSelected = (id) => selected.indexOf(id) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - vehiclesData.length) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredData.length) : 0;
 
   const visibleRows = React.useMemo(
     () =>
-      stableSort(vehiclesData, getComparator(order, orderBy)).slice(
+      stableSort(filteredData, getComparator(order, orderBy)).slice(
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage
       ),
-    [order, orderBy, page, rowsPerPage, vehiclesData]
+    [order, orderBy, page, rowsPerPage, filteredData]
   );
 
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} />
+        <EnhancedTableToolbar
+          numSelected={selected.length}
+          onFilter={filterBySearch}
+          onDelete={handleOpenDialog}
+          onEdit={handleEdition}
+        />
         <TableContainer>
           <Table
             sx={{ minWidth: 750 }}
@@ -319,22 +410,22 @@ export default function EnhancedTable(props) {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={vehiclesData.length}
+              rowCount={filteredData.length}
               heading={headCells}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = isSelected(row.name);
+                const isItemSelected = isSelected(row.id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
                   <TableRow
                     hover
-                    onClick={(event) => handleClick(event, row.name)}
+                    onClick={(event) => handleClick(event, row.id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.name}
+                    key={row.id}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
@@ -379,7 +470,7 @@ export default function EnhancedTable(props) {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={vehiclesData.length}
+          count={filteredData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -390,6 +481,27 @@ export default function EnhancedTable(props) {
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
       />
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirm deleting record(s)?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete the records selected?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDelete}>Yes</Button>
+          <Button onClick={handleCloseDialog} autoFocus>
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
