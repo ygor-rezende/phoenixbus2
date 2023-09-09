@@ -13,6 +13,11 @@ app.use(cors());
 app.use(express.json()); // To parse the incoming requests with JSON payloads
 app.use(express.static("public"));
 
+//hello msg
+app.get("/", (req, res) => {
+  res.send("Hello!");
+});
+
 //get usertype
 app.get("/getUserType/:username", async (req, res) => {
   const { username } = req.params;
