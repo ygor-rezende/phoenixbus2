@@ -18,6 +18,11 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//testing
+app.get("/gettesting", (req, res) => {
+  res.json("Testing");
+});
+
 //get usertype
 app.get("/getUserType/:username", async (req, res) => {
   const { username } = req.params;
