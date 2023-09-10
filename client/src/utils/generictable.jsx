@@ -20,8 +20,10 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
+import { MuiColorInput } from "mui-color-input";
 import {
   TextField,
   Dialog,
@@ -30,6 +32,7 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  Modal,
 } from "@mui/material";
 
 function descendingComparator(a, b, orderBy) {
@@ -221,6 +224,11 @@ export default function EnhancedTable(props) {
   const [filteredData, setFilteredData] = React.useState([]);
   const [isTableUpdated, setIsTableUpdated] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [vehicleColor, setVehicleColor] = React.useState("#ffffff");
+  const [vehicleModel, setVehicleModel] = React.useState("");
+  const [vehicleName, setVehicleName] = React.useState("");
+  const [vehicleYear, setVehicleYear] = React.useState(null);
+  const [openModal, setOpenModal] = React.useState(false);
   const { headings } = props;
 
   //Get all vehicles data
@@ -354,6 +362,7 @@ export default function EnhancedTable(props) {
       const data = await response.json();
       console.log(data);
       if (data.detail) {
+        console.log(data.detail);
       } else {
         //reload the data
         setIsTableUpdated((update) => !update);
@@ -372,7 +381,68 @@ export default function EnhancedTable(props) {
     setOpenDialog(true);
   };
 
-  const handleEdition = () => {};
+  const handleEdition = () => {
+    if (isSelected.length === 1) {
+      //load fields
+      console.log(vehiclesData.filter((e) => e.id === selected[0]));
+      setVehicleColor(
+        vehiclesData.filter((e) => e.id === selected[0])[0].color
+      );
+      setVehicleName(vehiclesData.filter((e) => e.id === selected[0])[0].name);
+      setVehicleModel(
+        vehiclesData.filter((e) => e.id === selected[0])[0].model
+      );
+      setVehicleYear(vehiclesData.filter((e) => e.id === selected[0])[0].year);
+
+      //open modal
+      setOpenModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  //save the changes made in one vehicle
+  const handleSaveChanges = async () => {
+    //save the vehicle data
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/updatevehicle`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vehicle: {
+              id: selected[0],
+              name: vehicleName,
+              model: vehicleModel,
+              year: vehicleYear,
+              color: vehicleColor,
+            },
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      const data = await response.json();
+      console.log(data);
+      if (data.detail) {
+        console.log(data.detail);
+      } else {
+        //reload the data
+        setIsTableUpdated((update) => !update);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    //close modal
+    setOpenModal(false);
+
+    //remove selection
+    setSelected([]);
+  };
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
@@ -388,6 +458,20 @@ export default function EnhancedTable(props) {
       ),
     [order, orderBy, page, rowsPerPage, filteredData]
   );
+
+  const modalStile = {
+    position: "absolute",
+    borderRadius: "10px",
+    display: "flex",
+    flexDirection: "column",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: "background.paper",
+    boxShadow: 24,
+    p: 4,
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -502,6 +586,65 @@ export default function EnhancedTable(props) {
           </Button>
         </DialogActions>
       </Dialog>
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box sx={modalStile}>
+          <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
+            <IconButton onClick={() => setOpenModal(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+          <Typography
+            id="modal-title"
+            variant="h6"
+            component="h2"
+            style={{ alignSelf: "center" }}
+          >
+            Edit vechicle
+          </Typography>
+          <p></p>
+          <TextField
+            required
+            id="vehiclename"
+            value={vehicleName}
+            label="Name"
+            type="text"
+            onChange={(e) => setVehicleName(e.target.value)}
+          />
+          <p></p>
+          <TextField
+            id="vehiclemodel"
+            value={vehicleModel}
+            label="Model"
+            type="text"
+            onChange={(e) => setVehicleModel(e.target.value)}
+          />
+          <p></p>
+          <TextField
+            id="vehicleyear"
+            value={vehicleYear}
+            label="Year"
+            type="text"
+            onChange={(e) => setVehicleYear(e.target.value)}
+          />
+          <p></p>
+          <MuiColorInput
+            id="vehicleColor"
+            label="Color"
+            value={vehicleColor}
+            onChange={(color) => setVehicleColor(color)}
+            isAlphaHidden
+          />
+          <p></p>
+          <Button variant="contained" onClick={handleSaveChanges}>
+            Save
+          </Button>
+        </Box>
+      </Modal>
     </Box>
   );
 }

@@ -249,4 +249,20 @@ app.delete("/deletevehicle", async (req, res) => {
   }
 });
 
+//Update vehicle
+app.put("/updatevehicle", async (req, res) => {
+  try {
+    const { vehicle } = req.body;
+    const updatedVehicle = await pool.query(
+      "UPDATE vehicles SET vehicle_name = $1, vehicle_model = $2, vehicle_year = $3, vehicle_color = $4 WHERE vehicle_id = $5",
+      [vehicle.name, vehicle.model, vehicle.year, vehicle.color, vehicle.id]
+    );
+    if (updatedVehicle.rowCount >= 0)
+      res.json(`Updated: ${updatedVehicle.rows}`);
+  } catch (err) {
+    console.error(err);
+    if (err) res.json({ detail: err.detail });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
