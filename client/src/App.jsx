@@ -42,6 +42,7 @@ import {
   DriverRoutes,
   SalesRoutes,
 } from "./utils/private_routes";
+import DeleteUser from "./pages/admin/deleteUser";
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(null);
@@ -355,6 +356,7 @@ const App = () => {
                 exact
               />
               <Route path="/driverpayroll" element={<DriverPayroll />} />
+              <Route path="/removeuser" element={<DeleteUser />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />
           </Route>

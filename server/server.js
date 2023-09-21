@@ -184,7 +184,7 @@ app.post("/resetUserPass", bodyParser.json(), async (req, res) => {
 });
 
 //Delete user
-app.delete("/users/:username", async (req, res) => {
+app.delete("/deleteuser/:username", async (req, res) => {
   try {
     const { username } = req.params;
     const deletedUser = await pool.query(

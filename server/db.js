@@ -9,6 +9,14 @@ const pool = new Pool({
   database: process.env.DBNAME,
 });
 
+// const pool = new Pool({
+//   user: process.env.LOCALUSER,
+//   password: process.env.LOCALPASSWORD,
+//   host: process.env.HOST,
+//   port: process.env.LOCALDBPORT,
+//   database: process.env.LOCALDBNAME,
+// });
+
 // const query = async () => {
 //   try {
 //     const result = await pool.query("SELECT * FROM testusers");

@@ -31,7 +31,6 @@ const ResetUserPassword = () => {
         `${process.env.REACT_APP_SERVERURL}/getusernames`
       );
       const json = await response.json();
-      //map the array to eliminate the object
       setUsers(json);
     } catch (err) {
       console.error(err);
