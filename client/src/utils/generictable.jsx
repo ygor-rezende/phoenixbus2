@@ -370,6 +370,9 @@ export default function EnhancedTable(props) {
     } catch (err) {
       console.error(err);
     }
+
+    //close the dialog
+    handleCloseDialog();
   };
 
   //Delete Dialog control
