@@ -68,6 +68,17 @@
   .logo.react:hover {
     filter: drop-shadow(0 0 2em #61dafbaa);
   }
+
+  .clientbox1{
+    margin-bottom: 20px;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .textfield{
+    width: 30% !important;
+    margin: 10px 10px !important;
+  }
   
   @keyframes logo-spin {
     from {

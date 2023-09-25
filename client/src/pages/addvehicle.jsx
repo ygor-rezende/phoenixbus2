@@ -9,7 +9,7 @@ import {
   Divider,
 } from "@mui/material";
 import { MuiColorInput } from "mui-color-input";
-import EnhancedTable from "../utils/generictable";
+import EnhancedTable from "../utils/table_vehicles";
 
 const AddVehicle = () => {
   const [error, setError] = useState(null);

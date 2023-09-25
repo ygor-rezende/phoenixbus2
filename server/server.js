@@ -5,6 +5,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const { User } = require("./classes/user");
 const { Vehicle } = require("./classes/vehicle");
+const { Client } = require("./classes/client");
 
 //using cors for allow testing
 app.use(cors());
@@ -110,4 +111,20 @@ app.put("/updatevehicle", async (req, res) => {
 });
 //#endregion
 
+//#region Client
+//create client
+app.post("/createclient", bodyParser.json(), async (req, res) => {
+  const { client } = req.body;
+  let response = await Client.newClient(client);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all clients
+app.get("/getallclients", async (req, res) => {
+  let response = await Client.getAllClients();
+  console.log(response);
+  res.json(response);
+});
+//#endRegion
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
