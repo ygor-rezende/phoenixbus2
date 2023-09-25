@@ -139,12 +139,12 @@ function EnhancedTableToolbar(props) {
     buttons = (
       <Box sx={{ display: "flex" }}>
         <Tooltip title="Delete">
-          <IconButton onClick={onDelete}>
+          <IconButton disabled onClick={onDelete}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
         <Tooltip title="Edit">
-          <IconButton onClick={onEdit}>
+          <IconButton disabled onClick={onEdit}>
             <EditIcon />
           </IconButton>
         </Tooltip>
@@ -302,7 +302,7 @@ const EnhancedTable = (props) => {
     let updatedList = [...data];
 
     updatedList = updatedList.filter((e) => {
-      return e.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return e.agency.toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
 
     setFilteredData(updatedList);
