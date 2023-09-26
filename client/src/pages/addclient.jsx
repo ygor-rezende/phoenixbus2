@@ -8,7 +8,14 @@ import {
   Snackbar,
   Divider,
   Box,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import EditIcon from "@mui/icons-material/Edit";
 
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../utils/table_generic";
@@ -72,6 +79,7 @@ const listOfStates = [
 ];
 
 const initialState = {
+  clientId: "",
   agency: "",
   contact: "",
   address1: "",
@@ -79,7 +87,7 @@ const initialState = {
   city: "",
   state: null,
   zip: "",
-  country: "",
+  country: "US",
   phone: "",
   fax: "",
   email: "",
@@ -87,6 +95,10 @@ const initialState = {
   openSnakbar: false,
   error: null,
   success: false,
+  clientsData: [],
+  onEditMode: false,
+  expandPanel: false,
+  isDataUpdated: false,
 };
 
 export const AddClient = () => {
@@ -117,6 +129,7 @@ export const AddClient = () => {
         };
         return client;
       });
+      setState({ clientsData: responseData });
       return responseData;
     } catch (err) {
       console.error(err);
@@ -137,45 +150,86 @@ export const AddClient = () => {
   };
 
   //handle form submit
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     //if the autocomplete is null do not complete
     if (state.state === null) {
-      event.preventDefault();
       return;
     }
-    const response = await fetch(
-      `${process.env.REACT_APP_SERVERURL}/createclient`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client: {
-            agency: state.agency,
-            contact: state.contact,
-            address1: state.address1,
-            address2: state.address2,
-            city: state.city,
-            state: state.state,
-            zip: state.zip,
-            country: state.country,
-            phone: state.phone,
-            fax: state.fax,
-            email: state.email,
-            remark: state.remark,
-          },
-        }),
-      }
-    );
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/createclient`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client: {
+              agency: state.agency,
+              contact: state.contact,
+              address1: state.address1,
+              address2: state.address2,
+              city: state.city,
+              state: state.state,
+              zip: state.zip,
+              country: state.country,
+              phone: state.phone,
+              fax: state.fax,
+              email: state.email,
+              remark: state.remark,
+            },
+          }),
+        }
+      );
 
-    const data = await response.json();
-    console.log(data);
-    //if an error happens when signing up set the error
-    if (data.msg) {
-      setState({ success: false, error: data.msg, openSnakbar: true });
-    } else {
-      //if no error set success to display message
-      setState({ msg: data, error: null, success: true, openSnakbar: true });
+      const data = await response.json();
+      console.log(data);
+      //if an error happens when signing up set the error
+      if (data.msg) {
+        setState({ success: false, error: data.msg, openSnakbar: true });
+      } else {
+        //if no error set success and reset intial state
+        setState({
+          msg: data,
+          error: null,
+          success: true,
+          openSnakbar: true,
+          agency: "",
+          contact: "",
+          address1: "",
+          address2: "",
+          city: "",
+          state: null,
+          zip: "",
+          country: "US",
+          phone: "",
+          fax: "",
+          email: "",
+          remark: "",
+          expandPanel: false,
+        });
+      }
+    } catch (err) {
+      console.error(err);
     }
+  };
+
+  //Cancel editing
+  const cancelEditing = () => {
+    setState({
+      expandPanel: false,
+      onEditMode: false,
+      agency: "",
+      contact: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: null,
+      zip: "",
+      country: "US",
+      phone: "",
+      fax: "",
+      email: "",
+      remark: "",
+    });
   };
 
   const handleClose = (event, reason) => {
@@ -183,6 +237,97 @@ export const AddClient = () => {
       return;
     }
     setState({ openSnakbar: false });
+  };
+
+  //save client being edited
+  const handleSaveChanges = async () => {
+    try {
+      const clientToUpdate = {
+        id: state.clientId,
+        agency: state.agency,
+        contact: state.contact,
+        address1: state.address1,
+        address2: state.address2,
+        city: state.city,
+        state: state.state,
+        zip: state.zip,
+        country: state.country,
+        phone: state.phone,
+        fax: state.fax,
+        email: state.email,
+        remark: state.remark,
+      };
+
+      console.log(clientToUpdate);
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/updateclient`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ client: clientToUpdate }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      const data = await response.json();
+      console.log(data);
+      if (data.detail) {
+        console.log(data.detail);
+      } else {
+        //if no error set success and reset intial state
+        setState({
+          msg: data,
+          error: null,
+          success: true,
+          openSnakbar: true,
+          agency: "",
+          contact: "",
+          address1: "",
+          address2: "",
+          city: "",
+          state: null,
+          zip: "",
+          country: "US",
+          phone: "",
+          fax: "",
+          email: "",
+          remark: "",
+          expandPanel: false,
+          onEditMode: false,
+          isDataUpdated: !state.isDataUpdated,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  //Show client information when clicking on a table row
+  const handleItemClick = (id) => {
+    //load fields
+    console.log(state.clientsData.filter((e) => e.id === id));
+    setState({
+      onEditMode: true,
+      expandPanel: true,
+      clientId: id,
+      agency: state.clientsData.filter((e) => e.id === id)[0].agency,
+      contact: state.clientsData.filter((e) => e.id === id)[0].contact,
+      address1: state.clientsData.filter((e) => e.id === id)[0].address1,
+      address2: state.clientsData.filter((e) => e.id === id)[0].address2,
+      city: state.clientsData.filter((e) => e.id === id)[0].city,
+      state: state.clientsData.filter((e) => e.id === id)[0].state,
+      zip: state.clientsData.filter((e) => e.id === id)[0].zip,
+      country: state.clientsData.filter((e) => e.id === id)[0].country,
+      phone: state.clientsData.filter((e) => e.id === id)[0].phone,
+      fax: state.clientsData.filter((e) => e.id === id)[0].fax,
+      email: state.clientsData.filter((e) => e.id === id)[0].email,
+      remark: state.clientsData.filter((e) => e.id === id)[0].remark,
+    });
+  };
+
+  const handleBoxChecked = (isItemChecked) => {
+    if (isItemChecked) cancelEditing();
   };
 
   const headings = [
@@ -212,161 +357,198 @@ export const AddClient = () => {
   return (
     <div className="client-container">
       <div className="client-container-box">
-        <form onSubmit={handleSubmit}>
-          <Box className="clientbox1">
-            <TextField
-              className="textfield"
-              id="agency"
-              required
-              label="Agency"
-              type="text"
-              placeholder="Agency"
-              value={state.agency}
-              onChange={handleOnChange}
-            />
-            <TextField
-              className="textfield"
-              id="contact"
-              required
-              label="Contact"
-              type="text"
-              placeholder="Contact"
-              value={state.contact}
-              onChange={handleOnChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="address1"
-              required
-              label="Adress 1"
-              type="text"
-              placeholder="Address 1"
-              value={state.address1}
-              onChange={handleOnChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="address2"
-              label="Address 2"
-              type="text"
-              placeholder="Address 2"
-              value={state.address2}
-              onChange={handleOnChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="city"
-              required
-              label="City"
-              type="text"
-              placeholder="City"
-              value={state.city}
-              onChange={handleOnChange}
-            />
-            <div
-              id="vehicle-year-box"
-              className="textfield"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="states"
-                required
-                value={state.state}
-                onChange={(e, newValue) => setState({ state: newValue })}
-                options={listOfStates}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.toString()}
-                renderInput={(params) => (
-                  <TextField required {...params} label="State" />
-                )}
-              />
-            </div>
-            <TextField
-              className="textfield"
-              id="zip"
-              required
-              label="Zipcode"
-              type="text"
-              placeholder="Zipcode"
-              value={state.zip}
-              inputProps={{ maxLength: 6 }}
-              onChange={handleOnChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="country"
-              required
-              label="Country"
-              type="text"
-              placeholder="Country"
-              value={state.country}
-              onChange={handleOnChange}
-            />
-
-            <MuiTelInput
-              className="textfield"
-              id="phone"
-              defaultCountry="US"
-              required
-              label="Phone"
-              placeholder="Phone"
-              value={state.phone}
-              onChange={handlePhoneChange}
-              onlyCountries={["US", "CA"]}
-              inputProps={{ maxLength: 15 }}
-            />
-
-            <MuiTelInput
-              className="textfield"
-              id="fax"
-              defaultCountry="US"
-              label="Fax"
-              type="tel"
-              placeholder="Fax"
-              onlyCountries={["US", "CA"]}
-              inputProps={{ maxLength: 15 }}
-              value={state.fax}
-              onChange={handleFaxChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="email"
-              required
-              label="E-Mail"
-              type="email"
-              placeholder="E-Mail"
-              value={state.email}
-              onChange={handleOnChange}
-            />
-
-            <TextField
-              className="textfield"
-              id="remark"
-              label="Remarks"
-              type="text"
-              placeholder="Remarks"
-              multiline
-              rows={4}
-              value={state.remark}
-              onChange={handleOnChange}
-            />
-            <p></p>
-          </Box>
-          <Button
-            variant="outlined"
-            type="submit"
-            style={{
-              backgroundColor: "rgb(255,255,255)",
-            }}
+        <form>
+          <Accordion
+            expanded={state.expandPanel}
+            onChange={() => setState({ expandPanel: !state.expandPanel })}
           >
-            Save
-          </Button>
-          <p></p>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              {state.onEditMode ? (
+                <Box sx={{ display: "inline-flex" }}>
+                  <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    EDITING CLIENT
+                  </Typography>
+                  <EditIcon style={{ color: "#1976d2", marginLeft: "10px" }} />
+                </Box>
+              ) : (
+                <Box sx={{ display: "inline-flex" }}>
+                  <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    NEW CLIENT
+                  </Typography>
+                  <PersonAddIcon
+                    style={{ color: "#1976d2", marginLeft: "10px" }}
+                  />
+                </Box>
+              )}
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box className="clientbox1">
+                <TextField
+                  className="textfield"
+                  id="agency"
+                  required
+                  label="Agency"
+                  type="text"
+                  placeholder="Agency"
+                  value={state.agency}
+                  onChange={handleOnChange}
+                />
+                <TextField
+                  className="textfield"
+                  id="contact"
+                  required
+                  label="Contact"
+                  type="text"
+                  placeholder="Contact"
+                  value={state.contact}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="address1"
+                  required
+                  label="Adress 1"
+                  type="text"
+                  placeholder="Address 1"
+                  value={state.address1}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="address2"
+                  label="Address 2"
+                  type="text"
+                  placeholder="Address 2"
+                  value={state.address2}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="city"
+                  required
+                  label="City"
+                  type="text"
+                  placeholder="City"
+                  value={state.city}
+                  onChange={handleOnChange}
+                />
+                <div
+                  id="vehicle-year-box"
+                  className="textfield"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="states"
+                    required
+                    value={state.state}
+                    onChange={(e, newValue) => setState({ state: newValue })}
+                    options={listOfStates}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.toString()}
+                    renderInput={(params) => (
+                      <TextField required {...params} label="State" />
+                    )}
+                  />
+                </div>
+                <TextField
+                  className="textfield"
+                  id="zip"
+                  required
+                  label="Zipcode"
+                  type="text"
+                  placeholder="Zipcode"
+                  value={state.zip}
+                  inputProps={{ maxLength: 6 }}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="country"
+                  required
+                  label="Country"
+                  type="text"
+                  placeholder="Country"
+                  value={state.country}
+                  onChange={handleOnChange}
+                />
+
+                <MuiTelInput
+                  className="textfield"
+                  id="phone"
+                  defaultCountry="US"
+                  required
+                  label="Phone"
+                  placeholder="Phone"
+                  value={state.phone}
+                  onChange={handlePhoneChange}
+                  onlyCountries={["US", "CA"]}
+                  inputProps={{ maxLength: 15 }}
+                />
+
+                <MuiTelInput
+                  className="textfield"
+                  id="fax"
+                  defaultCountry="US"
+                  label="Fax"
+                  type="tel"
+                  placeholder="Fax"
+                  onlyCountries={["US", "CA"]}
+                  inputProps={{ maxLength: 15 }}
+                  value={state.fax}
+                  onChange={handleFaxChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="email"
+                  required
+                  label="E-Mail"
+                  type="email"
+                  placeholder="E-Mail"
+                  value={state.email}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="remark"
+                  label="Remarks"
+                  type="text"
+                  placeholder="Remarks"
+                  multiline
+                  rows={4}
+                  value={state.remark}
+                  onChange={handleOnChange}
+                />
+                <p></p>
+              </Box>
+              {state.onEditMode ? (
+                <Box>
+                  <Button variant="contained" onClick={handleSaveChanges}>
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    style={{ marginLeft: "10px" }}
+                    onClick={cancelEditing}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              ) : (
+                <Button variant="contained" onClick={handleSubmit}>
+                  Save New Client
+                </Button>
+              )}
+              <p></p>
+            </AccordionDetails>
+          </Accordion>
+
           <Snackbar
             open={state.error && state.openSnakbar}
             autoHideDuration={5000}
@@ -385,7 +567,7 @@ export const AddClient = () => {
           >
             <Alert severity="success" onClose={handleClose}>
               <AlertTitle>Client Saved</AlertTitle>
-              Client created!
+              {state.msg}
             </Alert>
           </Snackbar>
         </form>
@@ -393,7 +575,13 @@ export const AddClient = () => {
         <div id="table-container">
           <Divider />
           <p></p>
-          <EnhancedTable headings={headings} loadData={getData} />
+          <EnhancedTable
+            headings={headings}
+            loadData={getData}
+            dataUpdated={state.isDataUpdated}
+            editData={handleItemClick}
+            boxChecked={handleBoxChecked}
+          />
         </div>
       </div>
     </div>

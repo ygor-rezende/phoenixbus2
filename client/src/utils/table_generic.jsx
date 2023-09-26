@@ -19,11 +19,8 @@ import Tooltip from "@mui/material/Tooltip";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import { MuiColorInput } from "mui-color-input";
 import {
   TextField,
   Dialog,
@@ -32,7 +29,6 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
-  Modal,
 } from "@mui/material";
 
 function descendingComparator(a, b, orderBy) {
@@ -131,7 +127,7 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, onFilter, onDelete, onEdit } = props;
+  const { numSelected, onFilter, onDelete } = props;
 
   //Logic to display delete and edit buttons
   let buttons;
@@ -141,11 +137,6 @@ function EnhancedTableToolbar(props) {
         <Tooltip title="Delete">
           <IconButton disabled onClick={onDelete}>
             <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Edit">
-          <IconButton disabled onClick={onEdit}>
-            <EditIcon />
           </IconButton>
         </Tooltip>
       </Box>
@@ -224,12 +215,7 @@ const EnhancedTable = (props) => {
   const [filteredData, setFilteredData] = useState([]);
   const [isTableUpdated, setIsTableUpdated] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [vehicleColor, setVehicleColor] = useState("#ffffff");
-  const [vehicleModel, setVehicleModel] = useState("");
-  const [vehicleName, setVehicleName] = useState("");
-  const [vehicleYear, setVehicleYear] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
-  const { headings, loadData } = props;
+  const { headings, loadData, dataUpdated, editData, boxChecked } = props;
 
   useEffect(() => {
     const fechData = async () => {
@@ -239,7 +225,7 @@ const EnhancedTable = (props) => {
     };
 
     fechData().catch(console.error);
-  }, [isTableUpdated, loadData]);
+  }, [dataUpdated]);
 
   const headCells = headings.map((element) => ({
     id: element.id,
@@ -264,9 +250,13 @@ const EnhancedTable = (props) => {
   };
 
   const handleClick = (event, id) => {
+    console.log(id);
+    editData(id);
+  };
+
+  const handleSelectItem = (event, id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
-
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
@@ -279,8 +269,8 @@ const EnhancedTable = (props) => {
         selected.slice(selectedIndex + 1)
       );
     }
-
     setSelected(newSelected);
+    boxChecked(true);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -346,65 +336,6 @@ const EnhancedTable = (props) => {
     setOpenDialog(true);
   };
 
-  const handleEdition = () => {
-    if (isSelected.length === 1) {
-      //load fields
-      console.log(data.filter((e) => e.id === selected[0]));
-      setVehicleColor(data.filter((e) => e.id === selected[0])[0].color);
-      setVehicleName(data.filter((e) => e.id === selected[0])[0].name);
-      setVehicleModel(data.filter((e) => e.id === selected[0])[0].model);
-      setVehicleYear(data.filter((e) => e.id === selected[0])[0].year);
-
-      //open modal
-      setOpenModal(true);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
-  //save the changes made in one vehicle
-  const handleSaveChanges = async () => {
-    //save the vehicle data
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatevehicle`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vehicle: {
-              id: selected[0],
-              name: vehicleName,
-              model: vehicleModel,
-              year: vehicleYear,
-              color: vehicleColor,
-            },
-          }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const data = await response.json();
-      console.log(data);
-      if (data.detail) {
-        console.log(data.detail);
-      } else {
-        //reload the data
-        setIsTableUpdated((update) => !update);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    //close modal
-    setOpenModal(false);
-
-    //remove selection
-    setSelected([]);
-  };
-
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -420,20 +351,6 @@ const EnhancedTable = (props) => {
     [order, orderBy, page, rowsPerPage, filteredData]
   );
 
-  const modalStile = {
-    position: "absolute",
-    borderRadius: "10px",
-    display: "flex",
-    flexDirection: "column",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-  };
-
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -441,7 +358,6 @@ const EnhancedTable = (props) => {
           numSelected={selected.length}
           onFilter={filterBySearch}
           onDelete={handleOpenDialog}
-          onEdit={handleEdition}
         />
         <TableContainer>
           <Table
@@ -481,6 +397,7 @@ const EnhancedTable = (props) => {
                         inputProps={{
                           "aria-labelledby": labelId,
                         }}
+                        onChange={(event) => handleSelectItem(event, row.id)}
                       />
                     </TableCell>
                     {headCells.map((cell) => {
@@ -488,6 +405,7 @@ const EnhancedTable = (props) => {
                         <TableCell
                           align={cell.isNumeric ? "right" : "left"}
                           padding={cell.isPaddingDisabled}
+                          key={cell.id}
                         >
                           {row[`${cell.id}`]}
                         </TableCell>
@@ -543,65 +461,6 @@ const EnhancedTable = (props) => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box sx={modalStile}>
-          <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
-            <IconButton onClick={() => setOpenModal(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Tooltip>
-          <Typography
-            id="modal-title"
-            variant="h6"
-            component="h2"
-            style={{ alignSelf: "center" }}
-          >
-            Edit vechicle
-          </Typography>
-          <p></p>
-          <TextField
-            required
-            id="vehiclename"
-            value={vehicleName}
-            label="Name"
-            type="text"
-            onChange={(e) => setVehicleName(e.target.value)}
-          />
-          <p></p>
-          <TextField
-            id="vehiclemodel"
-            value={vehicleModel}
-            label="Model"
-            type="text"
-            onChange={(e) => setVehicleModel(e.target.value)}
-          />
-          <p></p>
-          <TextField
-            id="vehicleyear"
-            value={vehicleYear}
-            label="Year"
-            type="text"
-            onChange={(e) => setVehicleYear(e.target.value)}
-          />
-          <p></p>
-          <MuiColorInput
-            id="vehicleColor"
-            label="Color"
-            value={vehicleColor}
-            onChange={(color) => setVehicleColor(color)}
-            isAlphaHidden
-          />
-          <p></p>
-          <Button variant="contained" onClick={handleSaveChanges}>
-            Save
-          </Button>
-        </Box>
-      </Modal>
     </Box>
   );
 };

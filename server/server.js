@@ -126,5 +126,13 @@ app.get("/getallclients", async (req, res) => {
   console.log(response);
   res.json(response);
 });
+
+//Update a client
+app.put("/updateclient", bodyParser.json(), async (req, res) => {
+  const { client } = req.body;
+  let response = await Client.updateClient(client);
+  console.log(response);
+  res.json(response);
+});
 //#endRegion
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

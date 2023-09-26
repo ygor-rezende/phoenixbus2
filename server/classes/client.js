@@ -45,6 +45,33 @@ class Client {
       return "Query failed";
     }
   } //getAllClients
+
+  static async updateClient(client) {
+    try {
+      const updatedClient = await pool.query(
+        "UPDATE clients SET agency = $1, contact = $2, address1 = $3, address2 = $4, city = $5, client_state = $6, zip = $7, country = $8, phone = $9, fax = $10, email = $11, remark = $12 WHERE client_id = $13",
+        [
+          client.agency,
+          client.contact,
+          client.address1,
+          client.address2,
+          client.city,
+          client.state,
+          client.zip,
+          client.country,
+          client.phone,
+          client.fax,
+          client.email,
+          client.remark,
+          client.id,
+        ]
+      );
+      return `Client ${client.agency} updated`;
+    } catch (err) {
+      console.error(err);
+      if (err) return { detail: err.detail };
+    }
+  } //updateClient
 }
 
 module.exports = { Client };
