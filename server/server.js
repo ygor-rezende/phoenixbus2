@@ -123,7 +123,7 @@ app.post("/createclient", bodyParser.json(), async (req, res) => {
 //Get all clients
 app.get("/getallclients", async (req, res) => {
   let response = await Client.getAllClients();
-  console.log(response);
+  //console.log(response);
   res.json(response);
 });
 
@@ -131,7 +131,14 @@ app.get("/getallclients", async (req, res) => {
 app.put("/updateclient", bodyParser.json(), async (req, res) => {
   const { client } = req.body;
   let response = await Client.updateClient(client);
-  console.log(response);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete clients
+app.delete("/deleteclient", async (req, res) => {
+  const { clientIds } = req.body;
+  let response = await Client.deleteClient(clientIds);
   res.json(response);
 });
 //#endRegion

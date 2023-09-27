@@ -135,7 +135,7 @@ function EnhancedTableToolbar(props) {
     buttons = (
       <Box sx={{ display: "flex" }}>
         <Tooltip title="Delete">
-          <IconButton disabled onClick={onDelete}>
+          <IconButton onClick={onDelete}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -213,9 +213,9 @@ const EnhancedTable = (props) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [isTableUpdated, setIsTableUpdated] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const { headings, loadData, dataUpdated, editData, boxChecked } = props;
+  const { headings, loadData, dataUpdated, editData, boxChecked, onDelete } =
+    props;
 
   useEffect(() => {
     const fechData = async () => {
@@ -227,6 +227,7 @@ const EnhancedTable = (props) => {
     fechData().catch(console.error);
   }, [dataUpdated]);
 
+  //Table heading settings
   const headCells = headings.map((element) => ({
     id: element.id,
     numeric: element.isNumeric,
@@ -240,6 +241,7 @@ const EnhancedTable = (props) => {
     setOrderBy(property);
   };
 
+  //handles checkbox to select all rows
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelected = filteredData.map((n) => n.id);
@@ -249,11 +251,14 @@ const EnhancedTable = (props) => {
     setSelected([]);
   };
 
+  //Calls the parent function to show the data for editing
+  //when the user clicks a row
   const handleClick = (event, id) => {
     console.log(id);
     editData(id);
   };
 
+  //handles request to select row(s) in the dable
   const handleSelectItem = (event, id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
@@ -286,6 +291,7 @@ const EnhancedTable = (props) => {
     setDense(event.target.checked);
   };
 
+  //filter table content
   const filterBySearch = (event) => {
     const query = event.target.value;
 
@@ -298,33 +304,16 @@ const EnhancedTable = (props) => {
     setFilteredData(updatedList);
   };
 
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletevehicle`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ vehicleIds: selected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const data = await response.json();
-      console.log(data);
-      if (data.detail) {
-        console.log(data.detail);
-      } else {
-        //reload the data
-        setIsTableUpdated((update) => !update);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  //Submit delete request after user confirms
+  const handleDelete = () => {
+    //call parent's delete function
+    onDelete(selected);
 
     //close the dialog
     handleCloseDialog();
+
+    //clear the checkbox selection
+    setSelected([]);
   };
 
   //Delete Dialog control

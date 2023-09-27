@@ -66,12 +66,32 @@ class Client {
           client.id,
         ]
       );
-      return `Client ${client.agency} updated`;
+      if (updatedClient.rowCount) return `Client ${client.agency} updated`;
+      else return { failed: "Failed to update client" };
     } catch (err) {
       console.error(err);
-      if (err) return { detail: err.detail };
+      if (err) return { failed: `Error: ${err.message}` };
     }
   } //updateClient
+
+  static async deleteClient(clientIds) {
+    try {
+      const deletedClients = [];
+      clientIds.forEach(async (client) => {
+        const deletedClient = await pool.query(
+          "DELETE from clients WHERE client_id = $1",
+          [client]
+        );
+        console.log(deletedClient);
+        deletedClients.push(deletedClient);
+      });
+      if (deletedClients[0].rowCount) return "Client(s) deleted";
+      else return { failed: "Failed to delete client" };
+    } catch (err) {
+      console.error(err);
+      if (err) return { failed: `Error: ${err.message}` };
+    }
+  } //deleteClient
 }
 
 module.exports = { Client };

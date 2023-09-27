@@ -99,6 +99,7 @@ const initialState = {
   onEditMode: false,
   expandPanel: false,
   isDataUpdated: false,
+  invalidField: "",
 };
 
 export const AddClient = () => {
@@ -149,10 +150,60 @@ export const AddClient = () => {
     setState({ fax: value });
   };
 
+  const isFormValid = () => {
+    if (!state.agency) {
+      setState({ invalidField: "agency" });
+      return;
+    }
+
+    if (!state.contact) {
+      setState({ invalidField: "contact" });
+      return;
+    }
+
+    if (!state.address1) {
+      setState({ invalidField: "address1" });
+      return;
+    }
+
+    if (!state.city) {
+      setState({ invalidField: "city" });
+      return;
+    }
+
+    if (!state.state) {
+      setState({ invalidField: "state" });
+      return;
+    }
+
+    if (!state.zip) {
+      setState({ invalidField: "zip" });
+      return;
+    }
+
+    if (!state.country) {
+      setState({ invalidField: "country" });
+      return;
+    }
+
+    if (!state.phone) {
+      setState({ invalidField: "phone" });
+      return;
+    }
+
+    if (!state.email) {
+      setState({ invalidField: "email" });
+      return;
+    }
+
+    setState({ invalidField: "" });
+    return true;
+  };
+
   //handle form submit
   const handleSubmit = async () => {
-    //if the autocomplete is null do not complete
-    if (state.state === null) {
+    //validate form
+    if (!isFormValid()) {
       return;
     }
     try {
@@ -205,6 +256,7 @@ export const AddClient = () => {
           email: "",
           remark: "",
           expandPanel: false,
+          isDataUpdated: !state.isDataUpdated,
         });
       }
     } catch (err) {
@@ -241,6 +293,9 @@ export const AddClient = () => {
 
   //save client being edited
   const handleSaveChanges = async () => {
+    if (!isFormValid()) {
+      return;
+    }
     try {
       const clientToUpdate = {
         id: state.clientId,
@@ -270,14 +325,19 @@ export const AddClient = () => {
       if (!response.ok) {
         throw new Error(response.status);
       }
-      const data = await response.json();
-      console.log(data);
-      if (data.detail) {
-        console.log(data.detail);
+      const responseMsg = await response.json();
+      console.log(responseMsg);
+      if (responseMsg.failed) {
+        console.log(responseMsg.failed);
+        setState({
+          success: false,
+          error: responseMsg.failed,
+          openSnakbar: true,
+        });
       } else {
         //if no error set success and reset intial state
         setState({
-          msg: data,
+          msg: responseMsg,
           error: null,
           success: true,
           openSnakbar: true,
@@ -295,6 +355,44 @@ export const AddClient = () => {
           remark: "",
           expandPanel: false,
           onEditMode: false,
+          isDataUpdated: !state.isDataUpdated,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  //Delete one or more clients from the database
+  const handleDelete = async (itemsSelected) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/deleteclient`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientIds: itemsSelected }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      const responseMsg = await response.json();
+      console.log(responseMsg);
+      if (responseMsg.failed) {
+        console.log(responseMsg.failed);
+        setState({
+          success: false,
+          error: responseMsg.failed,
+          openSnakbar: true,
+        });
+      } else {
+        //update state and reload the data
+        setState({
+          msg: responseMsg,
+          error: null,
+          success: true,
+          openSnakbar: true,
           isDataUpdated: !state.isDataUpdated,
         });
       }
@@ -384,6 +482,12 @@ export const AddClient = () => {
             <AccordionDetails>
               <Box className="clientbox1">
                 <TextField
+                  error={state.invalidField === "agency"}
+                  helperText={
+                    state.invalidField === "agency"
+                      ? "Information required"
+                      : ""
+                  }
                   className="textfield"
                   id="agency"
                   required
@@ -394,6 +498,12 @@ export const AddClient = () => {
                   onChange={handleOnChange}
                 />
                 <TextField
+                  error={state.invalidField === "contact"}
+                  helperText={
+                    state.invalidField === "contact"
+                      ? "Information required"
+                      : ""
+                  }
                   className="textfield"
                   id="contact"
                   required
@@ -405,6 +515,12 @@ export const AddClient = () => {
                 />
 
                 <TextField
+                  error={state.invalidField === "address1"}
+                  helperText={
+                    state.invalidField === "address1"
+                      ? "Information required"
+                      : ""
+                  }
                   className="textfield"
                   id="address1"
                   required
@@ -426,6 +542,10 @@ export const AddClient = () => {
                 />
 
                 <TextField
+                  error={state.invalidField === "city"}
+                  helperText={
+                    state.invalidField === "city" ? "Information required" : ""
+                  }
                   className="textfield"
                   id="city"
                   required
@@ -449,11 +569,25 @@ export const AddClient = () => {
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.toString()}
                     renderInput={(params) => (
-                      <TextField required {...params} label="State" />
+                      <TextField
+                        required
+                        {...params}
+                        label="State"
+                        error={state.invalidField === "state"}
+                        helperText={
+                          state.invalidField === "state"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
                     )}
                   />
                 </div>
                 <TextField
+                  error={state.invalidField === "zip"}
+                  helperText={
+                    state.invalidField === "zip" ? "Information required" : ""
+                  }
                   className="textfield"
                   id="zip"
                   required
@@ -466,6 +600,12 @@ export const AddClient = () => {
                 />
 
                 <TextField
+                  error={state.invalidField === "country"}
+                  helperText={
+                    state.invalidField === "country"
+                      ? "Information required"
+                      : ""
+                  }
                   className="textfield"
                   id="country"
                   required
@@ -477,6 +617,10 @@ export const AddClient = () => {
                 />
 
                 <MuiTelInput
+                  error={state.invalidField === "phone"}
+                  helperText={
+                    state.invalidField === "phone" ? "Information required" : ""
+                  }
                   className="textfield"
                   id="phone"
                   defaultCountry="US"
@@ -503,6 +647,10 @@ export const AddClient = () => {
                 />
 
                 <TextField
+                  error={state.invalidField === "email"}
+                  helperText={
+                    state.invalidField === "email" ? "Information required" : ""
+                  }
                   className="textfield"
                   id="email"
                   required
@@ -581,6 +729,7 @@ export const AddClient = () => {
             dataUpdated={state.isDataUpdated}
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
+            onDelete={handleDelete}
           />
         </div>
       </div>
