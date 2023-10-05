@@ -269,6 +269,7 @@ export const AddClient = () => {
     setState({
       expandPanel: false,
       onEditMode: false,
+      invalidField: "",
       agency: "",
       contact: "",
       address1: "",
@@ -409,6 +410,7 @@ export const AddClient = () => {
       onEditMode: true,
       expandPanel: true,
       clientId: id,
+      invalidField: "",
       agency: state.clientsData.filter((e) => e.id === id)[0].agency,
       contact: state.clientsData.filter((e) => e.id === id)[0].contact,
       address1: state.clientsData.filter((e) => e.id === id)[0].address1,
@@ -556,7 +558,7 @@ export const AddClient = () => {
                   onChange={handleOnChange}
                 />
                 <div
-                  id="vehicle-year-box"
+                  id="states-box"
                   className="textfield"
                   style={{ display: "inline-block" }}
                 >
@@ -714,7 +716,7 @@ export const AddClient = () => {
             onClose={handleClose}
           >
             <Alert severity="success" onClose={handleClose}>
-              <AlertTitle>Client Saved</AlertTitle>
+              <AlertTitle>Clients Updated</AlertTitle>
               {state.msg}
             </Alert>
           </Snackbar>
@@ -730,6 +732,7 @@ export const AddClient = () => {
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
+            filterOption="agency"
           />
         </div>
       </div>

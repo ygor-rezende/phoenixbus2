@@ -79,6 +79,12 @@
     width: 100%;
   }
 
+  .locationbox1{
+    margin-bottom: 20px;
+    display: inline-block;
+    width: 100%;
+  }
+
   .textfield{
     width: 30% !important;
     margin: 10px 10px !important;

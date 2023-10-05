@@ -27,3 +27,17 @@ CREATE TABLE clients (
     email VARCHAR(50) NOT NULL, 
     remark VARCHAR(1000)
 )
+
+
+CREATE TABLE locations (
+    location_id VARCHAR(255) PRIMARY KEY,
+    location_name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL, 
+    city VARCHAR(100) NOT NULL, 
+    location_state VARCHAR(255) NOT NULL, 
+    zip VARCHAR(6) NOT NULL, 
+    phone VARCHAR(16) NOT NULL,
+    fax VARCHAR(16)
+)
+
+

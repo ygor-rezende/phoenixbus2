@@ -6,7 +6,7 @@ class Client {
     try {
       //generate a new id
       const newId = uuid();
-      //insert the new vehicle
+      //insert the new client
       const newClient = await pool.query(
         `INSERT INTO clients (client_id, agency, contact, address1, address2, city, client_state, zip, country, phone, fax, email, remark)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
@@ -76,16 +76,15 @@ class Client {
 
   static async deleteClient(clientIds) {
     try {
-      const deletedClients = [];
-      clientIds.forEach(async (client) => {
-        const deletedClient = await pool.query(
-          "DELETE from clients WHERE client_id = $1",
-          [client]
-        );
-        console.log(deletedClient);
-        deletedClients.push(deletedClient);
+      const deletedClients = await clientIds.map(async (client) => {
+        return await pool.query("DELETE from clients WHERE client_id = $1", [
+          client,
+        ]);
       });
-      if (deletedClients[0].rowCount) return "Client(s) deleted";
+      const deletedPromise = await Promise.all(deletedClients);
+      console.log(deletedPromise);
+      if (deletedPromise[0].rowCount)
+        return `Number of client(s) deleted: ${deletedPromise.length}`;
       else return { failed: "Failed to delete client" };
     } catch (err) {
       console.error(err);

@@ -214,8 +214,15 @@ const EnhancedTable = (props) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const { headings, loadData, dataUpdated, editData, boxChecked, onDelete } =
-    props;
+  const {
+    headings,
+    loadData,
+    dataUpdated,
+    editData,
+    boxChecked,
+    onDelete,
+    filterOption,
+  } = props;
 
   useEffect(() => {
     const fechData = async () => {
@@ -298,7 +305,7 @@ const EnhancedTable = (props) => {
     let updatedList = [...data];
 
     updatedList = updatedList.filter((e) => {
-      return e.agency.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return e[filterOption].toLowerCase().indexOf(query.toLowerCase()) !== -1;
     });
 
     setFilteredData(updatedList);

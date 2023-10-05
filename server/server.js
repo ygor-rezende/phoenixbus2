@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const { User } = require("./classes/user");
 const { Vehicle } = require("./classes/vehicle");
 const { Client } = require("./classes/client");
+const { Location } = require("./classes/location");
 
 //using cors for allow testing
 app.use(cors());
@@ -141,5 +142,38 @@ app.delete("/deleteclient", async (req, res) => {
   let response = await Client.deleteClient(clientIds);
   res.json(response);
 });
-//#endRegion
+//#endregion
+
+//#region Location
+//create location
+app.post("/createlocation", bodyParser.json(), async (req, res) => {
+  const { location } = req.body;
+  let response = await Location.newLocation(location);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all locations
+app.get("/getlocations", async (req, res) => {
+  let response = await Location.getLocations();
+  //console.log(response);
+  res.json(response);
+});
+
+//Update a location
+app.put("/updatelocation", bodyParser.json(), async (req, res) => {
+  const { location } = req.body;
+  let response = await Location.updateLocation(location);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete clients
+app.delete("/deletelocation", async (req, res) => {
+  const { locationIds } = req.body;
+  let response = await Location.deleteLocation(locationIds);
+  res.json(response);
+});
+//#endregion
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -43,6 +43,7 @@ import {
   SalesRoutes,
 } from "./utils/private_routes";
 import DeleteUser from "./pages/admin/deleteUser";
+import { ServiceLocation } from "./pages/servicelocation";
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(null);
@@ -144,28 +145,35 @@ const App = () => {
                 to="/addclient"
                 onClick={handleClose}
               >
-                New Client
+                Clients
+              </MenuItem>
+              <MenuItem
+                component={NavLink}
+                to="/servicelocations"
+                onClick={handleClose}
+              >
+                Service Locations
               </MenuItem>
               <MenuItem
                 component={NavLink}
                 to="/addreservation"
                 onClick={handleClose}
               >
-                New Reservation
+                Reservations
               </MenuItem>
               <MenuItem
                 component={NavLink}
                 to="/addquote"
                 onClick={handleClose}
               >
-                New Quote
+                Quotes
               </MenuItem>
               <MenuItem
                 component={NavLink}
                 to="/addvehicle"
                 onClick={handleClose}
               >
-                New Vehicle
+                Vehicles
               </MenuItem>
             </Menu>
             {isAuth && dispatchGroup.find((e) => e === userType) ? (
@@ -340,6 +348,7 @@ const App = () => {
             <Route path="/resetPassword" element={<ResetPassword />} />
             <Route element={<SalesRoutes />}>
               <Route path="/addclient" element={<AddClient />} />
+              <Route path="/servicelocations" element={<ServiceLocation />} />
             </Route>
             <Route element={<DriverRoutes />}>
               <Route path="/driverpage" element={<ScheduledRoutes />} />
