@@ -73,17 +73,12 @@
     filter: drop-shadow(0 0 2em #61dafbaa);
   }
 
-  .clientbox1{
+  .fieldsbox1{
     margin-bottom: 20px;
     display: inline-block;
     width: 100%;
   }
 
-  .locationbox1{
-    margin-bottom: 20px;
-    display: inline-block;
-    width: 100%;
-  }
 
   .textfield{
     width: 30% !important;

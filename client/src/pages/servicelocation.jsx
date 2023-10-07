@@ -221,6 +221,7 @@ export const ServiceLocation = () => {
 
   //clear fields utility
   const clearFields = () => {
+    setLocationId("");
     setName("");
     setAddress("");
     setCity("");
@@ -328,7 +329,13 @@ export const ServiceLocation = () => {
         setError(null);
         setSuccess(true);
         setOpenSnakbar(true);
+
+        //clear fields
+        clearFields();
+
+        setExpandPanel(false);
         setIsDataUpdated(!isDataUpdated);
+        setOnEditMode(false);
       }
     } catch (err) {
       console.error(err);
@@ -409,7 +416,7 @@ export const ServiceLocation = () => {
               )}
             </AccordionSummary>
             <AccordionDetails>
-              <Box className="locationbox1">
+              <Box className="fieldsbox1">
                 <TextField
                   error={invalidField === "name"}
                   helperText={

@@ -41,3 +41,22 @@ CREATE TABLE locations (
 )
 
 
+CREATE TABLE companies (
+    company_id VARCHAR(255) PRIMARY KEY,
+    company_name VARCHAR(255) NOT NULL,
+    contact VARCHAR(255) NOT NULL, 
+    address VARCHAR(255) NOT NULL,  
+    city VARCHAR(100) NOT NULL, 
+    company_state VARCHAR(255) NOT NULL, 
+    zip VARCHAR(6) NOT NULL, 
+    phone VARCHAR(16) NOT NULL,
+    email VARCHAR(50) NOT NULL, 
+    ein VARCHAR(50),
+    dot VARCHAR(50), 
+    insurance VARCHAR(50), 
+    account VARCHAR(50), 
+    routing VARCHAR(50), 
+    wire VARCHAR(50), 
+    zelle VARCHAR(50)
+)
+

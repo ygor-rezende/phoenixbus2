@@ -44,6 +44,7 @@ import {
 } from "./utils/private_routes";
 import DeleteUser from "./pages/admin/deleteUser";
 import { ServiceLocation } from "./pages/servicelocation";
+import { FarmOut } from "./pages/admin/farmout";
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(null);
@@ -303,6 +304,13 @@ const App = () => {
               >
                 Remove user
               </MenuItem>
+              <MenuItem
+                component={NavLink}
+                to="/farmout"
+                onClick={handleCloseAdmin}
+              >
+                Farm-outs
+              </MenuItem>
             </Menu>
             {isAuth ? (
               <IconButton
@@ -366,6 +374,7 @@ const App = () => {
               />
               <Route path="/driverpayroll" element={<DriverPayroll />} />
               <Route path="/removeuser" element={<DeleteUser />} />
+              <Route path="/farmout" element={<FarmOut />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />
           </Route>

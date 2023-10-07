@@ -7,6 +7,7 @@ const { User } = require("./classes/user");
 const { Vehicle } = require("./classes/vehicle");
 const { Client } = require("./classes/client");
 const { Location } = require("./classes/location");
+const { FarmOut } = require("./classes/farmout");
 
 //using cors for allow testing
 app.use(cors());
@@ -172,6 +173,38 @@ app.put("/updatelocation", bodyParser.json(), async (req, res) => {
 app.delete("/deletelocation", async (req, res) => {
   const { locationIds } = req.body;
   let response = await Location.deleteLocation(locationIds);
+  res.json(response);
+});
+//#endregion
+
+//#region FarmOut
+//create company
+app.post("/createcompany", bodyParser.json(), async (req, res) => {
+  const { company } = req.body;
+  let response = await FarmOut.newCompany(company);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all companies
+app.get("/getallcompanies", async (req, res) => {
+  let response = await FarmOut.getAllCompanies();
+  //console.log(response);
+  res.json(response);
+});
+
+//Update a company
+app.put("/updatecompany", bodyParser.json(), async (req, res) => {
+  const { company } = req.body;
+  let response = await FarmOut.updateCompany(company);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete companies
+app.delete("/deletecompany", async (req, res) => {
+  const { companyIds } = req.body;
+  let response = await FarmOut.deleteCompany(companyIds);
   res.json(response);
 });
 //#endregion

@@ -150,6 +150,7 @@ export const AddClient = () => {
     setState({ fax: value });
   };
 
+  //validate the form fields
   const isFormValid = () => {
     if (!state.agency) {
       setState({ invalidField: "agency" });
@@ -198,7 +199,7 @@ export const AddClient = () => {
 
     setState({ invalidField: "" });
     return true;
-  };
+  }; //isFormValid
 
   //handle form submit
   const handleSubmit = async () => {
@@ -262,7 +263,7 @@ export const AddClient = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }; //handleSubmit
 
   //Cancel editing
   const cancelEditing = () => {
@@ -285,6 +286,7 @@ export const AddClient = () => {
     });
   };
 
+  //closes the snakbar
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -292,7 +294,7 @@ export const AddClient = () => {
     setState({ openSnakbar: false });
   };
 
-  //save client being edited
+  //save data being edited
   const handleSaveChanges = async () => {
     if (!isFormValid()) {
       return;
@@ -342,6 +344,7 @@ export const AddClient = () => {
           error: null,
           success: true,
           openSnakbar: true,
+          clientId: "",
           agency: "",
           contact: "",
           address1: "",
@@ -362,9 +365,9 @@ export const AddClient = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }; //handleSaveChanges
 
-  //Delete one or more clients from the database
+  //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     try {
       const response = await fetch(
@@ -394,15 +397,30 @@ export const AddClient = () => {
           error: null,
           success: true,
           openSnakbar: true,
+          clientId: "",
+          agency: "",
+          contact: "",
+          address1: "",
+          address2: "",
+          city: "",
+          state: null,
+          zip: "",
+          country: "US",
+          phone: "",
+          fax: "",
+          email: "",
+          remark: "",
+          expandPanel: false,
+          onEditMode: false,
           isDataUpdated: !state.isDataUpdated,
         });
       }
     } catch (err) {
       console.error(err);
     }
-  };
+  }; //handleDelete
 
-  //Show client information when clicking on a table row
+  //Show information when clicking on a table row
   const handleItemClick = (id) => {
     //load fields
     console.log(state.clientsData.filter((e) => e.id === id));
@@ -424,12 +442,14 @@ export const AddClient = () => {
       email: state.clientsData.filter((e) => e.id === id)[0].email,
       remark: state.clientsData.filter((e) => e.id === id)[0].remark,
     });
-  };
+  }; //handleItemClick
 
+  //cancel editing when a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
   };
 
+  //table headings
   const headings = [
     {
       id: "agency",
@@ -482,7 +502,7 @@ export const AddClient = () => {
               )}
             </AccordionSummary>
             <AccordionDetails>
-              <Box className="clientbox1">
+              <Box className="fieldsbox1">
                 <TextField
                   error={state.invalidField === "agency"}
                   helperText={
@@ -526,7 +546,7 @@ export const AddClient = () => {
                   className="textfield"
                   id="address1"
                   required
-                  label="Adress 1"
+                  label="Address 1"
                   type="text"
                   placeholder="Address 1"
                   value={state.address1}
