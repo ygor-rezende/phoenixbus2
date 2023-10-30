@@ -56,8 +56,7 @@ class User {
       );
 
       //if user not found
-      if (!users.rows.length)
-        return res.json({ detail: "User does not exist." });
+      if (!users.rows.length) return { detail: "User does not exist." };
 
       //check user password with the password in database
       const success = await bcrypt.compare(

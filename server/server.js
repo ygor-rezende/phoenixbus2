@@ -8,6 +8,7 @@ const { Vehicle } = require("./classes/vehicle");
 const { Client } = require("./classes/client");
 const { Location } = require("./classes/location");
 const { FarmOut } = require("./classes/farmout");
+const { Quote } = require("./classes/quote");
 
 //using cors for allow testing
 app.use(cors());
@@ -205,6 +206,38 @@ app.put("/updatecompany", bodyParser.json(), async (req, res) => {
 app.delete("/deletecompany", async (req, res) => {
   const { companyIds } = req.body;
   let response = await FarmOut.deleteCompany(companyIds);
+  res.json(response);
+});
+//#endregion
+
+//#region Quote
+//create quote
+app.post("/createquote", bodyParser.json(), async (req, res) => {
+  const { quote } = req.body;
+  let response = await Quote.newQuote(quote);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all quotes
+app.get("/getallquotes", async (req, res) => {
+  let response = await Quote.getAllQuotes();
+  //console.log(response);
+  res.json(response);
+});
+
+//Update a Quote
+app.put("/updatequote", bodyParser.json(), async (req, res) => {
+  const { quote } = req.body;
+  let response = await Quote.updateQuote(quote);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete companies
+app.delete("/deletequote", async (req, res) => {
+  const { quoteIds } = req.body;
+  let response = await Quote.deleteQuote(quoteIds);
   res.json(response);
 });
 //#endregion

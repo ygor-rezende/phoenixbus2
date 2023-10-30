@@ -45,6 +45,7 @@ import {
 import DeleteUser from "./pages/admin/deleteUser";
 import { ServiceLocation } from "./pages/servicelocation";
 import { FarmOut } from "./pages/admin/farmout";
+import { Employee } from "./pages/admin/employee";
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(null);
@@ -311,6 +312,13 @@ const App = () => {
               >
                 Farm-outs
               </MenuItem>
+              <MenuItem
+                component={NavLink}
+                to="/employee"
+                onClick={handleCloseAdmin}
+              >
+                Employees
+              </MenuItem>
             </Menu>
             {isAuth ? (
               <IconButton
@@ -375,6 +383,7 @@ const App = () => {
               <Route path="/driverpayroll" element={<DriverPayroll />} />
               <Route path="/removeuser" element={<DeleteUser />} />
               <Route path="/farmout" element={<FarmOut />} />
+              <Route path="/employee" element={<Employee />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />
           </Route>
