@@ -9,7 +9,13 @@
   },
   "author": "Ygor Lopez de Rezende",
   "dependencies": {
+    "@mui/icons-material": "^5.14.16",
     "@mui/x-date-pickers-pro": "^6.17.0",
-    "if-env": "^1.0.4"
+    "if-env": "^1.0.4",
+    "jwt-decode": "^4.0.0",
+    "mui-color-input": "^2.0.1",
+    "mui-tel-input": "^4.0.1",
+    "react-cookie": "^6.1.1",
+    "react-router-dom": "^6.18.0"
   }
 }
