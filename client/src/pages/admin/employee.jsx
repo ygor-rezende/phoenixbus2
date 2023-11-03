@@ -484,7 +484,7 @@ export const Employee = () => {
     setState({
       onEditMode: true,
       expandPanel: true,
-      companyId: id,
+      employeeId: id,
       invalidField: "",
       firstname: state.employeesData.filter((e) => e.id === id)[0].firstname,
       lastname: state.employeesData.filter((e) => e.id === id)[0].lastname,
@@ -626,7 +626,7 @@ export const Employee = () => {
                     id="birth"
                     required
                     placeholder="Birth Date"
-                    value={state.birth}
+                    value={dayjs(state.birth)}
                     onChange={(newValue) => setState({ birth: newValue })}
                   />
                 </LocalizationProvider>
@@ -659,7 +659,7 @@ export const Employee = () => {
                     required
                     label="Hire Date"
                     placeholder="Hire Date"
-                    value={state.hireDate}
+                    value={dayjs(state.hireDate)}
                     onChange={(newValue) => setState({ hireDate: newValue })}
                   />
                 </LocalizationProvider>
@@ -823,18 +823,11 @@ export const Employee = () => {
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    error={state.invalidField === "driverLicenceExpDate"}
-                    helperText={
-                      state.invalidField === "driverLicenceExpDate"
-                        ? "Information required"
-                        : ""
-                    }
                     className="textfield"
                     id="driverLicenceExpDate"
-                    required
                     label="Driver Licence Expire Date"
                     placeholder="Driver Licence Expire Date"
-                    value={state.driverLicenceExpDate}
+                    value={dayjs(state.driverLicenceExpDate)}
                     onChange={(newValue) =>
                       setState({ driverLicenceExpDate: newValue })
                     }
@@ -897,7 +890,7 @@ export const Employee = () => {
                     id="insuranceExpDate"
                     label="Insurance Expire Date"
                     placeholder="Insurance Expire Date"
-                    value={state.insuranceExpDate}
+                    value={dayjs(state.insuranceExpDate)}
                     onChange={(newValue) =>
                       setState({ insuranceExpDate: newValue })
                     }
@@ -1007,7 +1000,7 @@ export const Employee = () => {
         <div id="table-container">
           <Divider />
           <p></p>
-          {/* <EnhancedTable
+          <EnhancedTable
             headings={headings}
             loadData={getData}
             dataUpdated={state.isDataUpdated}
@@ -1015,7 +1008,7 @@ export const Employee = () => {
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
             filterOption="firstname"
-          /> */}
+          />
         </div>
       </div>
     </div>

@@ -53,7 +53,7 @@ class Quote {
   static async updateQuote(quote) {
     try {
       const updatedQuote = await pool.query(
-        "UPDATE quotes SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, pax_group = $5, num_adults = $6, num_child = $7, trip_start_date = $8, trip_end_date = $9, deposit = $10, cost = $11, mco_mca = $12, hours_quote_valid = $13, client_comments = $14, intinerary_details = $15, internal_coments = $16 WHERE quote_id = $16",
+        "UPDATE quotes SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, pax_group = $5, num_adults = $6, num_child = $7, trip_start_date = $8, trip_end_date = $9, deposit = $10, cost = $11, mco_mca = $12, hours_quote_valid = $13, client_comments = $14, intinerary_details = $15, internal_coments = $16 WHERE quote_id = $17",
         [
           quote.clientId,
           quote.employeeId,

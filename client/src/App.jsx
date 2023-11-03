@@ -31,6 +31,7 @@ import { ScheduledRoutes } from "./pages/driverPage";
 import { AddClient } from "./pages/addclient";
 import AddVehicle from "./pages/addvehicle";
 import { Schedule } from "./pages/schedule";
+import { Quotes } from "./pages/quotes";
 import Auth from "./pages/admin/Auth";
 import ResetPassword from "./pages/resetPassword";
 import ResetUserPassword from "./pages/admin/ResetUserPassword";
@@ -365,6 +366,7 @@ const App = () => {
             <Route element={<SalesRoutes />}>
               <Route path="/addclient" element={<AddClient />} />
               <Route path="/servicelocations" element={<ServiceLocation />} />
+              <Route path="/addquote" element={<Quotes />} />
             </Route>
             <Route element={<DriverRoutes />}>
               <Route path="/driverpage" element={<ScheduledRoutes />} />

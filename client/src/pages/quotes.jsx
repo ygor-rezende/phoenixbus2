@@ -17,17 +17,12 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
-import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import {
-  DatePicker,
-  LocalizationProvider,
-  DateRangePicker,
-} from "@mui/x-date-pickers";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-import { MuiTelInput } from "mui-tel-input";
-import EnhancedTable from "../../utils/table_generic";
+import EnhancedTable from "../utils/table_generic";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -47,17 +42,18 @@ const categories = [
 const initialState = {
   quoteId: "",
   clientId: "",
-  agencyName: "",
+  agencyName: null,
   agencyEmail: "",
   agencyContact: "",
   employeeId: "",
-  salesPerson: "",
+  salesPerson: null,
   quoteDate: dayjs(Date(Date.now())),
   category: null,
   paxGroup: "",
   numAdults: 0,
   numChild: 0,
-  tripDate: ["", ""],
+  tripStartDate: dayjs(Date(Date.now())),
+  tripEndDate: dayjs(Date(Date.now())),
   deposit: 0.0,
   quotedCost: 0.0,
   arrivalProcMCOMCA: false,
@@ -83,22 +79,50 @@ export const Quotes = () => {
   //Get all quotes, client and employees data
   const getData = async () => {
     try {
-      //get quotes data
+      //get client and employees data
       let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallquotes`
+        `${process.env.REACT_APP_SERVERURL}/getallclients`
       );
+      const clientsRespData = await response.json();
+
+      response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getallemployees`
+      );
+      const employeesRespData = await response.json();
+
+      //get quotes data
+      response = await fetch(`${process.env.REACT_APP_SERVERURL}/getallquotes`);
       let quotesRespData = await response.json();
       quotesRespData = quotesRespData.map((item) => {
         const quote = {
           id: item.quote_id,
           clientId: item.client_id,
+          agencyName: clientsRespData.find(
+            (client) => client.client_id === item.client_id
+          ).agency,
+          agencyContact: clientsRespData.find(
+            (client) => client.client_id === item.client_id
+          ).contact,
+          agencyEmail: clientsRespData.find(
+            (client) => client.client_id === item.client_id
+          ).email,
           employeeId: item.employee_id,
+          salesPerson: `${
+            employeesRespData.find(
+              (employee) => employee.employee_id === item.employee_id
+            ).firstname
+          } ${
+            employeesRespData.find(
+              (employee) => employee.employee_id === item.employee_id
+            ).lastname
+          }`,
           quoteDate: item.quote_date,
           category: item.category,
           paxGroup: item.pax_group,
           numAdults: item.num_adults,
           numChild: item.num_child,
-          tripDate: [item.trip_start_date, item.trip_end_date],
+          tripStartDate: item.trip_start_date,
+          tripEndDate: item.trip_end_date,
           deposit: item.deposit,
           cost: item.cost,
           arrivalProcMCOMCA: item.mco_mca,
@@ -109,16 +133,6 @@ export const Quotes = () => {
         };
         return quote;
       });
-
-      //get client and employees data
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallclients`
-      );
-      const clientsRespData = await response.json();
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallemployees`
-      );
-      const employeesRespData = await response.json();
 
       setState({
         quotesData: quotesRespData,
@@ -166,8 +180,13 @@ export const Quotes = () => {
       return;
     }
 
-    if (!state.tripDate) {
-      setState({ invalidField: "tripDate" });
+    if (!state.tripStartDate) {
+      setState({ invalidField: "tripStartDate" });
+      return;
+    }
+
+    if (!state.tripEndDate) {
+      setState({ invalidField: "tripEndDate" });
       return;
     }
 
@@ -201,8 +220,8 @@ export const Quotes = () => {
               paxGroup: state.paxGroup,
               numAdults: state.numAdults,
               numChild: state.numChild,
-              tripStartDate: state.tripDate[0],
-              tripEndDate: state.tripDate[1],
+              tripStartDate: state.tripStartDate,
+              tripEndDate: state.tripEndDate,
               deposit: state.deposit,
               quotedCost: state.quotedCost,
               arrivalProcMCOMCA: state.arrivalProcMCOMCA,
@@ -248,7 +267,8 @@ export const Quotes = () => {
       paxGroup: "",
       numAdults: 0,
       numChild: 0,
-      tripDate: [],
+      tripStartDate: dayjs(Date(Date.now())),
+      tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
       quotedCost: 0.0,
       arrivalProcMCOMCA: false,
@@ -280,7 +300,8 @@ export const Quotes = () => {
       paxGroup: "",
       numAdults: 0,
       numChild: 0,
-      tripDate: [],
+      tripStartDate: dayjs(Date(Date.now())),
+      tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
       quotedCost: 0.0,
       arrivalProcMCOMCA: false,
@@ -314,8 +335,8 @@ export const Quotes = () => {
         paxGroup: state.paxGroup,
         numAdults: state.numAdults,
         numChild: state.numChild,
-        tripStartDate: state.tripDate[0],
-        tripEndDate: state.tripDate[1],
+        tripStartDate: state.tripStartDate,
+        tripEndDate: state.tripEndDate,
         deposit: state.deposit,
         quotedCost: state.quotedCost,
         arrivalProcMCOMCA: state.arrivalProcMCOMCA,
@@ -392,9 +413,10 @@ export const Quotes = () => {
     //load fields
     console.log(state.quotesData.filter((e) => e.id === id));
     //get client id and employee id from quotes data
-    const clientId = state.quotesData.filter((e) => e.id === id).clientId;
-    const employeeId = state.quotesData.filter((e) => e.id === id).employeeId;
-    const employeeObject = state.quotesData.filter(
+    const clientId = state.quotesData.filter((e) => e.id === id)[0].clientId;
+    const employeeId = state.quotesData.filter((e) => e.id === id)[0]
+      .employeeId;
+    const employeeObject = state.employeesData.filter(
       (employee) => employee.employee_id === employeeId
     )[0];
     setState({
@@ -403,6 +425,7 @@ export const Quotes = () => {
       companyId: id,
       invalidField: "",
       quoteId: state.quotesData.filter((e) => e.id === id)[0].id,
+      clientId: clientId,
       agencyName: state.clientsData.filter(
         (client) => client.client_id === clientId
       )[0].agency,
@@ -412,27 +435,33 @@ export const Quotes = () => {
       agencyContact: state.clientsData.filter(
         (client) => client.client_id === clientId
       )[0].contact,
+      employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
-      quoteDate: state.quotesData.filter((e) => e.id === id)[0].quote_date,
+      quoteDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].quoteDate
+      ),
       category: state.quotesData.filter((e) => e.id === id)[0].category,
-      paxGroup: state.quotesData.filter((e) => e.id === id)[0].quote_date,
-      numAdults: state.quotesData.filter((e) => e.id === id)[0].quote_date,
-      numChild: state.quotesData.filter((e) => e.id === id)[0].num_child,
-      tripDate: [
-        state.quotesData.filter((e) => e.id === id)[0].trip_start_date,
-        state.quotesData.filter((e) => e.id === id)[0].trip_end_date,
-      ],
+      paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
+      numAdults: state.quotesData.filter((e) => e.id === id)[0].numAdults,
+      numChild: state.quotesData.filter((e) => e.id === id)[0].numChild,
+      tripStartDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].tripStartDate
+      ),
+      tripEndDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].tripEndDate
+      ),
       deposit: state.quotesData.filter((e) => e.id === id)[0].deposit,
       quotedCost: state.quotesData.filter((e) => e.id === id)[0].cost,
-      arrivalProcMCOMCA: state.quotesData.filter((e) => e.id === id)[0].mco_mca,
+      arrivalProcMCOMCA: state.quotesData.filter((e) => e.id === id)[0]
+        .arrivalProcMCOMCA,
       numHoursQuoteValid: state.quotesData.filter((e) => e.id === id)[0]
-        .hours_quote_valid,
+        .numHoursQuoteValid,
       clientComments: state.quotesData.filter((e) => e.id === id)[0]
-        .client_comments,
+        .clientComments,
       intineraryDetails: state.quotesData.filter((e) => e.id === id)[0]
-        .intinerary_details,
+        .intineraryDetails,
       internalComments: state.quotesData.filter((e) => e.id === id)[0]
-        .internal_coments,
+        .internalComents,
     });
   }; //handleItemClick
 
@@ -463,7 +492,7 @@ export const Quotes = () => {
     },
     {
       id: "quoteDate",
-      isNumeric: true,
+      isNumeric: false,
       isPaddingDisabled: false,
       label: "Quote Date",
     },
@@ -476,11 +505,23 @@ export const Quotes = () => {
   ];
 
   const handleAgencyChange = (e, newValue) => {
-    setState({
-      agencyName: newValue.agency,
-      agencyContact: newValue.contact,
-      agencyEmail: newValue.email,
-    });
+    if (newValue) {
+      setState({
+        clientId: newValue.clientId,
+        agencyName: newValue.agency,
+        agencyContact: newValue.contact,
+        agencyEmail: newValue.email,
+      });
+    }
+  };
+
+  const handleSalesPersonChange = (_, newValue) => {
+    if (newValue) {
+      setState({
+        salesPerson: newValue.salesPerson,
+        employeeId: newValue.employeeId,
+      });
+    }
   };
 
   return (
@@ -504,7 +545,7 @@ export const Quotes = () => {
                   <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
                     NEW QUOTE
                   </Typography>
-                  <AddBusinessIcon
+                  <RequestQuoteIcon
                     style={{ color: "#1976d2", marginLeft: "10px" }}
                   />
                 </Box>
@@ -520,10 +561,12 @@ export const Quotes = () => {
                   <Autocomplete
                     id="agency"
                     required
+                    className="autocomplete"
                     value={state.agencyName}
                     onChange={handleAgencyChange}
                     options={state.clientsData.map((element) => {
                       const client = {
+                        clientId: element.client_id,
                         agency: element.agency,
                         contact: element.contact,
                         email: element.email,
@@ -531,7 +574,7 @@ export const Quotes = () => {
                       return client;
                     })}
                     sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.agency.toString()}
+                    getOptionLabel={(option) => option.agency ?? option}
                     renderInput={(params) => (
                       <TextField
                         required
@@ -560,8 +603,8 @@ export const Quotes = () => {
                 <TextField
                   className="textfield"
                   id="contact"
-                  required
                   label="Contact"
+                  disabled
                   type="text"
                   placeholder="Contact"
                   value={state.agencyContact}
@@ -576,15 +619,18 @@ export const Quotes = () => {
                   <Autocomplete
                     id="salesPerson"
                     required
+                    className="autocomplete"
                     value={state.salesPerson}
-                    onChange={(_, newValue) =>
-                      setState({ salesPerson: newValue })
-                    }
-                    options={state.employeesData.map(
-                      (element) => `${element.firstname} ${element.lastname}`
-                    )}
+                    onChange={handleSalesPersonChange}
+                    options={state.employeesData.map((element) => {
+                      const employee = {
+                        employeeId: element.employee_id,
+                        salesPerson: `${element.firstname} ${element.lastname}`,
+                      };
+                      return employee;
+                    })}
                     sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.toString()}
+                    getOptionLabel={(option) => option.salesPerson ?? option}
                     renderInput={(params) => (
                       <TextField
                         required
@@ -614,7 +660,7 @@ export const Quotes = () => {
                     id="quoteDate"
                     required
                     placeholder="Quote Date"
-                    value={state.quoteDate}
+                    value={dayjs(state.quoteDate)}
                     onChange={(newValue) => setState({ quoteDate: newValue })}
                   />
                 </LocalizationProvider>
@@ -626,6 +672,7 @@ export const Quotes = () => {
                 >
                   <Autocomplete
                     id="category"
+                    className="autocomplete"
                     required
                     value={state.category}
                     onChange={(_, newValue) => setState({ category: newValue })}
@@ -696,21 +743,38 @@ export const Quotes = () => {
                 />
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DateRangePicker
-                    localeText={{ start: "Start", end: "End" }}
-                    error={state.invalidField === "tripDate"}
+                  <DatePicker
+                    error={state.invalidField === "tripStartDate"}
                     helperText={
-                      state.invalidField === "tripDate"
+                      state.invalidField === "tripStartDate"
                         ? "Information required"
                         : ""
                     }
-                    label="Trip Date"
+                    label="Trip Start Date"
                     className="textfield"
-                    id="tripDate"
+                    id="tripStartDate"
                     required
-                    placeholder="Trip Date"
-                    value={state.tripDate}
-                    onChange={(newValue) => setState({ tripDate: newValue })}
+                    placeholder="Trip Start Date"
+                    value={state.tripStartDate}
+                    onChange={(newValue) =>
+                      setState({ tripStartDate: newValue })
+                    }
+                  />
+
+                  <DatePicker
+                    error={state.invalidField === "tripEndDate"}
+                    helperText={
+                      state.invalidField === "tripEndDate"
+                        ? "Information required"
+                        : ""
+                    }
+                    label="Trip End Date"
+                    className="textfield"
+                    id="tripEndDate"
+                    required
+                    placeholder="Trip End Date"
+                    value={state.tripEndDate}
+                    onChange={(newValue) => setState({ tripEndDate: newValue })}
                   />
                 </LocalizationProvider>
 
@@ -736,6 +800,17 @@ export const Quotes = () => {
                   onChange={handleOnChange}
                 />
 
+                <TextField
+                  className="textfield"
+                  id="numHoursQuoteValid"
+                  label="Quote valid for (Hr #)"
+                  type="text"
+                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  placeholder="Quote valid for (Hr #)"
+                  value={state.numHoursQuoteValid}
+                  onChange={handleOnChange}
+                />
+
                 <FormControlLabel
                   control={
                     <Switch
@@ -747,17 +822,7 @@ export const Quotes = () => {
                   }
                   label="Arrival Procedure MCO/MCA"
                   labelPlacement="start"
-                />
-
-                <TextField
                   className="textfield"
-                  id="numHoursQuoteValid"
-                  label="Quote valid for (Hr #)"
-                  type="text"
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Quote valid for (Hr #)"
-                  value={state.numHoursQuoteValid}
-                  onChange={handleOnChange}
                 />
 
                 <TextField

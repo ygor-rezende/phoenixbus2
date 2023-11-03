@@ -9,6 +9,7 @@ const { Client } = require("./classes/client");
 const { Location } = require("./classes/location");
 const { FarmOut } = require("./classes/farmout");
 const { Quote } = require("./classes/quote");
+const { Employee } = require("./classes/employee");
 
 //using cors for allow testing
 app.use(cors());
@@ -206,6 +207,38 @@ app.put("/updatecompany", bodyParser.json(), async (req, res) => {
 app.delete("/deletecompany", async (req, res) => {
   const { companyIds } = req.body;
   let response = await FarmOut.deleteCompany(companyIds);
+  res.json(response);
+});
+//#endregion
+
+//#region employee
+//create employee
+app.post("/createemployee", bodyParser.json(), async (req, res) => {
+  const { employee } = req.body;
+  let response = await Employee.newEmployee(employee);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all
+app.get("/getallemployees", async (req, res) => {
+  let response = await Employee.getAllEmployees();
+  //console.log(response);
+  res.json(response);
+});
+
+//Update
+app.put("/updateemployee", bodyParser.json(), async (req, res) => {
+  const { employee } = req.body;
+  let response = await Employee.updateEmployee(employee);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete
+app.delete("/deleteemployee", async (req, res) => {
+  const { employeeIds } = req.body;
+  let response = await Employee.deleteEmployee(employeeIds);
   res.json(response);
 });
 //#endregion
