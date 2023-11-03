@@ -9,6 +9,7 @@
   },
   "author": "Ygor Lopez de Rezende",
   "dependencies": {
+    "@mui/x-date-pickers-pro": "^6.17.0",
     "if-env": "^1.0.4"
   }
 }
