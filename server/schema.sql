@@ -110,3 +110,25 @@ CREATE TABLE quotes (
     internal_coments VARCHAR(255)
 )
 
+CREATE TABLE bookings (
+    invoice VARCHAR(255) PRIMARY KEY,
+    quote_id VARCHAR(255),
+    client_id VARCHAR(255) NOT NULL,
+    employee_id VARCHAR(255) NOT NULL, 
+    quote_date VARCHAR(30),  
+    booking_date VARCHAR(30) NOT NULL,
+    category VARCHAR(50) NOT NULL, 
+    pax_group VARCHAR(255), 
+    num_adults SMALLINT NOT NULL, 
+    num_child SMALLINT NOT NULL,
+    trip_start_date VARCHAR(30) NOT NULL, 
+    trip_end_date VARCHAR(30) NOT NULL,
+    deposit DECIMAL(10,2), 
+    cost DECIMAL(10,2) NOT NULL, 
+    mco_mca BOOLEAN, 
+    hours_quote_valid SMALLINT, 
+    client_comments VARCHAR(255), 
+    intinerary_details VARCHAR(255),
+    internal_coments VARCHAR(255)
+)
+

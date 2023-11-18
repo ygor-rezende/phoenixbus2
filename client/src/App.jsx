@@ -47,6 +47,7 @@ import DeleteUser from "./pages/admin/deleteUser";
 import { ServiceLocation } from "./pages/servicelocation";
 import { FarmOut } from "./pages/admin/farmout";
 import { Employee } from "./pages/admin/employee";
+import { Bookings } from "./pages/bookings.jsx";
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(null);
@@ -164,13 +165,7 @@ const App = () => {
               >
                 Reservations
               </MenuItem>
-              <MenuItem
-                component={NavLink}
-                to="/addquote"
-                onClick={handleClose}
-              >
-                Quotes
-              </MenuItem>
+
               <MenuItem
                 component={NavLink}
                 to="/addvehicle"
@@ -191,13 +186,26 @@ const App = () => {
               </Link>
             ) : null}
             {isAuth && salesGroup.find((e) => e === userType) ? (
-              <Button
-                id="quotes"
-                sx={{ color: "white" }}
-                style={{ marginLeft: "5vh", marginRight: "5vh" }}
-              >
-                Quotes
-              </Button>
+              <Link to="/quotes">
+                <Button
+                  id="quotes"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                >
+                  Quotes
+                </Button>
+              </Link>
+            ) : null}
+            {isAuth && salesGroup.find((e) => e === userType) ? (
+              <Link to="/bookings">
+                <Button
+                  id="bookings"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                >
+                  Bookings
+                </Button>
+              </Link>
             ) : null}
             {isAuth && driverGroup.find((e) => e === userType) ? (
               <Link to="/driverpage">
@@ -366,7 +374,8 @@ const App = () => {
             <Route element={<SalesRoutes />}>
               <Route path="/addclient" element={<AddClient />} />
               <Route path="/servicelocations" element={<ServiceLocation />} />
-              <Route path="/addquote" element={<Quotes />} />
+              <Route path="/quotes" element={<Quotes />} />
+              <Route path="/bookings" element={<Bookings />} />
             </Route>
             <Route element={<DriverRoutes />}>
               <Route path="/driverpage" element={<ScheduledRoutes />} />

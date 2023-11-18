@@ -9,6 +9,7 @@ const { Client } = require("./classes/client");
 const { Location } = require("./classes/location");
 const { FarmOut } = require("./classes/farmout");
 const { Quote } = require("./classes/quote");
+const { Booking } = require("./classes/bookings");
 const { Employee } = require("./classes/employee");
 
 //using cors for allow testing
@@ -271,6 +272,38 @@ app.put("/updatequote", bodyParser.json(), async (req, res) => {
 app.delete("/deletequote", async (req, res) => {
   const { quoteIds } = req.body;
   let response = await Quote.deleteQuote(quoteIds);
+  res.json(response);
+});
+//#endregion
+
+//#region Booking
+//create booking
+app.post("/createbooking", bodyParser.json(), async (req, res) => {
+  const { booking } = req.body;
+  let response = await Booking.newBooking(booking);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all bookings
+app.get("/getallbookings", async (req, res) => {
+  let response = await Booking.getAllBookings();
+  //console.log(response);
+  res.json(response);
+});
+
+//Update a Booking
+app.put("/updatebooking", bodyParser.json(), async (req, res) => {
+  const { booking } = req.body;
+  let response = await Booking.updateBooking(booking);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete companies
+app.delete("/deletebooking", async (req, res) => {
+  const { bookingIds } = req.body;
+  let response = await Booking.deleteBooking(bookingIds);
   res.json(response);
 });
 //#endregion

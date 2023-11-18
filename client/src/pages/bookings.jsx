@@ -41,13 +41,15 @@ const categories = [
 
 const initialState = {
   quoteId: "",
+  invoice: "",
   clientId: "",
   agencyName: null,
   agencyEmail: "",
   agencyContact: "",
   employeeId: "",
   salesPerson: null,
-  quoteDate: dayjs(Date(Date.now())),
+  quoteDate: null,
+  bookingDate: dayjs(Date(Date.now())),
   category: null,
   paxGroup: "",
   numAdults: 0,
@@ -65,6 +67,7 @@ const initialState = {
   error: null,
   success: false,
   quotesData: [],
+  bookingsData: [],
   clientsData: [],
   employeesData: [],
   onEditMode: false,
@@ -73,13 +76,12 @@ const initialState = {
   invalidField: "",
 };
 
-export const Quotes = () => {
+export const Bookings = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
-  //Get all quotes, client and employees data
-  const getData = async () => {
+  //get client an employees data
+  const getCEData = async () => {
     try {
-      //get client and employees data
       let response = await fetch(
         `${process.env.REACT_APP_SERVERURL}/getallclients`
       );
@@ -90,29 +92,116 @@ export const Quotes = () => {
       );
       const employeesRespData = await response.json();
 
+      setState({
+        clientsData: clientsRespData,
+        employeesData: employeesRespData,
+      });
+
+      return [clientsRespData, employeesRespData];
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  //Get all booking, client and employees data
+  const getBookingsData = async () => {
+    try {
+      let cliData = state.clientsData;
+      let empData = state.employeesData;
+      //get client and employees data
+      if (cliData.length === 0 || empData === 0) {
+        [cliData, empData] = await getCEData();
+      }
+      //get bookings data
+      let response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getallbookings`
+      );
+      let bookingsRespData = await response.json();
+      bookingsRespData = bookingsRespData.map((item) => {
+        const booking = {
+          id: item.invoice,
+          quoteid: item.quote_id,
+          clientId: item.client_id,
+          agencyName: cliData.find(
+            (client) => client.client_id === item.client_id
+          ).agency,
+          agencyContact: cliData.find(
+            (client) => client.client_id === item.client_id
+          ).contact,
+          agencyEmail: cliData.find(
+            (client) => client.client_id === item.client_id
+          ).email,
+          employeeId: item.employee_id,
+          salesPerson: `${
+            empData.find(
+              (employee) => employee.employee_id === item.employee_id
+            ).firstname
+          } ${
+            empData.find(
+              (employee) => employee.employee_id === item.employee_id
+            ).lastname
+          }`,
+          quoteDate: item.quote_date,
+          bookingDate: item.booking_date,
+          category: item.category,
+          paxGroup: item.pax_group,
+          numAdults: item.num_adults,
+          numChild: item.num_child,
+          tripStartDate: item.trip_start_date,
+          tripEndDate: item.trip_end_date,
+          deposit: item.deposit,
+          cost: item.cost,
+          arrivalProcMCOMCA: item.mco_mca,
+          numHoursQuoteValid: item.hours_quote_valid,
+          clientComments: item.client_comments,
+          intineraryDetails: item.intinerary_details,
+          internalComents: item.internal_coments,
+        };
+        return booking;
+      });
+
+      setState({
+        bookingsData: bookingsRespData,
+      });
+      return bookingsRespData;
+    } catch (err) {
+      console.error(err);
+    }
+  }; //getBookingsData
+
+  const getQuotesData = async () => {
+    try {
+      let cliData = state.clientsData;
+      let empData = state.employeesData;
+      //get client and employees data
+      if (!cliData || !empData) {
+        [cliData, empData] = await getCEData();
+      }
+
       //get quotes data
-      response = await fetch(`${process.env.REACT_APP_SERVERURL}/getallquotes`);
+      let response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getallquotes`
+      );
       let quotesRespData = await response.json();
       quotesRespData = quotesRespData.map((item) => {
         const quote = {
           id: item.quote_id,
           clientId: item.client_id,
-          agencyName: clientsRespData.find(
+          agencyName: cliData.find(
             (client) => client.client_id === item.client_id
           ).agency,
-          agencyContact: clientsRespData.find(
+          agencyContact: cliData.find(
             (client) => client.client_id === item.client_id
           ).contact,
-          agencyEmail: clientsRespData.find(
+          agencyEmail: cliData.find(
             (client) => client.client_id === item.client_id
           ).email,
           employeeId: item.employee_id,
           salesPerson: `${
-            employeesRespData.find(
+            empData.find(
               (employee) => employee.employee_id === item.employee_id
             ).firstname
           } ${
-            employeesRespData.find(
+            empData.find(
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
@@ -136,14 +225,12 @@ export const Quotes = () => {
 
       setState({
         quotesData: quotesRespData,
-        clientsData: clientsRespData,
-        employeesData: employeesRespData,
       });
       return quotesRespData;
     } catch (err) {
       console.error(err);
     }
-  }; //loadData
+  }; //getQuotesData
 
   //handle updates in the fields
   const handleOnChange = (e) => setState({ [e.target.id]: e.target.value });
@@ -160,8 +247,8 @@ export const Quotes = () => {
       return;
     }
 
-    if (!state.quoteDate) {
-      setState({ invalidField: "quoteDate" });
+    if (!state.bookingDate) {
+      setState({ invalidField: "bookingDate" });
       return;
     }
 
@@ -207,15 +294,17 @@ export const Quotes = () => {
     }
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createquote`,
+        `${process.env.REACT_APP_SERVERURL}/createbooking`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            quote: {
+            booking: {
               clientId: state.clientId,
               employeeId: state.employeeId,
+              quoteId: state.quoteId,
               quoteDate: state.quoteDate,
+              bookingDate: state.bookingDate,
               category: state.category,
               paxGroup: state.paxGroup,
               numAdults: state.numAdults,
@@ -255,14 +344,16 @@ export const Quotes = () => {
       error: null,
       success: true,
       openSnakbar: true,
+      invoice: "",
       quoteId: "",
       clientId: "",
-      agencyName: "",
+      agencyName: null,
       agencyEmail: "",
       agencyContact: "",
       employeeId: "",
-      salesPerson: "",
-      quoteDate: dayjs(Date(Date.now())),
+      salesPerson: null,
+      quoteDate: "",
+      bookingDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
       numAdults: 0,
@@ -288,14 +379,16 @@ export const Quotes = () => {
       expandPanel: false,
       onEditMode: false,
       invalidField: "",
+      invoice: "",
       quoteId: "",
       clientId: "",
-      agencyName: "",
+      agencyName: null,
       agencyEmail: "",
       agencyContact: "",
       employeeId: "",
-      salesPerson: "",
-      quoteDate: dayjs(Date(Date.now())),
+      salesPerson: null,
+      quoteDate: "",
+      bookingDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
       numAdults: 0,
@@ -326,10 +419,12 @@ export const Quotes = () => {
       return;
     }
     try {
-      const quoteToUpdate = {
+      const bookingToUpdate = {
+        invoice: state.invoice,
         quoteId: state.quoteId,
         clientId: state.clientId,
         employeeId: state.employeeId,
+        bookingDate: state.bookingDate,
         quoteDate: state.quoteDate,
         category: state.category,
         paxGroup: state.paxGroup,
@@ -346,13 +441,13 @@ export const Quotes = () => {
         internalComments: state.internalComments,
       };
 
-      console.log(quoteToUpdate);
+      console.log(bookingToUpdate);
       const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatequote`,
+        `${process.env.REACT_APP_SERVERURL}/updatebooking`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quote: quoteToUpdate }),
+          body: JSON.stringify({ booking: bookingToUpdate }),
         }
       );
       if (!response.ok) {
@@ -380,11 +475,11 @@ export const Quotes = () => {
   const handleDelete = async (itemsSelected) => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletequote`,
+        `${process.env.REACT_APP_SERVERURL}/deletebooking`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quoteIds: itemsSelected }),
+          body: JSON.stringify({ bookingIds: itemsSelected }),
         }
       );
       if (!response.ok) {
@@ -411,19 +506,21 @@ export const Quotes = () => {
   //Show information when clicking on a table row
   const handleItemClick = (id) => {
     //load fields
-    console.log(state.quotesData.filter((e) => e.id === id));
-    //get client id and employee id from quotes data
-    const clientId = state.quotesData.filter((e) => e.id === id)[0].clientId;
-    const employeeId = state.quotesData.filter((e) => e.id === id)[0]
+    console.log(state.bookingsData.filter((e) => e.id === id));
+    //get client id and employee id from bookings data
+    const clientId = state.bookingsData.filter((e) => e.id === id)[0].clientId;
+    const employeeId = state.bookingsData.filter((e) => e.id === id)[0]
       .employeeId;
     const employeeObject = state.employeesData.filter(
       (employee) => employee.employee_id === employeeId
     )[0];
+    const quoteId = state.bookingsData.filter((e) => e.id === id)[0].quoteid;
     setState({
       onEditMode: true,
       expandPanel: true,
       invalidField: "",
-      quoteId: id,
+      invoice: id,
+      quoteId: quoteId,
       clientId: clientId,
       agencyName: state.clientsData.filter(
         (client) => client.client_id === clientId
@@ -436,30 +533,32 @@ export const Quotes = () => {
       )[0].contact,
       employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
-      quoteDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].quoteDate
+      bookingDate: dayjs(
+        state.bookingsData.filter((e) => e.id === id)[0].bookingDate
       ),
-      category: state.quotesData.filter((e) => e.id === id)[0].category,
-      paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
-      numAdults: state.quotesData.filter((e) => e.id === id)[0].numAdults,
-      numChild: state.quotesData.filter((e) => e.id === id)[0].numChild,
+      quoteDate:
+        dayjs(state.bookingsData.filter((e) => e.id === id)[0].quoteDate) ?? "",
+      category: state.bookingsData.filter((e) => e.id === id)[0].category,
+      paxGroup: state.bookingsData.filter((e) => e.id === id)[0].paxGroup,
+      numAdults: state.bookingsData.filter((e) => e.id === id)[0].numAdults,
+      numChild: state.bookingsData.filter((e) => e.id === id)[0].numChild,
       tripStartDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].tripStartDate
+        state.bookingsData.filter((e) => e.id === id)[0].tripStartDate
       ),
       tripEndDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].tripEndDate
+        state.bookingsData.filter((e) => e.id === id)[0].tripEndDate
       ),
-      deposit: state.quotesData.filter((e) => e.id === id)[0].deposit,
-      quotedCost: state.quotesData.filter((e) => e.id === id)[0].cost,
-      arrivalProcMCOMCA: state.quotesData.filter((e) => e.id === id)[0]
+      deposit: state.bookingsData.filter((e) => e.id === id)[0].deposit,
+      quotedCost: state.bookingsData.filter((e) => e.id === id)[0].cost,
+      arrivalProcMCOMCA: state.bookingsData.filter((e) => e.id === id)[0]
         .arrivalProcMCOMCA,
-      numHoursQuoteValid: state.quotesData.filter((e) => e.id === id)[0]
+      numHoursQuoteValid: state.bookingsData.filter((e) => e.id === id)[0]
         .numHoursQuoteValid,
-      clientComments: state.quotesData.filter((e) => e.id === id)[0]
+      clientComments: state.bookingsData.filter((e) => e.id === id)[0]
         .clientComments,
-      intineraryDetails: state.quotesData.filter((e) => e.id === id)[0]
+      intineraryDetails: state.bookingsData.filter((e) => e.id === id)[0]
         .intineraryDetails,
-      internalComments: state.quotesData.filter((e) => e.id === id)[0]
+      internalComments: state.bookingsData.filter((e) => e.id === id)[0]
         .internalComents,
     });
   }; //handleItemClick
@@ -490,10 +589,10 @@ export const Quotes = () => {
       label: "Sales Person",
     },
     {
-      id: "quoteDate",
+      id: "bookingDate",
       isNumeric: false,
       isPaddingDisabled: false,
-      label: "Quote Date",
+      label: "Booking Date",
     },
     {
       id: "agencyEmail",
@@ -524,8 +623,8 @@ export const Quotes = () => {
   };
 
   return (
-    <div className="quotes-container">
-      <div className="quotes-container-box">
+    <div className="bookings-container">
+      <div className="bookings-container-box">
         <form>
           <Accordion
             expanded={state.expandPanel}
@@ -535,14 +634,14 @@ export const Quotes = () => {
               {state.onEditMode ? (
                 <Box sx={{ display: "inline-flex" }}>
                   <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
-                    EDITING QUOTE
+                    EDITING BOOKING
                   </Typography>
                   <EditIcon style={{ color: "#1976d2", marginLeft: "10px" }} />
                 </Box>
               ) : (
                 <Box sx={{ display: "inline-flex" }}>
                   <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
-                    NEW QUOTE
+                    NEW BOOKING
                   </Typography>
                   <RequestQuoteIcon
                     style={{ color: "#1976d2", marginLeft: "10px" }}
@@ -552,6 +651,26 @@ export const Quotes = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Box className="fieldsbox1">
+                <TextField
+                  className="textfield"
+                  id="invoice"
+                  label="Invoice #"
+                  type="text"
+                  disabled
+                  value={state.invoice}
+                  onChange={handleOnChange}
+                />
+
+                <TextField
+                  className="textfield"
+                  id="quoteId"
+                  label="Quote #"
+                  type="text"
+                  disabled
+                  value={state.quoteId}
+                  onChange={handleOnChange}
+                />
+
                 <div
                   id="agency-box"
                   className="textfield"
@@ -654,19 +773,28 @@ export const Quotes = () => {
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    error={state.invalidField === "quoteDate"}
-                    helperText={
-                      state.invalidField === "quoteDate"
-                        ? "Information required"
-                        : ""
-                    }
                     label="Quote Date"
                     className="textfield"
                     id="quoteDate"
-                    required
-                    placeholder="Quote Date"
-                    value={dayjs(state.quoteDate)}
+                    disabled
+                    value={state.quoteDate}
                     onChange={(newValue) => setState({ quoteDate: newValue })}
+                  />
+
+                  <DatePicker
+                    error={state.invalidField === "bookingDate"}
+                    helperText={
+                      state.invalidField === "bookingDate"
+                        ? "Information required"
+                        : ""
+                    }
+                    label="Booking Date"
+                    className="textfield"
+                    id="bookingDate"
+                    required
+                    placeholder="Booking Date"
+                    value={dayjs(state.bookingDate)}
+                    onChange={(newValue) => setState({ bookingDate: newValue })}
                   />
                 </LocalizationProvider>
 
@@ -810,6 +938,7 @@ export const Quotes = () => {
                   id="numHoursQuoteValid"
                   label="Quote valid for (Hr #)"
                   type="text"
+                  disabled
                   inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                   placeholder="Quote valid for (Hr #)"
                   value={state.numHoursQuoteValid}
@@ -884,7 +1013,7 @@ export const Quotes = () => {
                 </Box>
               ) : (
                 <Button variant="contained" onClick={handleSubmit}>
-                  Save New Quote
+                  Save New Booking
                 </Button>
               )}
               <p></p>
@@ -908,7 +1037,7 @@ export const Quotes = () => {
             onClose={handleClose}
           >
             <Alert severity="success" onClose={handleClose}>
-              <AlertTitle>Quotes Updated</AlertTitle>
+              <AlertTitle>Bookings Updated</AlertTitle>
               {state.msg}
             </Alert>
           </Snackbar>
@@ -919,7 +1048,7 @@ export const Quotes = () => {
           <p></p>
           <EnhancedTable
             headings={headings}
-            loadData={getData}
+            loadData={getBookingsData}
             dataUpdated={state.isDataUpdated}
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
