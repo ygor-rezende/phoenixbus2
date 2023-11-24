@@ -14,15 +14,28 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Checkbox,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
 import EnhancedTable from "../utils/table_generic";
+import { QuotesView } from "./subcomponents/quotesView";
+import { ServiceModal } from "./subcomponents/serviceModal";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -72,8 +85,12 @@ const initialState = {
   employeesData: [],
   onEditMode: false,
   expandPanel: false,
+  expandBookings: false,
   isDataUpdated: false,
   invalidField: "",
+  tabService: "1",
+  servicesData: [],
+  triggerModal: 0,
 };
 
 export const Bookings = () => {
@@ -173,7 +190,7 @@ export const Bookings = () => {
       let cliData = state.clientsData;
       let empData = state.employeesData;
       //get client and employees data
-      if (!cliData || !empData) {
+      if (cliData.length === 0 || empData === 0) {
         [cliData, empData] = await getCEData();
       }
 
@@ -368,6 +385,7 @@ export const Bookings = () => {
       intineraryDetails: "",
       internalComments: "",
       expandPanel: false,
+      expandBookings: false,
       onEditMode: false,
       isDataUpdated: !state.isDataUpdated,
     });
@@ -563,6 +581,65 @@ export const Bookings = () => {
     });
   }; //handleItemClick
 
+  //Show information when clicking on quotes table row
+  const handleQuoteClick = (id) => {
+    //load fields
+    console.log(state.quotesData.filter((e) => e.id === id));
+    //get client id and employee id from bookings data
+    const clientId = state.quotesData.filter((e) => e.id === id)[0].clientId;
+    const employeeId = state.quotesData.filter((e) => e.id === id)[0]
+      .employeeId;
+    const employeeObject = state.employeesData.filter(
+      (employee) => employee.employee_id === employeeId
+    )[0];
+
+    setState({
+      onEditMode: false,
+      expandPanel: true,
+      invalidField: "",
+      invoice: "",
+      quoteId: id,
+      clientId: clientId,
+      agencyName: state.clientsData.filter(
+        (client) => client.client_id === clientId
+      )[0].agency,
+      agencyEmail: state.clientsData.filter(
+        (client) => client.client_id === clientId
+      )[0].email,
+      agencyContact: state.clientsData.filter(
+        (client) => client.client_id === clientId
+      )[0].contact,
+      employeeId: employeeId,
+      salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
+      bookingDate: dayjs(Date(Date.now())),
+      quoteDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].quoteDate
+      ),
+      category: state.quotesData.filter((e) => e.id === id)[0].category,
+      paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
+      numAdults: state.quotesData.filter((e) => e.id === id)[0].numAdults,
+      numChild: state.quotesData.filter((e) => e.id === id)[0].numChild,
+      tripStartDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].tripStartDate
+      ),
+      tripEndDate: dayjs(
+        state.quotesData.filter((e) => e.id === id)[0].tripEndDate
+      ),
+      deposit: state.quotesData.filter((e) => e.id === id)[0].deposit,
+      quotedCost: state.quotesData.filter((e) => e.id === id)[0].cost,
+      arrivalProcMCOMCA: state.quotesData.filter((e) => e.id === id)[0]
+        .arrivalProcMCOMCA,
+      numHoursQuoteValid: state.quotesData.filter((e) => e.id === id)[0]
+        .numHoursQuoteValid,
+      clientComments: state.quotesData.filter((e) => e.id === id)[0]
+        .clientComments,
+      intineraryDetails: state.quotesData.filter((e) => e.id === id)[0]
+        .intineraryDetails,
+      internalComments: state.quotesData.filter((e) => e.id === id)[0]
+        .internalComents,
+    });
+  }; //handleQuoteClick
+
   //cancel editing when a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
@@ -620,6 +697,27 @@ export const Bookings = () => {
         employeeId: newValue.employeeId,
       });
     }
+  };
+
+  //called when a Service tab is clicked
+  const handleServiceClick = (_, newValue) => {
+    setState({ tabService: newValue });
+  };
+
+  //open the modal to create or edit a Service
+  const handleServiceModal = () => {
+    //open the modal
+    setState({ triggerModal: state.triggerModal + 1 });
+  };
+
+  //display error from Service modal child
+  const handleOnError = (msg) => {
+    setState({ success: false, error: msg, openSnakbar: true });
+  };
+
+  //display error from Service modal child
+  const handleOnSuccess = (msg) => {
+    setState({ success: true, error: null, openSnakbar: true, msg: msg });
   };
 
   return (
@@ -999,6 +1097,54 @@ export const Bookings = () => {
               </Box>
               {state.onEditMode ? (
                 <Box>
+                  <Box>
+                    <Tabs
+                      value={state.tabService}
+                      onChange={handleServiceClick}
+                    >
+                      {state.serviceData &&
+                        state.servicesData.map((service) => {
+                          return (
+                            <Tab label={service.name} value={service.id}></Tab>
+                          );
+                        })}
+                    </Tabs>
+                    {state.serviceData &&
+                      state.serviceData.map((service) => {
+                        return (
+                          //service data info
+                          <TabPanel value={service.id}>
+                            <Table>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>SVC Code</TableCell>
+                                  <TableCell>Charge</TableCell>
+                                  <TableCell>Gratuity</TableCell>
+                                  <TableCell>Qty</TableCell>
+                                  <TableCell>Date</TableCell>
+                                  <TableCell>Optional</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell>{service.SVCCode}</TableCell>
+                                  <TableCell>{service.charge}</TableCell>
+                                  <TableCell>{service.gratuity}</TableCell>
+                                  <TableCell>{service.qty}</TableCell>
+                                  <TableCell>{service.date}</TableCell>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={service.SVCCode}
+                                      disabled
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TabPanel>
+                        );
+                      })}
+                  </Box>
                   <Button variant="contained" onClick={handleSaveChanges}>
                     Save Changes
                   </Button>
@@ -1009,6 +1155,13 @@ export const Bookings = () => {
                     onClick={cancelEditing}
                   >
                     Cancel
+                  </Button>
+                  <Button
+                    style={{ marginLeft: "10px" }}
+                    variant="contained"
+                    onClick={handleServiceModal}
+                  >
+                    New Service Order
                   </Button>
                 </Box>
               ) : (
@@ -1046,14 +1199,41 @@ export const Bookings = () => {
         <div id="table-container">
           <Divider />
           <p></p>
-          <EnhancedTable
-            headings={headings}
-            loadData={getBookingsData}
-            dataUpdated={state.isDataUpdated}
-            editData={handleItemClick}
-            boxChecked={handleBoxChecked}
-            onDelete={handleDelete}
-            filterOption="agencyName"
+          <Accordion
+            expanded={state.expandBookings}
+            onChange={() => setState({ expandBookings: !state.expandBookings })}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                VIEW BOOKINGS
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <EnhancedTable
+                headings={headings}
+                loadData={getBookingsData}
+                dataUpdated={state.isDataUpdated}
+                editData={handleItemClick}
+                boxChecked={handleBoxChecked}
+                onDelete={handleDelete}
+                filterOption="agencyName"
+              />
+            </AccordionDetails>
+          </Accordion>
+        </div>
+        <p></p>
+        <div id="quotes-container">
+          <Divider />
+          <p></p>
+          <QuotesView
+            getQuotesData={getQuotesData}
+            handleRowClick={handleQuoteClick}
+          />
+          <ServiceModal
+            modalTitle={"New Service"}
+            onError={handleOnError}
+            onSuccess={handleOnSuccess}
+            open={state.triggerModal}
           />
         </div>
       </div>

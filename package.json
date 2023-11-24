@@ -10,6 +10,8 @@
   "author": "Ygor Lopez de Rezende",
   "dependencies": {
     "@mui/icons-material": "^5.14.16",
+    "@mui/lab": "^5.0.0-alpha.153",
+    "@mui/material": "^5.14.18",
     "@mui/x-date-pickers-pro": "^6.17.0",
     "if-env": "^1.0.4",
     "jwt-decode": "^4.0.0",

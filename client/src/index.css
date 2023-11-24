@@ -88,6 +88,17 @@
   .autocomplete{
     width: auto !important;
   }
+
+  .modal2Columns {
+    display: flex;
+    flex: 50%;
+    flex-direction: column;
+    margin: 2%;
+  }
+
+  .modalField {
+    margin: 0 0 1em 0 !important;
+  }
   
   @keyframes logo-spin {
     from {
