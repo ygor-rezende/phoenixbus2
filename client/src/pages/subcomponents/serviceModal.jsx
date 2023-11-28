@@ -18,7 +18,7 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 export const ServiceModal = (props) => {
-  const { modalTitle, onError, onSuccess, open } = props;
+  const { modalTitle, onError, onSuccess, open, invoice } = props;
   const [serviceName, setServiceName] = useState("");
   const [serviceCode, setServiceCode] = useState("");
   const [serviceDate, setServiceDate] = useState(null);
@@ -31,7 +31,7 @@ export const ServiceModal = (props) => {
   const [invalidField, setInvalidField] = useState("");
 
   useEffect(() => {
-    if (open) {
+    if (open > 0) {
       clearState();
       setOpenModal(true);
     }
@@ -68,7 +68,7 @@ export const ServiceModal = (props) => {
   ];
 
   //handle form submit
-  const handleSaveNewService = async (bookingId) => {
+  const handleSaveNewService = async () => {
     //validate form
     if (!isFormValid()) {
       return;
@@ -81,7 +81,7 @@ export const ServiceModal = (props) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             service: {
-              bookingId: bookingId,
+              bookingId: invoice,
               serviceName: serviceName,
               serviceCode: serviceCode,
               serviceDate: serviceDate,

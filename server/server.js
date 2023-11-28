@@ -11,6 +11,7 @@ const { FarmOut } = require("./classes/farmout");
 const { Quote } = require("./classes/quote");
 const { Booking } = require("./classes/bookings");
 const { Employee } = require("./classes/employee");
+const { Service } = require("./classes/services");
 
 //using cors for allow testing
 app.use(cors());
@@ -304,6 +305,45 @@ app.put("/updatebooking", bodyParser.json(), async (req, res) => {
 app.delete("/deletebooking", async (req, res) => {
   const { bookingIds } = req.body;
   let response = await Booking.deleteBooking(bookingIds);
+  res.json(response);
+});
+//#endregion
+
+//#region Service
+//create service
+app.post("/createservice", bodyParser.json(), async (req, res) => {
+  const { service } = req.body;
+  let response = await Service.newService(service);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all services
+app.get("/getallservices", async (req, res) => {
+  let response = await Service.getAllServices();
+  //console.log(response);
+  res.json(response);
+});
+
+//get service for a specific booking
+app.get("/getservices/:invoice", async (req, res) => {
+  const { invoice } = req.params;
+  let response = await Service.getServices(invoice);
+  res.json(response);
+});
+
+//Update a Service
+app.put("/updateservice", bodyParser.json(), async (req, res) => {
+  const { service } = req.body;
+  let response = await Service.updateService(service);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete Services
+app.delete("/deleteservice", async (req, res) => {
+  const { serviceIds } = req.body;
+  let response = await Service.deleteService(serviceIds);
   res.json(response);
 });
 //#endregion

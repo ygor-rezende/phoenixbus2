@@ -36,6 +36,7 @@ import dayjs from "dayjs";
 import EnhancedTable from "../utils/table_generic";
 import { QuotesView } from "./subcomponents/quotesView";
 import { ServiceModal } from "./subcomponents/serviceModal";
+import { CustomTabPanel } from "./subcomponents/customTabPanel";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -88,7 +89,7 @@ const initialState = {
   expandBookings: false,
   isDataUpdated: false,
   invalidField: "",
-  tabService: "1",
+  tabService: 0,
   servicesData: [],
   triggerModal: 0,
 };
@@ -522,7 +523,9 @@ export const Bookings = () => {
   }; //handleDelete
 
   //Show information when clicking on a table row
-  const handleItemClick = (id) => {
+  const handleItemClick = async (id) => {
+    //load services for this booking
+    const services = await getServicesData(id);
     //load fields
     console.log(state.bookingsData.filter((e) => e.id === id));
     //get client id and employee id from bookings data
@@ -578,8 +581,38 @@ export const Bookings = () => {
         .intineraryDetails,
       internalComments: state.bookingsData.filter((e) => e.id === id)[0]
         .internalComents,
+      servicesData: services,
     });
   }; //handleItemClick
+
+  //get services Data
+  const getServicesData = async (invoice) => {
+    try {
+      let response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getservices/${invoice}`
+      );
+      let servicesRespData = await response.json();
+      servicesRespData = servicesRespData.map((item) => {
+        const service = {
+          id: item.service_id,
+          bookingId: item.booking_id,
+          serviceName: item.service_name,
+          serviceCode: item.service_code,
+          serviceDate: item.service_date,
+          qty: item.qty,
+          charge: item.charge,
+          tips: item.tips,
+          salesTax: item.sales_tax,
+          optional: item.optional,
+        };
+        return service;
+      });
+
+      return servicesRespData;
+    } catch (err) {
+      console.error(err);
+    }
+  }; //getServicesData
 
   //Show information when clicking on quotes table row
   const handleQuoteClick = (id) => {
@@ -1102,24 +1135,31 @@ export const Bookings = () => {
                       value={state.tabService}
                       onChange={handleServiceClick}
                     >
-                      {state.serviceData &&
+                      {state.servicesData.length > 0 &&
                         state.servicesData.map((service) => {
                           return (
-                            <Tab label={service.name} value={service.id}></Tab>
+                            <Tab
+                              label={service.serviceName}
+                              key={service.id}
+                            ></Tab>
                           );
                         })}
                     </Tabs>
-                    {state.serviceData &&
-                      state.serviceData.map((service) => {
+                    {state.servicesData.length > 0 &&
+                      state.servicesData.map((service) => {
                         return (
                           //service data info
-                          <TabPanel value={service.id}>
+                          <CustomTabPanel
+                            value={state.tabService}
+                            index={state.tabService}
+                            key={service.id}
+                          >
                             <Table>
                               <TableHead>
                                 <TableRow>
                                   <TableCell>SVC Code</TableCell>
                                   <TableCell>Charge</TableCell>
-                                  <TableCell>Gratuity</TableCell>
+                                  <TableCell>Tips</TableCell>
                                   <TableCell>Qty</TableCell>
                                   <TableCell>Date</TableCell>
                                   <TableCell>Optional</TableCell>
@@ -1127,21 +1167,21 @@ export const Bookings = () => {
                               </TableHead>
                               <TableBody>
                                 <TableRow>
-                                  <TableCell>{service.SVCCode}</TableCell>
+                                  <TableCell>{service.serviceCode}</TableCell>
                                   <TableCell>{service.charge}</TableCell>
-                                  <TableCell>{service.gratuity}</TableCell>
+                                  <TableCell>{service.tips}</TableCell>
                                   <TableCell>{service.qty}</TableCell>
-                                  <TableCell>{service.date}</TableCell>
+                                  <TableCell>{service.serviceDate}</TableCell>
                                   <TableCell>
                                     <Checkbox
-                                      checked={service.SVCCode}
+                                      checked={service.optional}
                                       disabled
                                     />
                                   </TableCell>
                                 </TableRow>
                               </TableBody>
                             </Table>
-                          </TabPanel>
+                          </CustomTabPanel>
                         );
                       })}
                   </Box>
@@ -1234,6 +1274,7 @@ export const Bookings = () => {
             onError={handleOnError}
             onSuccess={handleOnSuccess}
             open={state.triggerModal}
+            invoice={state.invoice}
           />
         </div>
       </div>
