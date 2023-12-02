@@ -10,6 +10,8 @@ import {
   Checkbox,
   FormControlLabel,
   Button,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -18,7 +20,17 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 export const ServiceModal = (props) => {
-  const { modalTitle, onError, onSuccess, open, invoice } = props;
+  const {
+    modalTitle,
+    onError,
+    onSuccess,
+    open,
+    invoice,
+    data,
+    onEditMode,
+    onSave,
+  } = props;
+  const [serviceId, setServiceId] = useState(0);
   const [serviceName, setServiceName] = useState("");
   const [serviceCode, setServiceCode] = useState("");
   const [serviceDate, setServiceDate] = useState(null);
@@ -33,9 +45,21 @@ export const ServiceModal = (props) => {
   useEffect(() => {
     if (open > 0) {
       clearState();
+      //if on edit mode set the fields values
+      if (onEditMode) {
+        setServiceId(data[0].id);
+        setServiceName(data[0].serviceName);
+        setServiceCode(data[0].serviceCode);
+        setServiceDate(dayjs(data[0].serviceDate));
+        setQty(data[0].qty);
+        setCharge(data[0].charge);
+        setTips(data[0].tips);
+        setSalesTax(data[0].salesTax);
+        setOptional(data[0].optional);
+      }
       setOpenModal(true);
     }
-  }, [open]);
+  }, [open, onEditMode, data]);
 
   const modalStile = {
     position: "absolute",
@@ -73,42 +97,94 @@ export const ServiceModal = (props) => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createservice`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            service: {
-              bookingId: invoice,
-              serviceName: serviceName,
-              serviceCode: serviceCode,
-              serviceDate: serviceDate,
-              qty: qty,
-              charge: charge,
-              tips: tips,
-              salesTax: salesTax,
-              optional: optional,
-            },
-          }),
-        }
-      );
 
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      //if an error happens set the error
-      if (responseMsg.msg) {
-        //open snackbar to display error message
-        onError(responseMsg.msg);
-      } else {
-        //if no error set success and reset intial state
-        onSuccess(responseMsg);
-        clearState();
+    if (!onEditMode) {
+      //New service api call
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/createservice`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              service: {
+                bookingId: invoice,
+                serviceName: serviceName,
+                serviceCode: serviceCode,
+                serviceDate: serviceDate,
+                qty: qty,
+                charge: charge,
+                tips: tips,
+                salesTax: salesTax,
+                optional: optional,
+              },
+            }),
+          }
+        );
+
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        //if an error happens set the error
+        if (responseMsg.msg) {
+          //open snackbar to display error message
+          onError(responseMsg.msg);
+        } else {
+          //if no error set success and reset intial state
+          onSuccess(responseMsg);
+          clearState();
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
+    } //if !onEditMode
+    else {
+      //update call
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/updateservice`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              service: {
+                serviceId: serviceId,
+                bookingId: invoice,
+                serviceName: serviceName,
+                serviceCode: serviceCode,
+                serviceDate: serviceDate,
+                qty: qty,
+                charge: charge,
+                tips: tips,
+                salesTax: salesTax,
+                optional: optional,
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        //if an error happens set the error
+        if (responseMsg.failed) {
+          console.log(responseMsg.failed);
+          //open snackbar to display error message
+          onError(responseMsg.failed);
+        } else {
+          //if no error set success and reset intial state
+          onSuccess(responseMsg);
+          clearState();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    } //else
+
+    //call onSave to re-render the services table in the bookings component
+    onSave(invoice);
   }; //handleSaveNewService
 
   //clear state fields utility
@@ -182,28 +258,33 @@ export const ServiceModal = (props) => {
               type="text"
               onChange={(e) => setServiceName(e.target.value)}
             />
-            <Select
-              id="serviceCode"
-              className="modalField"
-              value={serviceCode}
-              onChange={(e) => setServiceCode(e.target.value)}
-              label="Service Code"
-            >
-              {codes.map((code) => {
-                return (
-                  <MenuItem key={code} value={code}>
-                    {code}
-                  </MenuItem>
-                );
-              })}
-            </Select>
+            <FormControl>
+              <InputLabel>Pick a SVC</InputLabel>
+              <Select
+                id="serviceCode"
+                className="modalField"
+                value={serviceCode}
+                onChange={(e) => setServiceCode(e.target.value)}
+                label="Pick a SVC"
+                placeholder="Pick a SVC"
+              >
+                {codes.map((code) => {
+                  return (
+                    <MenuItem key={code} value={code}>
+                      {code}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Service Date"
                 className="modalField"
                 id="serviceDate"
+                format="YYYY-MM-DD"
                 value={serviceDate}
-                onChange={(newValue) => setServiceDate(newValue)}
+                onChange={(newValue) => setServiceDate(dayjs(newValue))}
               />
             </LocalizationProvider>
             <TextField

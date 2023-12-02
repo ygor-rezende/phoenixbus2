@@ -25,9 +25,6 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -92,6 +89,9 @@ const initialState = {
   tabService: 0,
   servicesData: [],
   triggerModal: 0,
+  editingService: false,
+  currentService: [],
+  serviceTitle: "New Service",
 };
 
 export const Bookings = () => {
@@ -159,13 +159,13 @@ export const Bookings = () => {
             ).lastname
           }`,
           quoteDate: item.quote_date,
-          bookingDate: item.booking_date,
+          bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"),
           category: item.category,
           paxGroup: item.pax_group,
           numAdults: item.num_adults,
           numChild: item.num_child,
-          tripStartDate: item.trip_start_date,
-          tripEndDate: item.trip_end_date,
+          tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"),
+          tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"),
           deposit: item.deposit,
           cost: item.cost,
           arrivalProcMCOMCA: item.mco_mca,
@@ -223,7 +223,7 @@ export const Bookings = () => {
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
-          quoteDate: item.quote_date,
+          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
           category: item.category,
           paxGroup: item.pax_group,
           numAdults: item.num_adults,
@@ -582,7 +582,11 @@ export const Bookings = () => {
       internalComments: state.bookingsData.filter((e) => e.id === id)[0]
         .internalComents,
       servicesData: services,
+      tabService: 0,
     });
+
+    //scroll to the invoice field
+    document.getElementById("invoice").scrollIntoView();
   }; //handleItemClick
 
   //get services Data
@@ -740,7 +744,11 @@ export const Bookings = () => {
   //open the modal to create or edit a Service
   const handleServiceModal = () => {
     //open the modal
-    setState({ triggerModal: state.triggerModal + 1 });
+    setState({
+      editingService: false,
+      triggerModal: state.triggerModal + 1,
+      serviceTitle: "New Service",
+    });
   };
 
   //display error from Service modal child
@@ -751,6 +759,20 @@ export const Bookings = () => {
   //display error from Service modal child
   const handleOnSuccess = (msg) => {
     setState({ success: true, error: null, openSnakbar: true, msg: msg });
+  };
+
+  //when a service row is clicked to edit a service
+  const handleEditService = (event, serviceId) => {
+    //find the service
+    const service = state.servicesData.filter((item) => item.id === serviceId);
+
+    //set the state variables to open the service modal
+    setState({
+      currentService: service,
+      editingService: true,
+      triggerModal: state.triggerModal + 1,
+      serviceTitle: "Edit Service",
+    });
   };
 
   return (
@@ -906,6 +928,7 @@ export const Bookings = () => {
                   <DatePicker
                     label="Quote Date"
                     className="textfield"
+                    format="YYYY-MM-DD"
                     id="quoteDate"
                     disabled
                     value={state.quoteDate}
@@ -922,6 +945,7 @@ export const Bookings = () => {
                     label="Booking Date"
                     className="textfield"
                     id="bookingDate"
+                    format="YYYY-MM-DD"
                     required
                     placeholder="Booking Date"
                     value={dayjs(state.bookingDate)}
@@ -1017,6 +1041,7 @@ export const Bookings = () => {
                     label="Trip Start Date"
                     className="textfield"
                     id="tripStartDate"
+                    format="YYYY-MM-DD"
                     required
                     placeholder="Trip Start Date"
                     value={state.tripStartDate}
@@ -1035,6 +1060,7 @@ export const Bookings = () => {
                     label="Trip End Date"
                     className="textfield"
                     id="tripEndDate"
+                    format="YYYY-MM-DD"
                     required
                     placeholder="Trip End Date"
                     value={state.tripEndDate}
@@ -1146,32 +1172,43 @@ export const Bookings = () => {
                         })}
                     </Tabs>
                     {state.servicesData.length > 0 &&
-                      state.servicesData.map((service) => {
+                      state.servicesData.map((service, index) => {
                         return (
                           //service data info
                           <CustomTabPanel
                             value={state.tabService}
-                            index={state.tabService}
+                            index={index}
                             key={service.id}
                           >
-                            <Table>
+                            <Table size="small">
                               <TableHead>
                                 <TableRow>
                                   <TableCell>SVC Code</TableCell>
+                                  <TableCell>Date</TableCell>
+                                  <TableCell>Qty</TableCell>
                                   <TableCell>Charge</TableCell>
                                   <TableCell>Tips</TableCell>
-                                  <TableCell>Qty</TableCell>
-                                  <TableCell>Date</TableCell>
+                                  <TableCell>Sales Tax</TableCell>
                                   <TableCell>Optional</TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                <TableRow>
+                                <TableRow
+                                  hover
+                                  onClick={(event) =>
+                                    handleEditService(event, service.id)
+                                  }
+                                >
                                   <TableCell>{service.serviceCode}</TableCell>
+                                  <TableCell>
+                                    {dayjs(service.serviceDate).format(
+                                      "YYYY-MM-DD"
+                                    )}
+                                  </TableCell>
+                                  <TableCell>{service.qty}</TableCell>
                                   <TableCell>{service.charge}</TableCell>
                                   <TableCell>{service.tips}</TableCell>
-                                  <TableCell>{service.qty}</TableCell>
-                                  <TableCell>{service.serviceDate}</TableCell>
+                                  <TableCell>{service.salesTax}</TableCell>
                                   <TableCell>
                                     <Checkbox
                                       checked={service.optional}
@@ -1270,11 +1307,14 @@ export const Bookings = () => {
             handleRowClick={handleQuoteClick}
           />
           <ServiceModal
-            modalTitle={"New Service"}
+            modalTitle={state.serviceTitle}
             onError={handleOnError}
             onSuccess={handleOnSuccess}
             open={state.triggerModal}
             invoice={state.invoice}
+            data={state.currentService}
+            onEditMode={state.editingService}
+            onSave={handleItemClick}
           />
         </div>
       </div>

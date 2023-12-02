@@ -53,39 +53,31 @@ class Service {
     }
   } //getAllServices
 
-  static async updateBooking(booking) {
+  static async updateService(service) {
     try {
-      const updatedBooking = await pool.query(
-        "UPDATE bookings SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, pax_group = $5, num_adults = $6, num_child = $7, trip_start_date = $8, trip_end_date = $9, deposit = $10, cost = $11, mco_mca = $12, hours_quote_valid = $13, client_comments = $14, intinerary_details = $15, internal_coments = $16, quote_id = $17, booking_date = $18 WHERE invoice = $19",
+      const updatedService = await pool.query(
+        "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, tips = $7, sales_tax = $8, optional = $9 WHERE service_id = $10",
         [
-          booking.clientId,
-          booking.employeeId,
-          booking.quoteDate,
-          booking.category,
-          booking.paxGroup,
-          booking.numAdults,
-          booking.numChild,
-          booking.tripStartDate,
-          booking.tripEndDate,
-          booking.deposit,
-          booking.quotedCost,
-          booking.arrivalProcMCOMCA,
-          booking.numHoursQuoteValid,
-          booking.clientComments,
-          booking.intineraryDetails,
-          booking.internalComments,
-          booking.quoteId,
-          booking.bookingDate,
-          booking.invoice,
+          service.bookingId,
+          service.serviceName,
+          service.serviceCode,
+          service.serviceDate,
+          service.qty,
+          service.charge,
+          service.tips,
+          service.salesTax,
+          service.optional,
+          service.serviceId,
         ]
       );
-      if (updatedBooking.rowCount) return `Booking ${booking.invoice} updated`;
-      else return { failed: "Failed to update booking" };
+      if (updatedService.rowCount)
+        return `Service ${service.serviceName} updated`;
+      else return { failed: "Failed to update service" };
     } catch (err) {
       console.error(err);
       if (err) return { failed: `Error: ${err.message}` };
     }
-  } //updateBooking
+  } //updateService
 
   static async deleteBooking(bookingIds) {
     try {
