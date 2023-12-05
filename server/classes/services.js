@@ -79,23 +79,20 @@ class Service {
     }
   } //updateService
 
-  static async deleteBooking(bookingIds) {
+  static async deleteService(serviceId) {
     try {
-      const deletedBookings = await bookingIds.map(async (booking) => {
-        return await pool.query("DELETE from bookings WHERE invoice = $1", [
-          booking,
-        ]);
-      });
-      const deletedPromise = await Promise.all(deletedBookings);
-      console.log(deletedPromise);
-      if (deletedPromise[0].rowCount)
-        return `Number of bookings deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete booking" };
+      const deletedService = await pool.query(
+        "DELETE from services WHERE service_id = $1",
+        [serviceId]
+      );
+      console.log(deletedService);
+      if (deletedService) return `Service ${serviceId} deleted`;
+      else return { failed: "Failed to delete service" };
     } catch (err) {
       console.error(err);
       if (err) return { failed: `Error: ${err.message}` };
     }
-  } //deleteBooking
+  } //deleteService
 }
 
 module.exports = { Service };

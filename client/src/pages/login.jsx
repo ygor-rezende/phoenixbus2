@@ -27,40 +27,51 @@ const Login = () => {
 
   const login = async (userName, password) => {
     //Hit API to pull the username to check the password
-    const response = await fetch(
-      `${process.env.REACT_APP_SERVERURL}/api/login`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName, password }),
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/api/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userName, password }),
+        }
+      );
+
+      if (!response.ok) {
+        setErrorMessage(`Status: ${response.status}: ${response.statusText}`);
+        setOpenSnakbar(true);
+        return;
       }
-    );
+      const data = await response.json();
+      console.log(data);
+      //if an error happens when signing up set the error
+      if (data.detail) {
+        setErrorMessage(data.detail);
+        setOpenSnakbar(true);
+      } else {
+        //if no error set cookies
+        setErrorMessage(null);
 
-    const data = await response.json();
-    console.log(data);
-    //if an error happens when signing up set the error
-    if (data.detail) {
-      setErrorMessage(data.detail);
+        //set a time to expire the cookies
+        const date = Date.now();
+        const expireDate = new Date(date + 60 * 60 * 1000);
+
+        //set the cookies
+        setCookie("Username", data.username, {
+          expires: expireDate,
+        });
+        console.log(date);
+        setCookie("AuthToken", data.token, { expires: expireDate });
+        navigate("/home");
+        //set props
+        //props.user({ name: data.username, type: data.usertype, isAuth: true });
+        //reload the page
+        //window.location.reload();
+      }
+    } catch (err) {
+      setErrorMessage(err.message);
       setOpenSnakbar(true);
-    } else {
-      //if no error set cookies
-      setErrorMessage(null);
-
-      //set a time to expire the cookies
-      const date = Date.now();
-      const expireDate = new Date(date + 60 * 60 * 1000);
-
-      //set the cookies
-      setCookie("Username", data.username, {
-        expires: expireDate,
-      });
-      console.log(date);
-      setCookie("AuthToken", data.token, { expires: expireDate });
-      navigate("/home");
-      //set props
-      //props.user({ name: data.username, type: data.usertype, isAuth: true });
-      //reload the page
-      //window.location.reload();
+      console.error(err.message);
     }
   };
 

@@ -92,6 +92,9 @@ const initialState = {
   editingService: false,
   currentService: [],
   serviceTitle: "New Service",
+  editingDetail: false,
+  triggerDetailModal: 0,
+  detailTitle: "New Service Detail",
 };
 
 export const Bookings = () => {
@@ -775,6 +778,16 @@ export const Bookings = () => {
     });
   };
 
+  //open the modal to create or edit a service detail
+  const handleDetailModal = () => {
+    //open the modal
+    setState({
+      editingDetail: false,
+      triggerDetailModal: state.triggerDetailModal + 1,
+      detailTitle: "New Service Detail",
+    });
+  };
+
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
@@ -1151,11 +1164,33 @@ export const Bookings = () => {
                   value={state.internalComments}
                   onChange={handleOnChange}
                 />
-
-                <p></p>
               </Box>
               {state.onEditMode ? (
                 <Box>
+                  <Button variant="contained" onClick={handleSaveChanges}>
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    style={{ marginLeft: "10px" }}
+                    onClick={cancelEditing}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    style={{ marginLeft: "10px" }}
+                    variant="contained"
+                    onClick={handleServiceModal}
+                  >
+                    New Service Order
+                  </Button>
+                  <p></p>
+                  <Divider />
+                  <Typography variant="h5" color="primary">
+                    Services
+                  </Typography>
+                  <Divider />
                   <Box>
                     <Tabs
                       value={state.tabService}
@@ -1183,13 +1218,27 @@ export const Bookings = () => {
                             <Table size="small">
                               <TableHead>
                                 <TableRow>
-                                  <TableCell>SVC Code</TableCell>
-                                  <TableCell>Date</TableCell>
-                                  <TableCell>Qty</TableCell>
-                                  <TableCell>Charge</TableCell>
-                                  <TableCell>Tips</TableCell>
-                                  <TableCell>Sales Tax</TableCell>
-                                  <TableCell>Optional</TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    SVC
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Date
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Qty
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Charge
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Tips
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Sales Tax
+                                  </TableCell>
+                                  <TableCell style={{ fontWeight: "bold" }}>
+                                    Optional
+                                  </TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
@@ -1218,28 +1267,17 @@ export const Bookings = () => {
                                 </TableRow>
                               </TableBody>
                             </Table>
+                            <p></p>
+                            <Button
+                              variant="outlined"
+                              onClick={handleDetailModal}
+                            >
+                              Add details
+                            </Button>
                           </CustomTabPanel>
                         );
                       })}
                   </Box>
-                  <Button variant="contained" onClick={handleSaveChanges}>
-                    Save Changes
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    style={{ marginLeft: "10px" }}
-                    onClick={cancelEditing}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    style={{ marginLeft: "10px" }}
-                    variant="contained"
-                    onClick={handleServiceModal}
-                  >
-                    New Service Order
-                  </Button>
                 </Box>
               ) : (
                 <Button variant="contained" onClick={handleSubmit}>

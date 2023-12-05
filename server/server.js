@@ -53,7 +53,7 @@ app.post("/signup", bodyParser.json(), async (req, res) => {
 //login
 app.post("/api/login", bodyParser.json(), async (req, res) => {
   const { userName, password } = req.body;
-  let response = await User.login(userName, password);
+  let response = await User.login(userName, password, res);
   res.json(response);
 });
 
@@ -340,10 +340,10 @@ app.put("/updateservice", bodyParser.json(), async (req, res) => {
   res.json(response);
 });
 
-//Delete Services
-app.delete("/deleteservice", async (req, res) => {
-  const { serviceIds } = req.body;
-  let response = await Service.deleteService(serviceIds);
+//Delete Service
+app.delete("/deleteservice/:serviceid", async (req, res) => {
+  const { serviceid } = req.params;
+  let response = await Service.deleteService(serviceid);
   res.json(response);
 });
 //#endregion

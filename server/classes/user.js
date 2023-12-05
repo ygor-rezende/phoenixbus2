@@ -47,7 +47,7 @@ class User {
     }
   } //signUp
 
-  static async login(userName, password) {
+  static async login(userName, password, res) {
     try {
       //Find the user in the database
       const users = await pool.query(
@@ -81,6 +81,7 @@ class User {
         return { detail: "Login failed" };
       }
     } catch (error) {
+      res.status(503).send("Database unavailable");
       console.error(error);
     }
   } //login

@@ -1,3 +1,4 @@
+import { useReducer } from "react";
 import {
   Box,
   IconButton,
@@ -11,7 +12,6 @@ import {
   FormControlLabel,
   Button,
   FormControl,
-  FormHelperText,
   InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -21,46 +21,96 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import CustomDialog from "../../utils/customDialog";
 
-export const ServiceModal = (props) => {
+const reducer = (prevState, upadatedProp) => ({
+  ...prevState,
+  ...upadatedProp,
+});
+
+const initialState = {
+  detailId: 0,
+  employeeId: "",
+  driverName: null,
+  vehicleId: "",
+  vehicleName: null,
+  fromServiceLocationId: "",
+  from: null,
+  toServiceLocationId: "",
+  to: null,
+  spotTime: null,
+  startTime: null,
+  endTime: null,
+  baseTime: null,
+  type: null,
+  instructions: "",
+  gratuity: 0.0,
+  openModal: false,
+  invalidField: "",
+  openDialog: false,
+};
+
+export const DetailModal = (props) => {
   const {
     modalTitle,
     onError,
     onSuccess,
     open,
-    invoice,
+    serviceId,
     data,
     onEditMode,
     onSave,
   } = props;
-  const [serviceId, setServiceId] = useState(0);
-  const [serviceName, setServiceName] = useState("");
-  const [serviceCode, setServiceCode] = useState("");
-  const [serviceDate, setServiceDate] = useState(null);
-  const [qty, setQty] = useState(0);
-  const [charge, setCharge] = useState(0.0);
-  const [tips, setTips] = useState(0.0);
-  const [salesTax, setSalesTax] = useState(0.0);
-  const [optional, setOptional] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [invalidField, setInvalidField] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
+  const [state, setState] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (open > 0) {
       clearState();
       //if on edit mode set the fields values
       if (onEditMode) {
-        setServiceId(data[0].id);
-        setServiceName(data[0].serviceName);
-        setServiceCode(data[0].serviceCode);
-        setServiceDate(dayjs(data[0].serviceDate));
-        setQty(data[0].qty);
-        setCharge(data[0].charge);
-        setTips(data[0].tips);
-        setSalesTax(data[0].salesTax);
-        setOptional(data[0].optional);
+        const getEmployeeById = async (employeeId) => {
+          try {
+            let response = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getemployee/${employeeId}`
+            );
+            const employeeRespData = await response.json();
+            return employeeRespData;
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        const getVehicleById = async (vehicleId) => {
+          try {
+            let response = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getvehicle/${vehicleId}`
+            );
+            const vehicleRespData = await response.json();
+            return vehicleRespData;
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        const employee = getEmployeeById(data[0].employeeId);
+        const vehicle = getVehicleById(data[0].vehicleId);
+        setState({
+          detailId: data[0].id,
+          employeeId: data[0].employeeId,
+          driverName: `${employee.firstname} ${employee.lastname}`,
+          vehicleId: data[0].vehicleId,
+          vehicleName: vehicle.vehicle_name,
+          fromServiceLocationId: "",
+          from: null,
+          toServiceLocationId: "",
+          to: null,
+          spotTime: null,
+          startTime: null,
+          endTime: null,
+          baseTime: null,
+          type: null,
+          instructions: "",
+        });
       }
-      setOpenModal(true);
+      setState({ openModal: true });
     }
   }, [open, onEditMode, data]);
 
@@ -78,48 +128,38 @@ export const ServiceModal = (props) => {
     p: 4,
   };
 
-  //service codes
-  const codes = [
-    "OW",
-    "RT",
-    "CH",
-    "N/A",
-    "FEE",
-    "EAT",
-    "TIP",
-    "OVT",
-    "N/S",
-    "ADA",
-    "OTR",
-    "DIS",
-  ];
+  //service types
+  const types = ["OW", "RT", "CH", "OT"];
 
   //handle form submit
-  const handleSaveNewService = async () => {
+  const handleSaveNewDetail = async () => {
     //validate form
     if (!isFormValid()) {
       return;
     }
 
     if (!onEditMode) {
-      //New service api call
+      //New detail api call
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/createservice`,
+          `${process.env.REACT_APP_SERVERURL}/createdetail`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              service: {
-                bookingId: invoice,
-                serviceName: serviceName,
-                serviceCode: serviceCode,
-                serviceDate: serviceDate,
-                qty: qty,
-                charge: charge,
-                tips: tips,
-                salesTax: salesTax,
-                optional: optional,
+              detail: {
+                serviceId: serviceId,
+                employeeId: state.employeeId,
+                vehicleId: state.vehicleId,
+                fromServiceLocationId: state.fromServiceLocationId,
+                toServiceLocationId: state.toServiceLocationId,
+                spotTime: state.spotTime,
+                startTime: state.startTime,
+                endTime: state.endTime,
+                baseTime: state.baseTime,
+                type: state.type,
+                instructions: state.instructions,
+                gratuity: state.gratuity,
               },
             }),
           }
@@ -144,22 +184,24 @@ export const ServiceModal = (props) => {
       //update call
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/updateservice`,
+          `${process.env.REACT_APP_SERVERURL}/updatedetail`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              service: {
+              detail: {
                 serviceId: serviceId,
-                bookingId: invoice,
-                serviceName: serviceName,
-                serviceCode: serviceCode,
-                serviceDate: serviceDate,
-                qty: qty,
-                charge: charge,
-                tips: tips,
-                salesTax: salesTax,
-                optional: optional,
+                employeeId: state.employeeId,
+                vehicleId: state.vehicleId,
+                fromServiceLocationId: state.fromServiceLocationId,
+                toServiceLocationId: state.toServiceLocationId,
+                spotTime: state.spotTime,
+                startTime: state.startTime,
+                endTime: state.endTime,
+                baseTime: state.baseTime,
+                type: state.type,
+                instructions: state.instructions,
+                gratuity: state.gratuity,
               },
             }),
           }
@@ -186,14 +228,14 @@ export const ServiceModal = (props) => {
       }
     } //else
 
-    //call onSave to re-render the services table in the bookings component
-    onSave(invoice);
-  }; //handleSaveNewService
+    //call onSave to re-render the details table in the bookings component
+    onSave(serviceId);
+  }; //handleSaveNewDetail
 
-  const handleDeleteService = async () => {
+  const handleDeleteDetail = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deleteservice/${serviceId}`,
+        `${process.env.REACT_APP_SERVERURL}/deletedetail/${state.detailId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -212,7 +254,7 @@ export const ServiceModal = (props) => {
         onSuccess(responseMsg);
       }
       clearState();
-      onSave(invoice);
+      onSave(serviceId);
     } catch (err) {
       console.error(err);
     }
@@ -249,7 +291,7 @@ export const ServiceModal = (props) => {
       return;
     }
 
-    if (qty < 1) {
+    if (!qty) {
       setInvalidField("qty");
       return;
     }
@@ -258,21 +300,16 @@ export const ServiceModal = (props) => {
     return true;
   }; //isFormValid
 
-  const handleCloseModal = () => {
-    setInvalidField("");
-    setOpenModal(false);
-  };
-
   return (
     <Modal
       open={openModal}
-      onClose={handleCloseModal}
+      onClose={() => setOpenModal(false)}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
-          <IconButton onClick={handleCloseModal}>
+          <IconButton onClick={() => setOpenModal(false)}>
             <CloseIcon />
           </IconButton>
         </Tooltip>
@@ -294,18 +331,12 @@ export const ServiceModal = (props) => {
               label="Service"
               type="text"
               onChange={(e) => setServiceName(e.target.value)}
-              error={invalidField === "serviceName"}
-              helperText={
-                invalidField === "serviceName" ? "Information required" : ""
-              }
             />
-            <FormControl
-              error={invalidField === "serviceCode"}
-              className="modalField"
-            >
+            <FormControl>
               <InputLabel>Pick a SVC</InputLabel>
               <Select
                 id="serviceCode"
+                className="modalField"
                 value={serviceCode}
                 onChange={(e) => setServiceCode(e.target.value)}
                 label="Pick a SVC"
@@ -319,29 +350,17 @@ export const ServiceModal = (props) => {
                   );
                 })}
               </Select>
-              <FormHelperText>
-                {invalidField === "serviceCode" ? "Information required" : ""}
-              </FormHelperText>
             </FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <FormControl
-                error={invalidField === "serviceDate"}
+              <DatePicker
+                label="Service Date"
                 className="modalField"
-              >
-                <DatePicker
-                  label="Service Date"
-                  id="serviceDate"
-                  format="YYYY-MM-DD"
-                  value={serviceDate}
-                  onChange={(newValue) => setServiceDate(dayjs(newValue))}
-                />
-
-                <FormHelperText>
-                  {invalidField === "serviceDate" ? "Information required" : ""}
-                </FormHelperText>
-              </FormControl>
+                id="serviceDate"
+                format="YYYY-MM-DD"
+                value={serviceDate}
+                onChange={(newValue) => setServiceDate(dayjs(newValue))}
+              />
             </LocalizationProvider>
-
             <TextField
               id="qty"
               label="Qty"
@@ -351,8 +370,6 @@ export const ServiceModal = (props) => {
               placeholder="Qty"
               value={qty}
               onChange={(e) => setQty(e.target.value)}
-              error={invalidField === "qty"}
-              helperText={invalidField === "qty" ? "Information required" : ""}
             />
           </Box>
           <Box className="modal2Columns">
