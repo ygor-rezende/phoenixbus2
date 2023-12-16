@@ -12,6 +12,7 @@ const { Quote } = require("./classes/quote");
 const { Booking } = require("./classes/bookings");
 const { Employee } = require("./classes/employee");
 const { Service } = require("./classes/services");
+const { ServiceDetail } = require("./classes/serviceDetail");
 
 //using cors for allow testing
 app.use(cors());
@@ -115,6 +116,12 @@ app.put("/updatevehicle", async (req, res) => {
   let response = await Vehicle.updateVehicle(vehicle);
   res.json(response);
 });
+
+//Get all vehicle names
+app.get("/getallvehiclenames", async (req, res) => {
+  let response = await Vehicle.getAllVehicleNames();
+  res.json(response);
+});
 //#endregion
 
 //#region Client
@@ -173,10 +180,16 @@ app.put("/updatelocation", bodyParser.json(), async (req, res) => {
   res.json(response);
 });
 
-//Delete clients
+//Delete location
 app.delete("/deletelocation", async (req, res) => {
   const { locationIds } = req.body;
   let response = await Location.deleteLocation(locationIds);
+  res.json(response);
+});
+
+//Get all location names
+app.get("/getalllocationnames", async (req, res) => {
+  let response = await Location.getAllLocationNames();
   res.json(response);
 });
 //#endregion
@@ -241,6 +254,12 @@ app.put("/updateemployee", bodyParser.json(), async (req, res) => {
 app.delete("/deleteemployee", async (req, res) => {
   const { employeeIds } = req.body;
   let response = await Employee.deleteEmployee(employeeIds);
+  res.json(response);
+});
+
+//Get all employee names (first and last name)
+app.get("/getallemployeenames", async (req, res) => {
+  let response = await Employee.getAllEmployeeNames();
   res.json(response);
 });
 //#endregion
@@ -348,4 +367,42 @@ app.delete("/deleteservice/:serviceid", async (req, res) => {
 });
 //#endregion
 
+//#region ServiceDetails
+//create a service detail
+app.post("/createdetail", bodyParser.json(), async (req, res) => {
+  const { detail } = req.body;
+  let response = await ServiceDetail.newDetail(detail);
+  console.log(response);
+  res.json(response);
+});
+
+//Get all details
+app.get("/getalldetails", async (req, res) => {
+  let response = await ServiceDetail.getAllDetails();
+  //console.log(response);
+  res.json(response);
+});
+
+//get details for a specific service
+app.get("/getservices/:serviceId", async (req, res) => {
+  const { serviceId } = req.params;
+  let response = await ServiceDetail.getDetails(serviceId);
+  res.json(response);
+});
+
+//Update a service detail
+app.put("/updatedetail", bodyParser.json(), async (req, res) => {
+  const { detail } = req.body;
+  let response = await ServiceDetail.updateDetail(detail);
+  //console.log(response);
+  res.json(response);
+});
+
+//Delete a service detail
+app.delete("/deletedetail/:detailid", async (req, res) => {
+  const { detailid } = req.params;
+  let response = await ServiceDetail.deleteDetail(detailid);
+  res.json(response);
+});
+//#endregion
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

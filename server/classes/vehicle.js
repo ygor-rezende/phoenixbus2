@@ -66,6 +66,19 @@ class Vehicle {
       if (err) return { detail: err.detail };
     }
   } //updateVehicle
+
+  static async getAllVehicleNames() {
+    try {
+      const result = await pool.query(
+        "Select vehicle_id, vehicle_name FROM vehicles"
+      );
+      //console.log(result.rows);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  } //getAllVehicleNames
 }
 
 module.exports = { Vehicle };

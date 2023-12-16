@@ -120,6 +120,19 @@ class Employee {
       if (err) return { failed: `Error: ${err.message}` };
     }
   } //deleteEmployee
+
+  static async getAllEmployeeNames() {
+    try {
+      const result = await pool.query(
+        "Select employee_id, firstname, lastname FROM employees"
+      );
+      //console.log(result.rows);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  } //getAllEmployeeNames
 }
 
 module.exports = { Employee };

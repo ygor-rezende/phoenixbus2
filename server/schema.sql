@@ -146,3 +146,34 @@ CREATE TABLE services (
     CONSTRAINT servicesPK PRIMARY KEY (service_id)
 )
 
+
+CREATE TABLE services (
+    service_id SERIAL,
+    booking_id VARCHAR(255) NOT NULL,
+    service_name VARCHAR(50) NOT NULL,
+    service_code VARCHAR(10) NOT NULL, 
+    service_date VARCHAR(30),  
+    qty INT NOT NULL,
+    charge DECIMAL(10,2), 
+    tips DECIMAL(10,2), 
+    sales_tax DECIMAL(10,2), 
+    optional BOOLEAN,
+    CONSTRAINT servicesPK PRIMARY KEY (service_id)
+)
+
+CREATE TABLE service_details (
+    detail_id SERIAL,
+    service_id INT NOT NULL,
+    employee_id VARCHAR(50) NOT NULL,
+    vehicle_id VARCHAR(50) NOT NULL,
+    from_location_id VARCHAR(50) NOT NULL,
+    to_location_id VARCHAR(50) NOT NULL,
+    spot_time VARCHAR(30),
+    start_time VARCHAR(30), 
+    end_time VARCHAR(30),
+    base_time VARCHAR(30),  
+    service_type VARCHAR(10),
+    instructions VARCHAR(255),
+    gratuity DECIMAL(10,2), 
+    CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
+)

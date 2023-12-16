@@ -34,6 +34,7 @@ import EnhancedTable from "../utils/table_generic";
 import { QuotesView } from "./subcomponents/quotesView";
 import { ServiceModal } from "./subcomponents/serviceModal";
 import { CustomTabPanel } from "./subcomponents/customTabPanel";
+import { DetailModal } from "./subcomponents/detailModal";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -91,6 +92,7 @@ const initialState = {
   triggerModal: 0,
   editingService: false,
   currentService: [],
+  serviceId: 0,
   serviceTitle: "New Service",
   editingDetail: false,
   triggerDetailModal: 0,
@@ -525,7 +527,7 @@ export const Bookings = () => {
     }
   }; //handleDelete
 
-  //Show information when clicking on a table row
+  //Show services information when clicking on a table row
   const handleItemClick = async (id) => {
     //load services for this booking
     const services = await getServicesData(id);
@@ -779,9 +781,10 @@ export const Bookings = () => {
   };
 
   //open the modal to create or edit a service detail
-  const handleDetailModal = () => {
+  const handleDetailModal = (serviceId) => {
     //open the modal
     setState({
+      serviceId: serviceId,
       editingDetail: false,
       triggerDetailModal: state.triggerDetailModal + 1,
       detailTitle: "New Service Detail",
@@ -1270,7 +1273,7 @@ export const Bookings = () => {
                             <p></p>
                             <Button
                               variant="outlined"
-                              onClick={handleDetailModal}
+                              onClick={() => handleDetailModal(service.id)}
                             >
                               Add details
                             </Button>
@@ -1352,6 +1355,16 @@ export const Bookings = () => {
             invoice={state.invoice}
             data={state.currentService}
             onEditMode={state.editingService}
+            onSave={handleItemClick}
+          />
+          <DetailModal
+            modalTitle={state.detailTitle}
+            onError={handleOnError}
+            onSuccess={handleOnSuccess}
+            open={state.triggerDetailModal}
+            serviceId={state.serviceId}
+            data={state.currentService}
+            onEditMode={state.editingDetail}
             onSave={handleItemClick}
           />
         </div>

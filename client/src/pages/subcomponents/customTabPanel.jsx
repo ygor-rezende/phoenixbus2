@@ -19,8 +19,8 @@ export const CustomTabPanel = (props) => {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+        <Box>
+          <Typography component={"span"}>{children}</Typography>
         </Box>
       )}
     </div>

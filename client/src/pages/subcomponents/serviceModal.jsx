@@ -230,6 +230,7 @@ export const ServiceModal = (props) => {
     setOptional(false);
     setOpenModal(false);
     setOpenDialog(false);
+    setInvalidField("");
   };
 
   //validate the form fields

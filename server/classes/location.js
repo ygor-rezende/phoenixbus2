@@ -82,6 +82,19 @@ class Location {
       if (err) return { failed: `Error: ${err.message}` };
     }
   } //deleteLocation
+
+  static async getAllLocationNames() {
+    try {
+      const result = await pool.query(
+        "Select location_id, location_name FROM locations"
+      );
+      //console.log(result.rows);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  } //getAllLocationNames
 }
 
 module.exports = { Location };

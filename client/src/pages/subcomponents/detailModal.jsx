@@ -1,6 +1,7 @@
 import { useReducer } from "react";
 import {
   Box,
+  Autocomplete,
   IconButton,
   Modal,
   TextField,
@@ -8,17 +9,15 @@ import {
   Typography,
   Select,
   MenuItem,
-  Checkbox,
-  FormControlLabel,
   Button,
   FormControl,
   InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomDialog from "../../utils/customDialog";
 
 const reducer = (prevState, upadatedProp) => ({
@@ -30,12 +29,15 @@ const initialState = {
   detailId: 0,
   employeeId: "",
   driverName: null,
+  employees: [],
   vehicleId: "",
   vehicleName: null,
+  vehicles: [],
   fromServiceLocationId: "",
   from: null,
   toServiceLocationId: "",
   to: null,
+  serviceLocations: [],
   spotTime: null,
   startTime: null,
   endTime: null,
@@ -108,9 +110,58 @@ export const DetailModal = (props) => {
           baseTime: null,
           type: null,
           instructions: "",
+          openModal: true,
+        });
+      } else {
+        //get all employees (firstname and lastname) to load the autocomplete
+        (async function getAllEmployees() {
+          try {
+            let response = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getallemployeenames`
+            );
+            const respData = await response.json();
+            setState({
+              employees: respData,
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        })();
+
+        //get all vehicle names to load the autocomplete
+        (async function getAllVehicles() {
+          try {
+            let response = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
+            );
+            const respData = await response.json();
+            setState({
+              vehicles: respData,
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        })();
+
+        //get all location names to load the autocomplete
+        (async function getAllLocations() {
+          try {
+            let response = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
+            );
+            const respData = await response.json();
+            setState({
+              serviceLocations: respData,
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        })();
+
+        setState({
+          openModal: true,
         });
       }
-      setState({ openModal: true });
     }
   }, [open, onEditMode, data]);
 
@@ -229,7 +280,7 @@ export const DetailModal = (props) => {
     } //else
 
     //call onSave to re-render the details table in the bookings component
-    onSave(serviceId);
+    //TO DO: onSave(serviceId);
   }; //handleSaveNewDetail
 
   const handleDeleteDetail = async () => {
@@ -260,56 +311,110 @@ export const DetailModal = (props) => {
     }
   };
 
+  //handle changes on Driver autocomplete
+  const handleDriverChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        employeeId: newValue.employeeId,
+        driverName: newValue.driverName,
+      });
+    }
+  };
+
+  //handle changes on Driver autocomplete
+  const handleVehicleChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        vehicleId: newValue.vehicleId,
+        vehicleName: newValue.vehicleName,
+      });
+    }
+  };
+
+  //handle changes on From Location autocomplete
+  const handleFromLocationChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        fromServiceLocationId: newValue.locationId,
+        from: newValue.locationName,
+      });
+    }
+  };
+
+  //handle changes on To Location autocomplete
+  const handleToLocationChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        toServiceLocationId: newValue.locationId,
+        to: newValue.locationName,
+      });
+    }
+  };
+
   //clear state fields utility
   const clearState = () => {
-    setServiceName("");
-    setServiceCode("");
-    setServiceDate(null);
-    setQty(0);
-    setCharge(0.0);
-    setTips(0.0);
-    setSalesTax(0.0);
-    setOptional(false);
-    setOpenModal(false);
-    setOpenDialog(false);
+    setState({
+      detailId: 0,
+      employeeId: "",
+      driverName: null,
+      employees: [],
+      vehicleId: "",
+      vehicleName: null,
+      vehicles: [],
+      fromServiceLocationId: "",
+      from: null,
+      toServiceLocationId: "",
+      to: null,
+      serviceLocations: [],
+      spotTime: null,
+      startTime: null,
+      endTime: null,
+      baseTime: null,
+      type: null,
+      instructions: "",
+      gratuity: 0.0,
+      openModal: false,
+      invalidField: "",
+      openDialog: false,
+    });
   };
 
   //validate the form fields
   const isFormValid = () => {
-    if (!serviceName) {
-      setInvalidField("serviceName");
+    if (!state.driverName) {
+      setState({ invalidField: "driverName" });
       return;
     }
 
-    if (!serviceCode) {
-      setInvalidField("serviceCode");
+    if (!state.vehicleName) {
+      setState({ invalidField: "vehicleName" });
       return;
     }
 
-    if (!serviceDate) {
-      setInvalidField("serviceDate");
+    if (!state.from) {
+      setState({ invalidField: "from" });
       return;
     }
 
-    if (!qty) {
-      setInvalidField("qty");
+    if (!state.to) {
+      setState({ invalidField: "to" });
       return;
     }
 
-    setInvalidField("");
+    setState({ invalidField: "" });
     return true;
   }; //isFormValid
 
   return (
     <Modal
-      open={openModal}
-      onClose={() => setOpenModal(false)}
+      open={state.openModal}
+      onClose={() => setState({ openModal: false })}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
-          <IconButton onClick={() => setOpenModal(false)}>
+          <IconButton onClick={() => setState({ openModal: false })}>
             <CloseIcon />
           </IconButton>
         </Tooltip>
@@ -324,25 +429,166 @@ export const DetailModal = (props) => {
         </Typography>
         <Box sx={{ display: "flex" }}>
           <Box className="modal2Columns">
-            <TextField
-              id="serviceName"
+            <div
+              id="driver-box"
               className="modalField"
-              value={serviceName}
-              label="Service"
-              type="text"
-              onChange={(e) => setServiceName(e.target.value)}
-            />
+              style={{ display: "inline-block" }}
+            >
+              <Autocomplete
+                id="driver"
+                required
+                className="autocomplete"
+                value={state.driverName}
+                onChange={handleDriverChange}
+                isOptionEqualToValue={(option, value) =>
+                  option.driverName === value
+                }
+                options={state.employees.map((element) => {
+                  const employee = {
+                    employeeId: element.employee_id,
+                    driverName: `${element.firstname} ${element.lastname}`,
+                  };
+                  return employee;
+                })}
+                sx={{ width: 200 }}
+                getOptionLabel={(option) => option.driverName ?? option}
+                renderInput={(params) => (
+                  <TextField
+                    required
+                    {...params}
+                    label="Driver"
+                    error={state.invalidField === "driverName"}
+                    helperText={
+                      state.invalidField === "driverName"
+                        ? "Information required"
+                        : ""
+                    }
+                  />
+                )}
+              />
+            </div>
+            <div
+              id="vehicle-box"
+              className="modalField"
+              style={{ display: "inline-block" }}
+            >
+              <Autocomplete
+                id="vehicle"
+                className="autocomplete"
+                required
+                value={state.vehicleName}
+                onChange={handleVehicleChange}
+                isOptionEqualToValue={(option, value) =>
+                  option.vehicleName === value
+                }
+                options={state.vehicles.map((element) => {
+                  const vehicle = {
+                    vehicleId: element.vehicle_id,
+                    vehicleName: element.vehicle_name,
+                  };
+                  return vehicle;
+                })}
+                sx={{ width: 200 }}
+                getOptionLabel={(option) => option.vehicleName ?? option}
+                renderInput={(params) => (
+                  <TextField
+                    required
+                    {...params}
+                    label="Vehicle"
+                    error={state.invalidField === "vehicleName"}
+                    helperText={
+                      state.invalidField === "vehicleName"
+                        ? "Information required"
+                        : ""
+                    }
+                  />
+                )}
+              />
+            </div>
+            <div
+              id="from-box"
+              className="modalField"
+              style={{ display: "inline-block" }}
+            >
+              <Autocomplete
+                id="from"
+                required
+                className="autocomplete"
+                value={state.from}
+                onChange={handleFromLocationChange}
+                isOptionEqualToValue={(option, value) =>
+                  option.locationName === value
+                }
+                options={state.serviceLocations.map((element) => {
+                  const location = {
+                    locationId: element.location_id,
+                    locationName: element.location_name,
+                  };
+                  return location;
+                })}
+                sx={{ width: 200 }}
+                getOptionLabel={(option) => option.locationName ?? option}
+                renderInput={(params) => (
+                  <TextField
+                    required
+                    {...params}
+                    label="From location"
+                    error={state.invalidField === "from"}
+                    helperText={
+                      state.invalidField === "from"
+                        ? "Information required"
+                        : ""
+                    }
+                  />
+                )}
+              />
+            </div>
+
+            <div
+              id="from-box"
+              className="modalField"
+              style={{ display: "inline-block" }}
+            >
+              <Autocomplete
+                id="to"
+                required
+                className="autocomplete"
+                value={state.to}
+                onChange={handleToLocationChange}
+                isOptionEqualToValue={(option, value) => option.from === value}
+                options={state.serviceLocations.map((element) => {
+                  const location = {
+                    locationId: element.location_id,
+                    locationName: element.location_name,
+                  };
+                  return location;
+                })}
+                sx={{ width: 200 }}
+                getOptionLabel={(option) => option.locationName ?? option}
+                renderInput={(params) => (
+                  <TextField
+                    required
+                    {...params}
+                    label="To location"
+                    error={state.invalidField === "to"}
+                    helperText={
+                      state.invalidField === "to" ? "Information required" : ""
+                    }
+                  />
+                )}
+              />
+            </div>
             <FormControl>
-              <InputLabel>Pick a SVC</InputLabel>
+              <InputLabel>Pick a Type</InputLabel>
               <Select
-                id="serviceCode"
+                id="type"
                 className="modalField"
-                value={serviceCode}
-                onChange={(e) => setServiceCode(e.target.value)}
-                label="Pick a SVC"
-                placeholder="Pick a SVC"
+                value={state.type}
+                onChange={(e) => setState({ type: e.target.value })}
+                label="Pick a Type"
+                placeholder="Pick a Type"
               >
-                {codes.map((code) => {
+                {types.map((code) => {
                   return (
                     <MenuItem key={code} value={code}>
                       {code}
@@ -352,71 +598,66 @@ export const DetailModal = (props) => {
               </Select>
             </FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Service Date"
+              <TimePicker
+                label="Spot time"
                 className="modalField"
-                id="serviceDate"
-                format="YYYY-MM-DD"
-                value={serviceDate}
-                onChange={(newValue) => setServiceDate(dayjs(newValue))}
+                id="spotTime"
+                value={state.spotTime}
+                onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
+              />
+            </LocalizationProvider>
+          </Box>
+          <Box className="modal2Columns">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <TimePicker
+                label="Start time"
+                className="modalField"
+                id="startTime"
+                value={state.startTime}
+                onChange={(newValue) =>
+                  setState({ startTime: dayjs(newValue) })
+                }
+              />
+              <TimePicker
+                label="End time"
+                className="modalField"
+                id="endTime"
+                value={state.endTime}
+                onChange={(newValue) => setState({ endTime: dayjs(newValue) })}
+              />
+              <TimePicker
+                label="Base time"
+                className="modalField"
+                id="baseTime"
+                value={state.baseTime}
+                onChange={(newValue) => setState({ baseTime: dayjs(newValue) })}
               />
             </LocalizationProvider>
             <TextField
-              id="qty"
-              label="Qty"
+              id="gratuity"
               className="modalField"
-              type="text"
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-              placeholder="Qty"
-              value={qty}
-              onChange={(e) => setQty(e.target.value)}
-            />
-          </Box>
-          <Box className="modal2Columns">
-            <TextField
-              id="charge"
-              className="modalField"
-              label="Charge $"
+              label="Gratuity $"
               type="text"
               inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Charge $"
-              value={charge}
-              onChange={(e) => setCharge(e.target.value)}
+              placeholder="CharGratuityge $"
+              value={state.gratuity}
+              onChange={(e) => setState({ gratuity: e.target.value })}
             />
             <TextField
-              id="tips"
+              id="instructions"
               className="modalField"
-              label="Tips $"
+              label="Instructions"
               type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Tips $"
-              value={tips}
-              onChange={(e) => setTips(e.target.value)}
-            />
-            <TextField
-              id="salesTax"
-              className="modalField"
-              label="Sales Tax %"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Sales Tax %"
-              value={salesTax}
-              onChange={(e) => setSalesTax(e.target.value)}
-            />
-            <FormControlLabel
-              style={{ alignSelf: "center" }}
-              control={
-                <Checkbox
-                  checked={optional}
-                  onChange={(e) => setOptional(e.target.checked)}
-                />
-              }
-              label="Optional"
+              multiline
+              rows={4}
+              placeholder="Instructions"
+              value={state.instructions}
+              onChange={(e) => setState({ instructions: e.target.value })}
             />
           </Box>
         </Box>
         <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button variant="contained" onClick={handleSaveNewService}>
+          <Button variant="contained" onClick={handleSaveNewDetail}>
             Save
           </Button>
           {onEditMode && (
@@ -424,18 +665,18 @@ export const DetailModal = (props) => {
               variant="contained"
               color="secondary"
               style={{ marginLeft: "10px" }}
-              onClick={() => setOpenDialog(true)}
+              onClick={() => setState({ openDialog: true })}
             >
               Delete
             </Button>
           )}
         </Box>
         <CustomDialog
-          openDialog={openDialog}
-          onCancel={() => setOpenDialog(false)}
-          onDelete={handleDeleteService}
-          title={"Confirm deleting service?"}
-          description={"Are you sure you want to delete this service?"}
+          openDialog={state.openDialog}
+          onCancel={() => setState({ openDialog: false })}
+          onDelete={handleDeleteDetail}
+          title={"Confirm deleting detail?"}
+          description={"Are you sure you want to delete this detail?"}
         />
       </Box>
     </Modal>
