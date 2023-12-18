@@ -79,6 +79,19 @@ class Vehicle {
       return "Query failed";
     }
   } //getAllVehicleNames
+
+  static async getVehicleById(id) {
+    try {
+      const result = await pool.query(
+        "Select * from vehicles WHERE vehicle_id = $1",
+        [id]
+      );
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  }
 }
 
 module.exports = { Vehicle };

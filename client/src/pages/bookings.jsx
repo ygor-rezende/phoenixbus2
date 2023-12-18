@@ -82,6 +82,8 @@ const initialState = {
   bookingsData: [],
   clientsData: [],
   employeesData: [],
+  vehiclesData: [],
+  locationsData: [],
   onEditMode: false,
   expandPanel: false,
   expandBookings: false,
@@ -97,6 +99,8 @@ const initialState = {
   editingDetail: false,
   triggerDetailModal: 0,
   detailTitle: "New Service Detail",
+  detailsData: [],
+  currentDetail: [],
 };
 
 export const Bookings = () => {
@@ -115,9 +119,21 @@ export const Bookings = () => {
       );
       const employeesRespData = await response.json();
 
+      response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
+      );
+      const vehiclesRespData = await response.json();
+
+      response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
+      );
+      const locationsRespData = await response.json();
+
       setState({
         clientsData: clientsRespData,
         employeesData: employeesRespData,
+        vehiclesData: vehiclesRespData,
+        locationsData: locationsRespData,
       });
 
       return [clientsRespData, employeesRespData];
@@ -130,6 +146,7 @@ export const Bookings = () => {
     try {
       let cliData = state.clientsData;
       let empData = state.employeesData;
+
       //get client and employees data
       if (cliData.length === 0 || empData === 0) {
         [cliData, empData] = await getCEData();
@@ -531,6 +548,18 @@ export const Bookings = () => {
   const handleItemClick = async (id) => {
     //load services for this booking
     const services = await getServicesData(id);
+
+    //load service details for this booking
+    const details = await getDetailsData(services);
+
+    //testing
+    services.map((service) => {
+      let allDetails = details.map((detailsArr) =>
+        detailsArr.filter((detail) => detail.service_id === service.id)
+      );
+      return allDetails;
+    });
+
     //load fields
     console.log(state.bookingsData.filter((e) => e.id === id));
     //get client id and employee id from bookings data
@@ -588,6 +617,7 @@ export const Bookings = () => {
         .internalComents,
       servicesData: services,
       tabService: 0,
+      detailsData: details,
     });
 
     //scroll to the invoice field
@@ -622,6 +652,24 @@ export const Bookings = () => {
       console.error(err);
     }
   }; //getServicesData
+
+  //fech details for the services in a booking
+  const getDetailsData = async (services) => {
+    try {
+      //loop through services to load the details
+      let details = services.map(async (service) => {
+        let response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/getdetails/${service.id}`
+        );
+        let responseData = await response.json();
+        return responseData;
+      });
+      const detailsPromise = await Promise.all(details);
+      return detailsPromise;
+    } catch (err) {
+      console.error(err);
+    }
+  }; //getDetailsData
 
   //Show information when clicking on quotes table row
   const handleQuoteClick = (id) => {
@@ -777,6 +825,19 @@ export const Bookings = () => {
       editingService: true,
       triggerModal: state.triggerModal + 1,
       serviceTitle: "Edit Service",
+    });
+  };
+
+  //when a service row is clicked to edit a detail
+  const handleEditDetail = (event, detail) => {
+    //find the service
+
+    //set the state variables to open the service modal
+    setState({
+      currentDetail: detail,
+      editingDetail: true,
+      triggerDetailModal: state.triggerDetailModal + 1,
+      detailTitle: "Edit Detail",
     });
   };
 
@@ -1211,6 +1272,11 @@ export const Bookings = () => {
                     </Tabs>
                     {state.servicesData.length > 0 &&
                       state.servicesData.map((service, index) => {
+                        let details = state.detailsData.map((detailsArr) =>
+                          detailsArr.filter(
+                            (detail) => detail.service_id === service.id
+                          )
+                        );
                         return (
                           //service data info
                           <CustomTabPanel
@@ -1270,6 +1336,122 @@ export const Bookings = () => {
                                 </TableRow>
                               </TableBody>
                             </Table>
+                            <p></p>
+                            {details[index].length > 0 && (
+                              <Box>
+                                <Typography variant="h6" color="secondary">
+                                  Details
+                                </Typography>
+                                <p></p>
+                                <Table size="small">
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Driver
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Vehicle
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        From
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        To
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Spot Time
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Start Time
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        End Time
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Base Time
+                                      </TableCell>
+                                      <TableCell style={{ fontWeight: "bold" }}>
+                                        Type
+                                      </TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {details[index].map((detail) => {
+                                      const driver = state.employeesData.find(
+                                        (employee) =>
+                                          employee.employee_id ===
+                                          detail.employee_id
+                                      );
+
+                                      const vehicle = state.vehiclesData.find(
+                                        (vehicle) =>
+                                          vehicle.vehicle_id ===
+                                          detail.vehicle_id
+                                      );
+
+                                      const locationFrom =
+                                        state.locationsData.find(
+                                          (location) =>
+                                            location.location_id ===
+                                            detail.from_location_id
+                                        );
+                                      const locationTo =
+                                        state.locationsData.find(
+                                          (location) =>
+                                            location.location_id ===
+                                            detail.to_location_id
+                                        );
+
+                                      return (
+                                        <TableRow
+                                          hover
+                                          onClick={(event) =>
+                                            handleEditDetail(event, detail)
+                                          }
+                                          key={detail.detail_id}
+                                        >
+                                          <TableCell>
+                                            {`${driver.firstname} ${driver.lastname}`}
+                                          </TableCell>
+                                          <TableCell>
+                                            {vehicle.vehicle_name}
+                                          </TableCell>
+                                          <TableCell>
+                                            {locationFrom.location_name}
+                                          </TableCell>
+                                          <TableCell>
+                                            {locationTo.location_name}
+                                          </TableCell>
+                                          <TableCell>
+                                            {dayjs(detail.spot_time).format(
+                                              "HH:MM a"
+                                            )}
+                                          </TableCell>
+                                          <TableCell>
+                                            {dayjs(detail.start_time).format(
+                                              "HH:MM a"
+                                            )}
+                                          </TableCell>
+                                          <TableCell>
+                                            {dayjs(detail.end_time).format(
+                                              "HH:MM a"
+                                            )}
+                                          </TableCell>
+                                          <TableCell>
+                                            {dayjs(detail.base_time).format(
+                                              "HH:MM a"
+                                            )}
+                                          </TableCell>
+                                          <TableCell>
+                                            {detail.service_type}
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    })}
+                                  </TableBody>
+                                </Table>
+                              </Box>
+                            )}
                             <p></p>
                             <Button
                               variant="outlined"
@@ -1363,7 +1545,8 @@ export const Bookings = () => {
             onSuccess={handleOnSuccess}
             open={state.triggerDetailModal}
             serviceId={state.serviceId}
-            data={state.currentService}
+            invoice={state.invoice}
+            data={state.currentDetail}
             onEditMode={state.editingDetail}
             onSave={handleItemClick}
           />

@@ -133,6 +133,19 @@ class Employee {
       return "Query failed";
     }
   } //getAllEmployeeNames
+
+  static async getEmployeeById(id) {
+    try {
+      const result = await pool.query(
+        "Select * from employees WHERE employee_id = $1",
+        [id]
+      );
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  }
 }
 
 module.exports = { Employee };

@@ -33,20 +33,20 @@ class ServiceDetail {
 
   static async getAllDetails() {
     try {
-      const result = await pool.query("Select * FROM services");
+      const result = await pool.query("Select * FROM service_details");
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
       console.error(err);
       return "Query failed";
     }
-  } //getAllServices
+  } //getAllDetails
 
-  static async getDetails(invoice) {
+  static async getDetails(serviceId) {
     try {
       const result = await pool.query(
-        "Select * FROM services WHERE booking_id = $1",
-        [invoice]
+        "Select * FROM service_details WHERE service_id = $1",
+        [serviceId]
       );
       //console.log(result.rows);
       return result.rows;
@@ -54,48 +54,51 @@ class ServiceDetail {
       console.error(err);
       return "Query failed";
     }
-  } //getAllServices
+  } //getDetails
 
-  static async updateDetail(service) {
+  static async updateDetail(detail) {
     try {
-      const updatedService = await pool.query(
-        "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, tips = $7, sales_tax = $8, optional = $9 WHERE service_id = $10",
+      const updatedDetail = await pool.query(
+        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, base_time = $9, service_type = $10, instructions = $11, gratuity = $12 WHERE detail_id = $13",
         [
-          service.bookingId,
-          service.serviceName,
-          service.serviceCode,
-          service.serviceDate,
-          service.qty,
-          service.charge,
-          service.tips,
-          service.salesTax,
-          service.optional,
-          service.serviceId,
+          detail.serviceId,
+          detail.employeeId,
+          detail.vehicleId,
+          detail.fromServiceLocationId,
+          detail.toServiceLocationId,
+          detail.spotTime,
+          detail.startTime,
+          detail.endTime,
+          detail.baseTime,
+          detail.type,
+          detail.instructions,
+          detail.gratuity,
+          detail.detailId,
         ]
       );
-      if (updatedService.rowCount)
-        return `Service ${service.serviceName} updated`;
-      else return { failed: "Failed to update service" };
+      if (updatedDetail.rowCount)
+        return `Service detail ${detail.detailId} updated`;
+      else return { failed: "Failed to update detail" };
     } catch (err) {
       console.error(err);
       if (err) return { failed: `Error: ${err.message}` };
     }
-  } //updateService
+  } //updateDetail
 
-  static async deleteDetail(serviceId) {
+  static async deleteDetail(detailId) {
     try {
-      const deletedService = await pool.query(
-        "DELETE from services WHERE service_id = $1",
-        [serviceId]
+      const deletedDetail = await pool.query(
+        "DELETE from service_details WHERE detail_id = $1",
+        [detailId]
       );
-      console.log(deletedService);
-      if (deletedService) return `Service ${serviceId} deleted`;
-      else return { failed: "Failed to delete service" };
+      console.log(deletedDetail);
+      if (deletedDetail) return `Service detail ${detailId} deleted`;
+      else return { failed: "Failed to delete detail" };
     } catch (err) {
       console.error(err);
       if (err) return { failed: `Error: ${err.message}` };
     }
-  } //deleteService
+  } //deleteDetail
 }
 
 module.exports = { ServiceDetail };

@@ -30,13 +30,17 @@ const initialState = {
   employeeId: "",
   driverName: null,
   employees: [],
+  curEmployee: null,
   vehicleId: "",
   vehicleName: null,
   vehicles: [],
+  curVehicle: null,
   fromServiceLocationId: "",
   from: null,
+  curFromLocation: null,
   toServiceLocationId: "",
   to: null,
+  curToLocation: null,
   serviceLocations: [],
   spotTime: null,
   startTime: null,
@@ -57,6 +61,7 @@ export const DetailModal = (props) => {
     onSuccess,
     open,
     serviceId,
+    invoice,
     data,
     onEditMode,
     onSave,
@@ -66,98 +71,121 @@ export const DetailModal = (props) => {
   useEffect(() => {
     if (open > 0) {
       clearState();
+
+      //get all employees (firstname and lastname) to load the autocomplete
+      (async function getAllEmployees() {
+        try {
+          let response = await fetch(
+            `${process.env.REACT_APP_SERVERURL}/getallemployeenames`
+          );
+          const respData = await response.json();
+          setState({
+            employees: respData,
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+
+      //get all vehicle names to load the autocomplete
+      (async function getAllVehicles() {
+        try {
+          let response = await fetch(
+            `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
+          );
+          const respData = await response.json();
+          setState({
+            vehicles: respData,
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+
+      //get all location names to load the autocomplete
+      (async function getAllLocations() {
+        try {
+          let response = await fetch(
+            `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
+          );
+          const respData = await response.json();
+          setState({
+            serviceLocations: respData,
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+
       //if on edit mode set the fields values
       if (onEditMode) {
-        const getEmployeeById = async (employeeId) => {
+        (async function getEmployeeById(employeeId) {
           try {
             let response = await fetch(
               `${process.env.REACT_APP_SERVERURL}/getemployee/${employeeId}`
             );
             const employeeRespData = await response.json();
-            return employeeRespData;
+            setState({
+              curEmployee: employeeRespData[0],
+              driverName: `${employeeRespData[0].firstname} ${employeeRespData[0].lastname}`,
+            });
           } catch (err) {
             console.error(err);
           }
-        };
+        })(data.employee_id);
 
-        const getVehicleById = async (vehicleId) => {
+        (async function getVehicleById(vehicleId) {
           try {
             let response = await fetch(
               `${process.env.REACT_APP_SERVERURL}/getvehicle/${vehicleId}`
             );
             const vehicleRespData = await response.json();
-            return vehicleRespData;
+            setState({
+              curVehicle: vehicleRespData[0],
+              vehicleName: vehicleRespData[0].vehicle_name,
+            });
           } catch (err) {
             console.error(err);
           }
-        };
+        })(data.vehicle_id);
 
-        const employee = getEmployeeById(data[0].employeeId);
-        const vehicle = getVehicleById(data[0].vehicleId);
+        (async function getLocationById(fromLocationId, toLocationId) {
+          try {
+            let fromLocation = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getlocation/${fromLocationId}`
+            );
+            let toLocation = await fetch(
+              `${process.env.REACT_APP_SERVERURL}/getlocation/${toLocationId}`
+            );
+            const fromRespData = await fromLocation.json();
+            const toRespData = await toLocation.json();
+            setState({
+              curFromLocation: fromRespData[0],
+              curToLocation: toRespData[0],
+              from: fromRespData[0].location_name,
+              to: toRespData[0].location_name,
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        })(data.from_location_id, data.to_location_id);
+
         setState({
-          detailId: data[0].id,
-          employeeId: data[0].employeeId,
-          driverName: `${employee.firstname} ${employee.lastname}`,
-          vehicleId: data[0].vehicleId,
-          vehicleName: vehicle.vehicle_name,
-          fromServiceLocationId: "",
-          from: null,
-          toServiceLocationId: "",
-          to: null,
-          spotTime: null,
-          startTime: null,
-          endTime: null,
-          baseTime: null,
-          type: null,
-          instructions: "",
+          detailId: data.detail_id,
+          employeeId: data.employee_id,
+          vehicleId: data.vehicle_id,
+          fromServiceLocationId: data.from_location_id,
+          toServiceLocationId: data.to_location_id,
+          spotTime: dayjs(data.spot_time),
+          startTime: dayjs(data.start_time),
+          endTime: dayjs(data.end_time),
+          baseTime: dayjs(data.base_time),
+          type: data.service_type,
+          instructions: data.instructions,
+          gratuity: data.gratuity,
           openModal: true,
         });
       } else {
-        //get all employees (firstname and lastname) to load the autocomplete
-        (async function getAllEmployees() {
-          try {
-            let response = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getallemployeenames`
-            );
-            const respData = await response.json();
-            setState({
-              employees: respData,
-            });
-          } catch (err) {
-            console.error(err);
-          }
-        })();
-
-        //get all vehicle names to load the autocomplete
-        (async function getAllVehicles() {
-          try {
-            let response = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
-            );
-            const respData = await response.json();
-            setState({
-              vehicles: respData,
-            });
-          } catch (err) {
-            console.error(err);
-          }
-        })();
-
-        //get all location names to load the autocomplete
-        (async function getAllLocations() {
-          try {
-            let response = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
-            );
-            const respData = await response.json();
-            setState({
-              serviceLocations: respData,
-            });
-          } catch (err) {
-            console.error(err);
-          }
-        })();
-
         setState({
           openModal: true,
         });
@@ -241,6 +269,7 @@ export const DetailModal = (props) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               detail: {
+                detailId: state.detailId,
                 serviceId: serviceId,
                 employeeId: state.employeeId,
                 vehicleId: state.vehicleId,
@@ -280,7 +309,7 @@ export const DetailModal = (props) => {
     } //else
 
     //call onSave to re-render the details table in the bookings component
-    //TO DO: onSave(serviceId);
+    onSave(invoice);
   }; //handleSaveNewDetail
 
   const handleDeleteDetail = async () => {
@@ -305,7 +334,7 @@ export const DetailModal = (props) => {
         onSuccess(responseMsg);
       }
       clearState();
-      onSave(serviceId);
+      onSave(invoice);
     } catch (err) {
       console.error(err);
     }
@@ -555,7 +584,9 @@ export const DetailModal = (props) => {
                 className="autocomplete"
                 value={state.to}
                 onChange={handleToLocationChange}
-                isOptionEqualToValue={(option, value) => option.from === value}
+                isOptionEqualToValue={(option, value) =>
+                  option.locationName === value
+                }
                 options={state.serviceLocations.map((element) => {
                   const location = {
                     locationId: element.location_id,

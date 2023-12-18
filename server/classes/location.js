@@ -95,6 +95,19 @@ class Location {
       return "Query failed";
     }
   } //getAllLocationNames
+
+  static async getLocationById(id) {
+    try {
+      const result = await pool.query(
+        "Select * from locations WHERE location_id = $1",
+        [id]
+      );
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return "Query failed";
+    }
+  }
 }
 
 module.exports = { Location };

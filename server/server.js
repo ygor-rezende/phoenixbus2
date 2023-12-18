@@ -122,6 +122,13 @@ app.get("/getallvehiclenames", async (req, res) => {
   let response = await Vehicle.getAllVehicleNames();
   res.json(response);
 });
+
+//Get vehicle by id
+app.get("/getvehicle/:vehicleId", async (req, res) => {
+  const { vehicleId } = req.params;
+  let response = await Vehicle.getVehicleById(vehicleId);
+  res.json(response);
+});
 //#endregion
 
 //#region Client
@@ -192,6 +199,12 @@ app.get("/getalllocationnames", async (req, res) => {
   let response = await Location.getAllLocationNames();
   res.json(response);
 });
+
+app.get("/getlocation/:locationId", async (req, res) => {
+  const { locationId } = req.params;
+  let response = await Location.getLocationById(locationId);
+  res.json(response);
+});
 //#endregion
 
 //#region FarmOut
@@ -260,6 +273,13 @@ app.delete("/deleteemployee", async (req, res) => {
 //Get all employee names (first and last name)
 app.get("/getallemployeenames", async (req, res) => {
   let response = await Employee.getAllEmployeeNames();
+  res.json(response);
+});
+
+//Get employee by id
+app.get("/getemployee/:employeeId", async (req, res) => {
+  const { employeeId } = req.params;
+  let response = await Employee.getEmployeeById(employeeId);
   res.json(response);
 });
 //#endregion
@@ -384,7 +404,7 @@ app.get("/getalldetails", async (req, res) => {
 });
 
 //get details for a specific service
-app.get("/getservices/:serviceId", async (req, res) => {
+app.get("/getdetails/:serviceId", async (req, res) => {
   const { serviceId } = req.params;
   let response = await ServiceDetail.getDetails(serviceId);
   res.json(response);
