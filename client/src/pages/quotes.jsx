@@ -14,11 +14,23 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
+import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import {
+  DatePicker,
+  LocalizationProvider,
+  TimePicker,
+} from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
@@ -39,6 +51,8 @@ const categories = [
   "Others",
 ];
 
+const types = ["OW", "RT", "CH", "OT"];
+
 const initialState = {
   quoteId: "",
   clientId: "",
@@ -47,11 +61,26 @@ const initialState = {
   agencyContact: "",
   employeeId: "",
   salesPerson: null,
+  pickupLocationId: "",
+  pickupLocationName: null,
+  destinationLocationId: "",
+  destinationLocationName: null,
+  returnLocationId: "",
+  returnLocationName: null,
+  responsibleName: "",
+  responsibleEmail: "",
+  responsiblePhone: "",
+  serviceType: "",
+  pickupTime: null,
+  returnTime: null,
+  addStop: false,
+  addStopInfo: "",
+  addStopDetail: "",
+  tripLength: 0.0,
   quoteDate: dayjs(Date(Date.now())),
   category: null,
   paxGroup: "",
-  numAdults: 0,
-  numChild: 0,
+  numPeople: 0,
   tripStartDate: dayjs(Date(Date.now())),
   tripEndDate: dayjs(Date(Date.now())),
   deposit: 0.0,
@@ -67,6 +96,7 @@ const initialState = {
   quotesData: [],
   clientsData: [],
   employeesData: [],
+  locationsData: [],
   onEditMode: false,
   expandPanel: false,
   isDataUpdated: false,
@@ -76,10 +106,10 @@ const initialState = {
 export const Quotes = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
-  //Get all quotes, client and employees data
+  //Get all quotes, client, employees, and locations data
   const getData = async () => {
     try {
-      //get client and employees data
+      //get client, employees data
       let response = await fetch(
         `${process.env.REACT_APP_SERVERURL}/getallclients`
       );
@@ -89,6 +119,9 @@ export const Quotes = () => {
         `${process.env.REACT_APP_SERVERURL}/getallemployees`
       );
       const employeesRespData = await response.json();
+
+      response = await fetch(`${process.env.REACT_APP_SERVERURL}/getlocations`);
+      const locationsRespData = await response.json();
 
       //get quotes data
       response = await fetch(`${process.env.REACT_APP_SERVERURL}/getallquotes`);
@@ -106,6 +139,25 @@ export const Quotes = () => {
           agencyEmail: clientsRespData.find(
             (client) => client.client_id === item.client_id
           ).email,
+          responsibleName: item.responsible_name,
+          responsibleEmail: item.responsible_email,
+          responsiblePhone: item.responsible_phone,
+          pickupLocationId: item.pickup_location_id,
+          pickupLocationName:
+            locationsRespData.find(
+              (location) => location.location_id === item.pickup_location_id
+            )?.location_name ?? null,
+          destinationLocationId: item.destination_location_id,
+          destinationLocationName:
+            locationsRespData.find(
+              (location) =>
+                location.location_id === item.destination_location_id
+            )?.location_name ?? null,
+          returnLocationId: item.return_location_id,
+          returnLocationName:
+            locationsRespData.find(
+              (location) => location.location_id === item.return_location_id
+            )?.location_name ?? null,
           employeeId: item.employee_id,
           salesPerson: `${
             employeesRespData.find(
@@ -116,16 +168,22 @@ export const Quotes = () => {
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
-          quoteDate: item.quote_date,
+          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
           category: item.category,
           paxGroup: item.pax_group,
-          numAdults: item.num_adults,
-          numChild: item.num_child,
+          numPeople: item.num_people,
           tripStartDate: item.trip_start_date,
           tripEndDate: item.trip_end_date,
           deposit: item.deposit,
           cost: item.cost,
           arrivalProcMCOMCA: item.mco_mca,
+          serviceType: item.service_type,
+          pickupTime: item.pickup_time,
+          returnTime: item.return_time,
+          addStop: item.additional_stop,
+          addStopInfo: item.additional_stop_info,
+          addStopDetail: item.additional_stop_detail,
+          tripLength: item.trip_length,
           numHoursQuoteValid: item.hours_quote_valid,
           clientComments: item.client_comments,
           intineraryDetails: item.intinerary_details,
@@ -138,6 +196,7 @@ export const Quotes = () => {
         quotesData: quotesRespData,
         clientsData: clientsRespData,
         employeesData: employeesRespData,
+        locationsData: locationsRespData,
       });
       return quotesRespData;
     } catch (err) {
@@ -170,13 +229,8 @@ export const Quotes = () => {
       return;
     }
 
-    if (!state.numAdults) {
-      setState({ invalidField: "numAdults" });
-      return;
-    }
-
-    if (!state.numChild) {
-      setState({ invalidField: "numChild" });
+    if (!state.numPeople) {
+      setState({ invalidField: "numPeople" });
       return;
     }
 
@@ -215,11 +269,23 @@ export const Quotes = () => {
             quote: {
               clientId: state.clientId,
               employeeId: state.employeeId,
+              pickupLocationId: state.pickupLocationId,
+              destinationLocationId: state.destinationLocationId,
+              returnLocationId: state.returnLocationId,
+              responsibleName: state.responsibleName,
+              responsibleEmail: state.responsibleEmail,
+              responsiblePhone: state.responsiblePhone,
+              serviceType: state.serviceType,
+              pickupTime: state.pickupTime,
+              returnTime: state.returnTime,
+              addStop: state.addStop,
+              addStopInfo: state.addStopInfo,
+              addStopDetail: state.addStopDetail,
+              tripLength: state.tripLength,
               quoteDate: state.quoteDate,
               category: state.category,
               paxGroup: state.paxGroup,
-              numAdults: state.numAdults,
-              numChild: state.numChild,
+              numPeople: state.numPeople,
               tripStartDate: state.tripStartDate,
               tripEndDate: state.tripEndDate,
               deposit: state.deposit,
@@ -257,16 +323,31 @@ export const Quotes = () => {
       openSnakbar: true,
       quoteId: "",
       clientId: "",
-      agencyName: "",
+      agencyName: null,
       agencyEmail: "",
       agencyContact: "",
       employeeId: "",
-      salesPerson: "",
+      salesPerson: null,
+      pickupLocationId: "",
+      pickupLocationName: null,
+      destinationLocationId: "",
+      destinationLocationName: null,
+      returnLocationId: "",
+      returnLocationName: null,
+      responsibleName: "",
+      responsibleEmail: "",
+      responsiblePhone: "",
+      serviceType: "",
+      pickupTime: null,
+      returnTime: null,
+      addStop: false,
+      addStopInfo: "",
+      addStopDetail: "",
+      tripLength: 0.0,
       quoteDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
-      numAdults: 0,
-      numChild: 0,
+      numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
@@ -290,16 +371,31 @@ export const Quotes = () => {
       invalidField: "",
       quoteId: "",
       clientId: "",
-      agencyName: "",
+      agencyName: null,
       agencyEmail: "",
       agencyContact: "",
       employeeId: "",
-      salesPerson: "",
+      salesPerson: null,
+      pickupLocationId: "",
+      pickupLocationName: null,
+      destinationLocationId: "",
+      destinationLocationName: null,
+      returnLocationId: "",
+      returnLocationName: null,
+      responsibleName: "",
+      responsibleEmail: "",
+      responsiblePhone: "",
+      serviceType: "",
+      pickupTime: null,
+      returnTime: null,
+      addStop: false,
+      addStopInfo: "",
+      addStopDetail: "",
+      tripLength: 0.0,
       quoteDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
-      numAdults: 0,
-      numChild: 0,
+      numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
@@ -330,11 +426,23 @@ export const Quotes = () => {
         quoteId: state.quoteId,
         clientId: state.clientId,
         employeeId: state.employeeId,
+        pickupLocationId: state.pickupLocationId,
+        destinationLocationId: state.destinationLocationId,
+        returnLocationId: state.returnLocationId,
+        responsibleName: state.responsibleName,
+        responsibleEmail: state.responsibleEmail,
+        responsiblePhone: state.responsiblePhone,
+        serviceType: state.serviceType,
+        pickupTime: state.pickupTime,
+        returnTime: state.returnTime,
+        addStop: state.addStop,
+        addStopInfo: state.addStopInfo,
+        addStopDetail: state.addStopDetail,
+        tripLength: state.tripLength,
         quoteDate: state.quoteDate,
         category: state.category,
         paxGroup: state.paxGroup,
-        numAdults: state.numAdults,
-        numChild: state.numChild,
+        numPeople: state.numPeople,
         tripStartDate: state.tripStartDate,
         tripEndDate: state.tripEndDate,
         deposit: state.deposit,
@@ -410,15 +518,25 @@ export const Quotes = () => {
 
   //Show information when clicking on a table row
   const handleItemClick = (id) => {
-    //load fields
     console.log(state.quotesData.filter((e) => e.id === id));
     //get client id and employee id from quotes data
     const clientId = state.quotesData.filter((e) => e.id === id)[0].clientId;
     const employeeId = state.quotesData.filter((e) => e.id === id)[0]
       .employeeId;
+    const pickupLocationId = state.quotesData.find(
+      (e) => e.id === id
+    ).pickupLocationId;
+    const destinationLocationId = state.quotesData.find(
+      (e) => e.id === id
+    ).destinationLocationId;
+    const returnLocationId = state.quotesData.find(
+      (e) => e.id === id
+    ).returnLocationId;
     const employeeObject = state.employeesData.filter(
       (employee) => employee.employee_id === employeeId
     )[0];
+
+    //load fields
     setState({
       onEditMode: true,
       expandPanel: true,
@@ -434,15 +552,42 @@ export const Quotes = () => {
       agencyContact: state.clientsData.filter(
         (client) => client.client_id === clientId
       )[0].contact,
+      responsibleName: state.quotesData.find((e) => e.id === id)
+        .responsibleName,
+      responsibleEmail: state.quotesData.find((e) => e.id === id)
+        .responsibleEmail,
+      responsiblePhone: state.quotesData.find((e) => e.id === id)
+        .responsiblePhone,
       employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
+      pickupLocationId: pickupLocationId,
+      pickupLocationName:
+        state.locationsData.find(
+          (location) => location.location_id === pickupLocationId
+        )?.location_name ?? null,
+      destinationLocationId: destinationLocationId,
+      destinationLocationName:
+        state.locationsData.find(
+          (location) => location.location_id === destinationLocationId
+        )?.location_name ?? null,
+      returnLocationId: returnLocationId,
+      returnLocationName:
+        state.locationsData.find(
+          (location) => location.location_id === returnLocationId
+        )?.location_name ?? null,
+      serviceType: state.quotesData.find((e) => e.id === id).serviceType,
+      pickupTime: state.quotesData.find((e) => e.id === id).pickupTime,
+      returnTime: state.quotesData.find((e) => e.id === id).returnTime,
+      addStop: state.quotesData.find((e) => e.id === id).addStop,
+      addStopInfo: state.quotesData.find((e) => e.id === id).addStopInfo,
+      addStopDetail: state.quotesData.find((e) => e.id === id).addStopDetail,
+      tripLength: state.quotesData.find((e) => e.id === id).tripLength,
       quoteDate: dayjs(
         state.quotesData.filter((e) => e.id === id)[0].quoteDate
       ),
       category: state.quotesData.filter((e) => e.id === id)[0].category,
       paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
-      numAdults: state.quotesData.filter((e) => e.id === id)[0].numAdults,
-      numChild: state.quotesData.filter((e) => e.id === id)[0].numChild,
+      numPeople: state.quotesData.filter((e) => e.id === id)[0].numPeople,
       tripStartDate: dayjs(
         state.quotesData.filter((e) => e.id === id)[0].tripStartDate
       ),
@@ -519,6 +664,71 @@ export const Quotes = () => {
       setState({
         salesPerson: newValue.salesPerson,
         employeeId: newValue.employeeId,
+      });
+    }
+  };
+
+  //handle changes on pickupLocation
+  const handlePickupChange = (_, newValue) => {
+    if (newValue) {
+      setState({
+        pickupLocationName: newValue.locationName,
+        pickupLocationId: newValue.locationId,
+      });
+    }
+  };
+
+  //handle changes on destinationLocation
+  const handleDestinationChange = (_, newValue) => {
+    if (newValue) {
+      setState({
+        destinationLocationName: newValue.locationName,
+        destinationLocationId: newValue.locationId,
+      });
+    }
+  };
+
+  //handle changes on destinationLocation
+  const handleReturnChange = (_, newValue) => {
+    if (newValue) {
+      setState({
+        returnLocationName: newValue.locationName,
+        returnLocationId: newValue.locationId,
+      });
+    }
+  };
+
+  //handle changes on phone field
+  const handlePhoneChange = (value, info) => {
+    setState({ responsiblePhone: value });
+  };
+
+  //handle service type change
+  const handleServiceTypeChange = (e) => {
+    if (e.target.value === "OW" || e.target.value === "OT") {
+      setState({
+        serviceType: e.target.value,
+        returnLocationId: "",
+        returnLocationName: null,
+        tripLength: "",
+      });
+    } else if (e.target.value === "RT") {
+      setState({
+        serviceType: e.target.value,
+        tripLength: "",
+      });
+    } else if (e.target.value === "CH") {
+      setState({
+        serviceType: e.target.value,
+        returnLocationId: "",
+        returnLocationName: null,
+      });
+    } else {
+      setState({
+        serviceType: e.target.value,
+        returnLocationId: "",
+        returnLocationName: null,
+        tripLength: "",
       });
     }
   };
@@ -612,7 +822,35 @@ export const Quotes = () => {
                   value={state.agencyContact}
                   onChange={handleOnChange}
                 />
-
+                <TextField
+                  className="textfield"
+                  id="responsibleName"
+                  label="Responsible"
+                  type="text"
+                  placeholder="Responsible"
+                  value={state.responsibleName}
+                  onChange={handleOnChange}
+                />
+                <TextField
+                  className="textfield"
+                  id="responsibleEmail"
+                  label="Resp. Email"
+                  type="text"
+                  placeholder="Resp. Email"
+                  value={state.responsibleEmail}
+                  onChange={handleOnChange}
+                />
+                <MuiTelInput
+                  className="textfield"
+                  id="responsiblePhone"
+                  defaultCountry="US"
+                  label="Resp. Phone"
+                  placeholder="Resp. Phone"
+                  value={state.responsiblePhone}
+                  onChange={handlePhoneChange}
+                  onlyCountries={["US", "CA"]}
+                  inputProps={{ maxLength: 15 }}
+                />
                 <div
                   id="salesperson-box"
                   className="textfield"
@@ -651,7 +889,6 @@ export const Quotes = () => {
                     )}
                   />
                 </div>
-
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     error={state.invalidField === "quoteDate"}
@@ -662,6 +899,7 @@ export const Quotes = () => {
                     }
                     label="Quote Date"
                     className="textfield"
+                    format="YYYY-MM-DD"
                     id="quoteDate"
                     required
                     placeholder="Quote Date"
@@ -669,7 +907,6 @@ export const Quotes = () => {
                     onChange={(newValue) => setState({ quoteDate: newValue })}
                   />
                 </LocalizationProvider>
-
                 <div
                   id="category-box"
                   className="textfield"
@@ -699,7 +936,6 @@ export const Quotes = () => {
                     )}
                   />
                 </div>
-
                 <TextField
                   className="textfield"
                   id="paxGroup"
@@ -710,43 +946,203 @@ export const Quotes = () => {
                   value={state.paxGroup}
                   onChange={handleOnChange}
                 />
-
                 <TextField
-                  error={state.invalidField === "numAdults"}
+                  error={state.invalidField === "numPeople"}
                   helperText={
-                    state.invalidField === "numAdults"
+                    state.invalidField === "numPeople"
                       ? "Information required"
                       : ""
                   }
                   className="textfield"
-                  id="numAdults"
+                  id="numPeople"
                   required
-                  label="Adult #"
+                  label="People #"
                   type="text"
                   inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Adults #"
-                  value={state.numAdults}
+                  placeholder="People #"
+                  value={state.numPeople}
                   onChange={handleOnChange}
                 />
+                <FormControl className="textfield">
+                  <InputLabel>Service Type</InputLabel>
+                  <Select
+                    id="type"
+                    className="autocomplete"
+                    value={state.serviceType}
+                    onChange={handleServiceTypeChange}
+                    label="Service Type"
+                    placeholder="Service Type"
+                  >
+                    {types.map((code) => {
+                      return (
+                        <MenuItem key={code} value={code}>
+                          {code}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <TimePicker
+                    label="Pickup time"
+                    className="textfield"
+                    id="pickupTime"
+                    value={state.pickupTime}
+                    onChange={(newValue) =>
+                      setState({ pickupTime: dayjs(newValue) })
+                    }
+                  />
 
-                <TextField
-                  error={state.invalidField === "numChild"}
-                  helperText={
-                    state.invalidField === "numChild"
-                      ? "Information required"
-                      : ""
-                  }
+                  <TimePicker
+                    label="Return time"
+                    className="textfield"
+                    id="returnTime"
+                    value={state.returnTime}
+                    onChange={(newValue) =>
+                      setState({ returnTime: dayjs(newValue) })
+                    }
+                  />
+                </LocalizationProvider>
+                <div
+                  id="pickupAddress-box"
                   className="textfield"
-                  id="numChild"
-                  required
-                  label="Children #"
-                  type="text"
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Children #"
-                  value={state.numChild}
-                  onChange={handleOnChange}
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="pickupLocationName"
+                    className="autocomplete"
+                    value={state.pickupLocationName}
+                    onChange={handlePickupChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.locationName === value
+                    }
+                    options={state.locationsData.map((element) => {
+                      const location = {
+                        locationId: element.location_id,
+                        locationName: element.location_name,
+                      };
+                      return location;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.locationName ?? option}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Pickup Location" />
+                    )}
+                  />
+                </div>
+                <div
+                  id="destinationAddress-box"
+                  className="textfield"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="destinationLocationName"
+                    className="autocomplete"
+                    value={state.destinationLocationName}
+                    onChange={handleDestinationChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.locationName === value
+                    }
+                    options={state.locationsData.map((element) => {
+                      const location = {
+                        locationId: element.location_id,
+                        locationName: element.location_name,
+                      };
+                      return location;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.locationName ?? option}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Destination" />
+                    )}
+                  />
+                </div>
+                {state.serviceType === "RT" && (
+                  <div
+                    id="returnAddress-box"
+                    className="textfield"
+                    style={{ display: "inline-block" }}
+                  >
+                    <Autocomplete
+                      id="returnLocationName"
+                      className="autocomplete"
+                      value={state.returnLocationName}
+                      onChange={handleReturnChange}
+                      isOptionEqualToValue={(option, value) =>
+                        option.locationName === value
+                      }
+                      options={state.locationsData.map((element) => {
+                        const location = {
+                          locationId: element.location_id,
+                          locationName: element.location_name,
+                        };
+                        return location;
+                      })}
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.locationName ?? option}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Return Location" />
+                      )}
+                    />
+                  </div>
+                )}
+                {state.serviceType === "CH" && (
+                  <TextField
+                    className="textfield"
+                    id="tripLength"
+                    label="Trip Length (Hr #)"
+                    type="text"
+                    inputProps={{ inputMode: "decimal", step: "0.1" }}
+                    placeholder="Trip Length (Hr #)"
+                    value={state.tripLength}
+                    onChange={handleOnChange}
+                  />
+                )}
+                <FormControlLabel
+                  className="textfield"
+                  style={{ alignSelf: "center" }}
+                  control={
+                    <Checkbox
+                      checked={state.addStop}
+                      onChange={(e) =>
+                        setState({
+                          addStop: e.target.checked,
+                          addStopDetail: "",
+                        })
+                      }
+                    />
+                  }
+                  label="Additional Stop"
                 />
 
+                {state.addStop && (
+                  <TextField
+                    className="textfield"
+                    id="addStopInfo"
+                    label="Stop Info"
+                    type="text"
+                    placeholder="Stop Info"
+                    value={state.addStopInfo}
+                    onChange={handleOnChange}
+                  />
+                )}
+
+                {state.addStop && (
+                  <ToggleButtonGroup
+                    className="textfield"
+                    color="primary"
+                    value={state.addStopDetail}
+                    exclusive
+                    onChange={(_, newValue) =>
+                      setState({ addStopDetail: newValue })
+                    }
+                    aria-label="Stop detail"
+                  >
+                    <ToggleButton value="OutWard">OutWard</ToggleButton>
+                    <ToggleButton value="Return">Return</ToggleButton>
+                    <ToggleButton value="Both">Both</ToggleButton>
+                  </ToggleButtonGroup>
+                )}
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     error={state.invalidField === "tripStartDate"}
@@ -756,6 +1152,7 @@ export const Quotes = () => {
                         : ""
                     }
                     label="Trip Start Date"
+                    format="YYYY-MM-DD"
                     className="textfield"
                     id="tripStartDate"
                     required
@@ -774,6 +1171,7 @@ export const Quotes = () => {
                         : ""
                     }
                     label="Trip End Date"
+                    format="YYYY-MM-DD"
                     className="textfield"
                     id="tripEndDate"
                     required
@@ -782,7 +1180,6 @@ export const Quotes = () => {
                     onChange={(newValue) => setState({ tripEndDate: newValue })}
                   />
                 </LocalizationProvider>
-
                 <TextField
                   className="textfield"
                   id="deposit"
@@ -793,7 +1190,6 @@ export const Quotes = () => {
                   value={state.deposit}
                   onChange={handleOnChange}
                 />
-
                 <TextField
                   className="textfield"
                   id="quotedCost"
@@ -804,7 +1200,6 @@ export const Quotes = () => {
                   value={state.quotedCost}
                   onChange={handleOnChange}
                 />
-
                 <TextField
                   className="textfield"
                   id="numHoursQuoteValid"
@@ -815,7 +1210,6 @@ export const Quotes = () => {
                   value={state.numHoursQuoteValid}
                   onChange={handleOnChange}
                 />
-
                 <FormControlLabel
                   control={
                     <Switch
@@ -829,7 +1223,6 @@ export const Quotes = () => {
                   labelPlacement="start"
                   className="textfield"
                 />
-
                 <TextField
                   className="textfield"
                   id="clientComments"
@@ -841,7 +1234,6 @@ export const Quotes = () => {
                   value={state.clientComments}
                   onChange={handleOnChange}
                 />
-
                 <TextField
                   className="textfield"
                   id="intineraryDetails"
@@ -853,7 +1245,6 @@ export const Quotes = () => {
                   value={state.intineraryDetails}
                   onChange={handleOnChange}
                 />
-
                 <TextField
                   className="textfield"
                   id="internalComments"
@@ -865,7 +1256,6 @@ export const Quotes = () => {
                   value={state.internalComments}
                   onChange={handleOnChange}
                 />
-
                 <p></p>
               </Box>
               {state.onEditMode ? (
