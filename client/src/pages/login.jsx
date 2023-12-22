@@ -1,6 +1,15 @@
 import { useReducer, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Snackbar, Alert, AlertTitle } from "@mui/material";
+import {
+  Button,
+  Snackbar,
+  Alert,
+  AlertTitle,
+  Avatar,
+  Typography,
+  TextField,
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useCookies } from "react-cookie";
 
 const Login = () => {
@@ -87,32 +96,61 @@ const Login = () => {
   };
 
   return (
-    <div className="page">
-      <h2>Phoenix Bus - Login</h2>
+    <div
+      className="page"
+      style={{ alignItems: "center", display: "flex", flexDirection: "column" }}
+    >
+      <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+        <LockOutlinedIcon />
+      </Avatar>
+      <Typography component="h1" variant="h5">
+        Sign in
+      </Typography>
       <div className="inputs">
-        <div className="input">
-          <input
-            id="userName"
-            type="text"
-            value={formData.userName}
-            onChange={(e) => setFormData({ userName: e.target.value })}
-          />
-        </div>
-        <div className="input">
-          <input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ password: e.target.value })}
-            onKeyDownCapture={keyEnterHandler}
-          />
-        </div>
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          id="userName"
+          label="Username"
+          name="userName"
+          value={formData.userName}
+          onChange={(e) => setFormData({ userName: e.target.value })}
+          autoComplete="username"
+          autoFocus
+        />
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          name="password"
+          label="Password"
+          type="password"
+          id="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ password: e.target.value })}
+          autoComplete="current-password"
+          onKeyDownCapture={keyEnterHandler}
+        />
         <p></p>
         <div className="button">
-          <Button id="loginButton" variant="outlined" onClick={doLogin}>
-            Log in
+          <Button
+            id="loginButton"
+            variant="contained"
+            fullWidth
+            onClick={doLogin}
+          >
+            Sign in
           </Button>
         </div>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 8, mb: 4 }}
+        >
+          Phoenix Bus Intranet
+        </Typography>
         <Snackbar
           open={errorMessage && openSnakbar}
           autoHideDuration={5000}

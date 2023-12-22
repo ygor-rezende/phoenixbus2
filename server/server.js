@@ -13,6 +13,7 @@ const { Booking } = require("./classes/bookings");
 const { Employee } = require("./classes/employee");
 const { Service } = require("./classes/services");
 const { ServiceDetail } = require("./classes/serviceDetail");
+const { Schedule } = require("./classes/schedule");
 
 //using cors for allow testing
 app.use(cors());
@@ -425,4 +426,15 @@ app.delete("/deletedetail/:detailid", async (req, res) => {
   res.json(response);
 });
 //#endregion
+
+//#region schedule
+app.get("/getschedule/:dates", async (req, res) => {
+  const { dates } = req.params;
+  let newDates = JSON.parse(dates);
+  let response = await Schedule.getSchedule(
+    newDates.startDate,
+    newDates.endDate
+  );
+  res.json(response);
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

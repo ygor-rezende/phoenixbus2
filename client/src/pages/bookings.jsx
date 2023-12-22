@@ -23,6 +23,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
+import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
@@ -60,12 +61,14 @@ const initialState = {
   agencyContact: "",
   employeeId: "",
   salesPerson: null,
+  responsibleName: "",
+  responsibleEmail: "",
+  responsiblePhone: "",
   quoteDate: null,
   bookingDate: dayjs(Date(Date.now())),
   category: null,
   paxGroup: "",
-  numAdults: 0,
-  numChild: 0,
+  numPeople: 0,
   tripStartDate: dayjs(Date(Date.now())),
   tripEndDate: dayjs(Date(Date.now())),
   deposit: 0.0,
@@ -180,12 +183,14 @@ export const Bookings = () => {
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
+          responsibleName: item.responsible_name,
+          responsibleEmail: item.responsible_email,
+          responsiblePhone: item.responsible_phone,
           quoteDate: item.quote_date,
           bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"),
           category: item.category,
           paxGroup: item.pax_group,
-          numAdults: item.num_adults,
-          numChild: item.num_child,
+          numPeople: item.num_people,
           tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"),
           tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"),
           deposit: item.deposit,
@@ -245,11 +250,13 @@ export const Bookings = () => {
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
+          responsibleName: item.responsible_name,
+          responsibleEmail: item.responsible_email,
+          responsiblePhone: item.responsible_phone,
           quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
           category: item.category,
           paxGroup: item.pax_group,
-          numAdults: item.num_adults,
-          numChild: item.num_child,
+          numPeople: item.num_people,
           tripStartDate: item.trip_start_date,
           tripEndDate: item.trip_end_date,
           deposit: item.deposit,
@@ -297,13 +304,8 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.numAdults) {
-      setState({ invalidField: "numAdults" });
-      return;
-    }
-
-    if (!state.numChild) {
-      setState({ invalidField: "numChild" });
+    if (!state.numPeople) {
+      setState({ invalidField: "numPeople" });
       return;
     }
 
@@ -342,13 +344,15 @@ export const Bookings = () => {
             booking: {
               clientId: state.clientId,
               employeeId: state.employeeId,
+              responsibleName: state.responsibleName,
+              responsibleEmail: state.responsibleEmail,
+              responsiblePhone: state.responsiblePhone,
               quoteId: state.quoteId,
               quoteDate: state.quoteDate,
               bookingDate: state.bookingDate,
               category: state.category,
               paxGroup: state.paxGroup,
-              numAdults: state.numAdults,
-              numChild: state.numChild,
+              numPeople: state.numPeople,
               tripStartDate: state.tripStartDate,
               tripEndDate: state.tripEndDate,
               deposit: state.deposit,
@@ -392,12 +396,14 @@ export const Bookings = () => {
       agencyContact: "",
       employeeId: "",
       salesPerson: null,
+      responsibleName: "",
+      responsibleEmail: "",
+      responsiblePhone: "",
       quoteDate: "",
       bookingDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
-      numAdults: 0,
-      numChild: 0,
+      numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
@@ -428,12 +434,14 @@ export const Bookings = () => {
       agencyContact: "",
       employeeId: "",
       salesPerson: null,
+      responsibleName: "",
+      responsibleEmail: "",
+      responsiblePhone: "",
       quoteDate: "",
       bookingDate: dayjs(Date(Date.now())),
       category: null,
       paxGroup: "",
-      numAdults: 0,
-      numChild: 0,
+      numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
@@ -465,12 +473,14 @@ export const Bookings = () => {
         quoteId: state.quoteId,
         clientId: state.clientId,
         employeeId: state.employeeId,
+        responsibleName: state.responsibleName,
+        responsibleEmail: state.responsibleEmail,
+        responsiblePhone: state.responsiblePhone,
         bookingDate: state.bookingDate,
         quoteDate: state.quoteDate,
         category: state.category,
         paxGroup: state.paxGroup,
-        numAdults: state.numAdults,
-        numChild: state.numChild,
+        numPeople: state.numPeople,
         tripStartDate: state.tripStartDate,
         tripEndDate: state.tripEndDate,
         deposit: state.deposit,
@@ -588,6 +598,12 @@ export const Bookings = () => {
       )[0].contact,
       employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
+      responsibleName: state.bookingsData.find((e) => e.id === id)
+        .responsibleName,
+      responsibleEmail: state.bookingsData.find((e) => e.id === id)
+        .responsibleEmail,
+      responsiblePhone: state.bookingsData.find((e) => e.id === id)
+        .responsiblePhone,
       bookingDate: dayjs(
         state.bookingsData.filter((e) => e.id === id)[0].bookingDate
       ),
@@ -595,8 +611,7 @@ export const Bookings = () => {
         dayjs(state.bookingsData.filter((e) => e.id === id)[0].quoteDate) ?? "",
       category: state.bookingsData.filter((e) => e.id === id)[0].category,
       paxGroup: state.bookingsData.filter((e) => e.id === id)[0].paxGroup,
-      numAdults: state.bookingsData.filter((e) => e.id === id)[0].numAdults,
-      numChild: state.bookingsData.filter((e) => e.id === id)[0].numChild,
+      numPeople: state.bookingsData.filter((e) => e.id === id)[0].numPeople,
       tripStartDate: dayjs(
         state.bookingsData.filter((e) => e.id === id)[0].tripStartDate
       ),
@@ -701,14 +716,19 @@ export const Bookings = () => {
       )[0].contact,
       employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
+      responsibleName: state.quotesData.find((e) => e.id === id)
+        .responsibleName,
+      responsibleEmail: state.quotesData.find((e) => e.id === id)
+        .responsibleEmail,
+      responsiblePhone: state.quotesData.find((e) => e.id === id)
+        .responsiblePhone,
       bookingDate: dayjs(Date(Date.now())),
       quoteDate: dayjs(
         state.quotesData.filter((e) => e.id === id)[0].quoteDate
       ),
       category: state.quotesData.filter((e) => e.id === id)[0].category,
       paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
-      numAdults: state.quotesData.filter((e) => e.id === id)[0].numAdults,
-      numChild: state.quotesData.filter((e) => e.id === id)[0].numChild,
+      numPeople: state.quotesData.filter((e) => e.id === id)[0].numPeople,
       tripStartDate: dayjs(
         state.quotesData.filter((e) => e.id === id)[0].tripStartDate
       ),
@@ -787,6 +807,11 @@ export const Bookings = () => {
         employeeId: newValue.employeeId,
       });
     }
+  };
+
+  //handle changes on phone field
+  const handlePhoneChange = (value, info) => {
+    setState({ responsiblePhone: value });
   };
 
   //called when a Service tab is clicked
@@ -1001,6 +1026,36 @@ export const Bookings = () => {
                   />
                 </div>
 
+                <TextField
+                  className="textfield"
+                  id="responsibleName"
+                  label="Responsible"
+                  type="text"
+                  placeholder="Responsible"
+                  value={state.responsibleName}
+                  onChange={handleOnChange}
+                />
+                <TextField
+                  className="textfield"
+                  id="responsibleEmail"
+                  label="Resp. Email"
+                  type="text"
+                  placeholder="Resp. Email"
+                  value={state.responsibleEmail}
+                  onChange={handleOnChange}
+                />
+                <MuiTelInput
+                  className="textfield"
+                  id="responsiblePhone"
+                  defaultCountry="US"
+                  label="Resp. Phone"
+                  placeholder="Resp. Phone"
+                  value={state.responsiblePhone}
+                  onChange={handlePhoneChange}
+                  onlyCountries={["US", "CA"]}
+                  inputProps={{ maxLength: 15 }}
+                />
+
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Quote Date"
@@ -1072,38 +1127,20 @@ export const Bookings = () => {
                 />
 
                 <TextField
-                  error={state.invalidField === "numAdults"}
+                  error={state.invalidField === "numPeople"}
                   helperText={
-                    state.invalidField === "numAdults"
+                    state.invalidField === "numPeople"
                       ? "Information required"
                       : ""
                   }
                   className="textfield"
-                  id="numAdults"
+                  id="numPeople"
                   required
-                  label="Adult #"
+                  label="People #"
                   type="text"
                   inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Adults #"
-                  value={state.numAdults}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  error={state.invalidField === "numChild"}
-                  helperText={
-                    state.invalidField === "numChild"
-                      ? "Information required"
-                      : ""
-                  }
-                  className="textfield"
-                  id="numChild"
-                  required
-                  label="Children #"
-                  type="text"
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Children #"
-                  value={state.numChild}
+                  placeholder="People #"
+                  value={state.numPeople}
                   onChange={handleOnChange}
                 />
 

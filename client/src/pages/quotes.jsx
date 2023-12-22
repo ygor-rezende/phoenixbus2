@@ -1108,6 +1108,7 @@ export const Quotes = () => {
                         setState({
                           addStop: e.target.checked,
                           addStopDetail: "",
+                          addStopInfo: "",
                         })
                       }
                     />

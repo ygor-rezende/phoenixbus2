@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   Divider,
   IconButton,
@@ -14,8 +14,8 @@ import { styled, createTheme } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
-  scheduleListItems,
-  timeListItems,
+  ScheduleListItems,
+  TimeListItems,
 } from "./schedule_subcomponents/listitems";
 
 import { ScheduleTable } from "./schedule_subcomponents/schedule_table";
@@ -50,9 +50,55 @@ const MyDrawer = styled(Drawer, {
 
 export const Schedule = () => {
   const [openDrawer, setOpenDrawer] = useState(true);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (data.length < 1) {
+      (async function getTodaySchedule() {
+        try {
+          const startDate = new Date().toISOString().slice(0, 10);
+          const endDate = new Date().toISOString().slice(0, 10);
+          const dates = JSON.stringify({
+            startDate: startDate,
+            endDate: endDate,
+          });
+          const response = await fetch(
+            `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
+          );
+          const responseMsg = await response.json();
+          setData(responseMsg);
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+    }
+  }, [data.length]);
+
+  const getSchedule = async (startDate, endDate) => {
+    try {
+      const sDate = startDate.slice(0, 10);
+      const eDate = endDate.slice(0, 10);
+      const dates = JSON.stringify({
+        startDate: sDate,
+        endDate: eDate,
+      });
+      const response = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
+      );
+      const responseData = await response.json();
+      setData(responseData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const toggleDrawer = () => {
     setOpenDrawer(!openDrawer);
+  };
+
+  //when user clicks on one of the date options displayed on ListItems component
+  const pickDate = (startDate, endDate) => {
+    getSchedule(startDate, endDate);
   };
 
   return (
@@ -73,9 +119,9 @@ export const Schedule = () => {
           </Toolbar>
           <Divider />
           <List component="nav">
-            {scheduleListItems}
+            <ScheduleListItems />
             <Divider sx={{ my: 1 }} />
-            {timeListItems}
+            <TimeListItems onDatePick={pickDate} />
           </List>
         </MyDrawer>
         <Box
@@ -117,7 +163,7 @@ export const Schedule = () => {
               </Grid>
               <Grid item xs={12}>
                 <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                  <ScheduleTable />
+                  <ScheduleTable data={data} />
                 </Paper>
               </Grid>
             </Grid>
