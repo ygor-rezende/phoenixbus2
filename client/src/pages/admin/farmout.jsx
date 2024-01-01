@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import {
   Alert,
   AlertTitle,
@@ -19,6 +19,10 @@ import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
+
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -112,40 +116,64 @@ const initialState = {
 
 export const FarmOut = () => {
   const [state, setState] = useReducer(reducer, initialState);
+  const axiosPrivate = useAxiosPrivate();
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    //Get all companies data
+    const getCompaniesData = async () => {
+      try {
+        const response = await axiosPrivate.get("/getallcompanies", {
+          signal: controller.signal,
+        });
+        let responseData = response.data;
+        responseData = responseData?.map((item) => {
+          const company = {
+            id: item.company_id,
+            name: item.company_name,
+            contact: item.contact,
+            address: item.address,
+            city: item.city,
+            state: item.company_state,
+            zip: item.zip,
+            phone: item.phone,
+            email: item.email,
+            ein: item.ein,
+            dot: item.dot,
+            insurance: item.insurance,
+            account: item.account,
+            routing: item.routing,
+            wire: item.wire,
+            zelle: item.zelle,
+          };
+          return company;
+        });
+        isMounted && setState({ companiesData: responseData });
+      } catch (err) {
+        console.error(err);
+        if (err?.response?.status === 401) {
+          console.error(err);
+          setAuth({});
+          navigate("/login", { state: { from: location }, replace: true });
+        }
+      }
+    }; //loadData
+
+    getCompaniesData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, []);
 
   //Get all companies data
-  const getData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallcompanies`
-      );
-      let responseData = await response.json();
-      responseData = responseData.map((item) => {
-        const company = {
-          id: item.company_id,
-          name: item.company_name,
-          contact: item.contact,
-          address: item.address,
-          city: item.city,
-          state: item.company_state,
-          zip: item.zip,
-          phone: item.phone,
-          email: item.email,
-          ein: item.ein,
-          dot: item.dot,
-          insurance: item.insurance,
-          account: item.account,
-          routing: item.routing,
-          wire: item.wire,
-          zelle: item.zelle,
-        };
-        return company;
-      });
-      setState({ companiesData: responseData });
-      return responseData;
-    } catch (err) {
-      console.error(err);
-    }
+  const getData = () => {
+    return state.companiesData;
   }; //loadData
 
   //handle updates in the fields

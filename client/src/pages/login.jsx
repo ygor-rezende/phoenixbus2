@@ -1,5 +1,5 @@
-import { useReducer, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Button,
   Snackbar,
@@ -8,79 +8,84 @@ import {
   Avatar,
   Typography,
   TextField,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { useCookies } from "react-cookie";
+import useAuth from "../hooks/useAuth";
+import axios from "../api/axios";
 
 const Login = () => {
-  const [formData, setFormData] = useReducer(
-    (formData, newItem) => {
-      return { ...formData, ...newItem };
-    },
-    { userName: "", password: "" }
-  );
-
   const [errorMessage, setErrorMessage] = useState(null);
-  const [cookies, setCookie, removeCookie] = useCookies(null);
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+  //const [cookies, setCookie, removeCookie] = useCookies(null);
   const [openSnakbar, setOpenSnakbar] = useState(false);
+  const { setAuth, persist, setPersist } = useAuth();
 
   const navigate = useNavigate();
+  const from = useLocation().state?.from?.pathname || "/";
 
-  const doLogin = () => {
-    try {
-      login(formData.userName, formData.password);
-    } catch (error) {
-      setErrorMessage("Incorrect password");
-    }
-  };
+  const userRef = useRef();
+  const errRef = useRef();
 
-  const login = async (userName, password) => {
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    setErrorMessage(null);
+  }, [userName, password]);
+
+  const login = async () => {
     //Hit API to pull the username to check the password
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/api/login`,
+      const response = await axios.post(
+        "api/login",
+        JSON.stringify({ userName, password }),
         {
-          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userName, password }),
+          withCredentials: true,
         }
       );
 
-      if (!response.ok) {
-        setErrorMessage(`Status: ${response.status}: ${response.statusText}`);
+      const responseData = response?.data;
+
+      //console.log(responseData);
+      const accessToken = responseData?.accessToken;
+      const role = responseData?.role;
+
+      setAuth({ userName, password, role, accessToken });
+      setErrorMessage(null);
+      setUserName("");
+      setPassword("");
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error(err);
+      if (!err?.response) {
+        setErrorMessage("No Server response");
         setOpenSnakbar(true);
-        return;
       }
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.detail) {
-        setErrorMessage(data.detail);
+      //No user or password
+      else if (err.response?.status === 400) {
+        setErrorMessage(err.response?.data.message);
+        setOpenSnakbar(true);
+      }
+
+      //user not found
+      else if (err?.response?.status === 401) {
+        setErrorMessage(err.response?.data.message);
+        setOpenSnakbar(true);
+      }
+      //server error
+      else if (err?.response?.status === 500) {
+        console.log(`Message from server: ${err.response?.data.message}`);
+        setErrorMessage("Something went wrong: server error");
         setOpenSnakbar(true);
       } else {
-        //if no error set cookies
-        setErrorMessage(null);
-
-        //set a time to expire the cookies
-        const date = Date.now();
-        const expireDate = new Date(date + 60 * 60 * 1000);
-
-        //set the cookies
-        setCookie("Username", data.username, {
-          expires: expireDate,
-        });
-        console.log(date);
-        setCookie("AuthToken", data.token, { expires: expireDate });
-        navigate("/home");
-        //set props
-        //props.user({ name: data.username, type: data.usertype, isAuth: true });
-        //reload the page
-        //window.location.reload();
+        setErrorMessage("Login Failed");
+        setOpenSnakbar(true);
       }
-    } catch (err) {
-      setErrorMessage(err.message);
-      setOpenSnakbar(true);
-      console.error(err.message);
     }
   };
 
@@ -94,6 +99,10 @@ const Login = () => {
   const keyEnterHandler = (e) => {
     if (e.key === "Enter") document.getElementById("loginButton").focus();
   };
+
+  useEffect(() => {
+    localStorage.setItem("persist", persist);
+  }, [persist]);
 
   return (
     <div
@@ -112,12 +121,12 @@ const Login = () => {
           required
           fullWidth
           id="userName"
+          ref={userRef}
           label="Username"
           name="userName"
-          value={formData.userName}
-          onChange={(e) => setFormData({ userName: e.target.value })}
-          autoComplete="username"
-          autoFocus
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          autoComplete="off"
         />
         <TextField
           margin="normal"
@@ -127,22 +136,40 @@ const Login = () => {
           label="Password"
           type="password"
           id="password"
-          value={formData.password}
-          onChange={(e) => setFormData({ password: e.target.value })}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           onKeyDownCapture={keyEnterHandler}
         />
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="rememberme"
+              checked={persist}
+              onChange={(e) => setPersist((prev) => !prev)}
+            />
+          }
+          label="Remember me (trust this device)"
+        />
+
         <p></p>
         <div className="button">
           <Button
             id="loginButton"
             variant="contained"
             fullWidth
-            onClick={doLogin}
+            onClick={login}
           >
             Sign in
           </Button>
         </div>
+        <p
+          ref={errRef}
+          className={errorMessage ? "errmsg" : "offscreen"}
+          aria-live="assertive"
+        >
+          {errorMessage}
+        </p>
         <Typography
           variant="body2"
           color="text.secondary"

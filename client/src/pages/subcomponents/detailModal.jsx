@@ -46,8 +46,11 @@ const initialState = {
   startTime: null,
   endTime: null,
   baseTime: null,
-  type: null,
+  releasedTime: null,
+  type: "",
   instructions: "",
+  payment: 0.0,
+  perdiem: 0.0,
   gratuity: 0.0,
   openModal: false,
   invalidField: "",
@@ -180,8 +183,11 @@ export const DetailModal = (props) => {
           startTime: dayjs(data.start_time),
           endTime: dayjs(data.end_time),
           baseTime: dayjs(data.base_time),
+          releasedTime: dayjs(data.released_time),
           type: data.service_type,
           instructions: data.instructions,
+          payment: data.payment,
+          perdiem: data.perdiem,
           gratuity: data.gratuity,
           openModal: true,
         });
@@ -236,8 +242,11 @@ export const DetailModal = (props) => {
                 startTime: state.startTime,
                 endTime: state.endTime,
                 baseTime: state.baseTime,
+                releasedTime: state.releasedTime,
                 type: state.type,
                 instructions: state.instructions,
+                payment: state.payment,
+                perdiem: state.perdiem,
                 gratuity: state.gratuity,
               },
             }),
@@ -279,8 +288,11 @@ export const DetailModal = (props) => {
                 startTime: state.startTime,
                 endTime: state.endTime,
                 baseTime: state.baseTime,
+                releasedTime: state.releasedTime,
                 type: state.type,
                 instructions: state.instructions,
+                payment: state.payment,
+                perdiem: state.perdiem,
                 gratuity: state.gratuity,
               },
             }),
@@ -399,8 +411,11 @@ export const DetailModal = (props) => {
       startTime: null,
       endTime: null,
       baseTime: null,
-      type: null,
+      releasedTime: null,
+      type: "",
       instructions: "",
+      payment: 0.0,
+      perdiem: 0.0,
       gratuity: 0.0,
       openModal: false,
       invalidField: "",
@@ -636,10 +651,6 @@ export const DetailModal = (props) => {
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
               />
-            </LocalizationProvider>
-          </Box>
-          <Box className="modal2Columns">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="Start time"
                 className="modalField"
@@ -649,6 +660,10 @@ export const DetailModal = (props) => {
                   setState({ startTime: dayjs(newValue) })
                 }
               />
+            </LocalizationProvider>
+          </Box>
+          <Box className="modal2Columns">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="End time"
                 className="modalField"
@@ -663,16 +678,45 @@ export const DetailModal = (props) => {
                 value={state.baseTime}
                 onChange={(newValue) => setState({ baseTime: dayjs(newValue) })}
               />
+              <TimePicker
+                label="Released time"
+                className="modalField"
+                id="releasedTime"
+                value={state.releasedTime}
+                onChange={(newValue) =>
+                  setState({ releasedTime: dayjs(newValue) })
+                }
+              />
             </LocalizationProvider>
+            <TextField
+              id="payment"
+              className="modalField"
+              label="Payment $"
+              type="text"
+              inputProps={{ inputMode: "decimal", step: "0.01" }}
+              placeholder="Payment $"
+              value={state.payment}
+              onChange={(e) => setState({ payment: e.target.value })}
+            />
             <TextField
               id="gratuity"
               className="modalField"
               label="Gratuity $"
               type="text"
               inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="CharGratuityge $"
+              placeholder="Gratuity $"
               value={state.gratuity}
               onChange={(e) => setState({ gratuity: e.target.value })}
+            />
+            <TextField
+              id="perdiem"
+              className="modalField"
+              label="Perdiem $"
+              type="text"
+              inputProps={{ inputMode: "decimal", step: "0.01" }}
+              placeholder="Perdiem $"
+              value={state.perdiem}
+              onChange={(e) => setState({ perdiem: e.target.value })}
             />
             <TextField
               id="instructions"
@@ -680,7 +724,7 @@ export const DetailModal = (props) => {
               label="Instructions"
               type="text"
               multiline
-              rows={4}
+              rows={3}
               placeholder="Instructions"
               value={state.instructions}
               onChange={(e) => setState({ instructions: e.target.value })}

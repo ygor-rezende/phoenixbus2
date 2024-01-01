@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Autocomplete,
   Alert,
@@ -11,6 +11,9 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import { UsePrivateGet, UsePrivatePost } from "../../hooks/useFetchServer";
 
 const ResetUserPassword = () => {
   const [error, setError] = useState(null);
@@ -21,44 +24,52 @@ const ResetUserPassword = () => {
   const [users, setUsers] = useState([]);
   const [userSelected, setUserSelected] = useState(null);
 
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+
   useEffect(() => {
-    getUsersData();
+    let isMounted = true;
+    const controler = new AbortController();
+
+    const getUsersData = async () => {
+      const response = await getServer("/getusernames", controler.signal);
+      //when server answer with 401
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setSuccess(false);
+        setError(response.error);
+        setOpenSnakbar(true);
+      }
+      //no error
+      else {
+        isMounted && setUsers(response.data);
+      }
+    };
+
+    effectRun.current && getUsersData();
+
+    return () => {
+      isMounted = false;
+      controler.abort();
+      effectRun.current = true;
+    };
   }, []);
 
-  const getUsersData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getusernames`
-      );
-      const json = await response.json();
-      setUsers(json);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const handleReset = async () => {
-    console.log(userSelected);
-    const response = await fetch(
-      `${process.env.REACT_APP_SERVERURL}/resetUserPass`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userName: userSelected.username,
-          newPassword: newPassword,
-        }),
-      }
-    );
+    const response = await postServer("/resetUserPass", {
+      userName: userSelected?.username,
+      newPassword: newPassword,
+    });
 
-    const data = await response.json();
-    //if an error happens when signing up set the error
-    if (data.detail) {
-      setSuccess(false);
-      setError(data.detail);
-      setOpenSnakbar(true);
-    } else {
-      //if no error set success to display message
+    if (response?.data) {
       setError(null);
       setSuccess(true);
       setOpenSnakbar(true);
@@ -66,8 +77,13 @@ const ResetUserPassword = () => {
       //Clear fields
       setNewPassword("");
       setUserSelected(null);
-      //reload the page
-      //window.location.reload();
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
   };
 
@@ -88,6 +104,7 @@ const ResetUserPassword = () => {
           <h2>Select the user to reset password</h2>
           <Autocomplete
             id="users-options"
+            className="autocomplete"
             value={userSelected}
             onChange={(e, newValue) => setUserSelected(newValue)}
             options={users.sort((a, b) => a.username.localeCompare(b.username))}

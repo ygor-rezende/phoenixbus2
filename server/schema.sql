@@ -1,7 +1,8 @@
 CREATE TABLE users (
     username VARCHAR(255) PRIMARY KEY,
     hashed_password VARCHAR(255) NOT NULL,
-    user_type VARCHAR(255) NOT NULL
+    user_type VARCHAR(255) NOT NULL,
+    refresh_token VARCHAR(255)
 ),
 
 CREATE TABLE vehicles (
@@ -170,9 +171,12 @@ CREATE TABLE service_details (
     spot_time VARCHAR(30),
     start_time VARCHAR(30), 
     end_time VARCHAR(30),
-    base_time VARCHAR(30),  
+    base_time VARCHAR(30),
+    released_time VARCHAR(30), 
     service_type VARCHAR(10),
     instructions VARCHAR(255),
+    payment DECIMAL(10,2), 
+    perdiem DECIMAL(10,2), 
     gratuity DECIMAL(10,2), 
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )

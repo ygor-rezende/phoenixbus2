@@ -14,21 +14,36 @@ const { Employee } = require("./classes/employee");
 const { Service } = require("./classes/services");
 const { ServiceDetail } = require("./classes/serviceDetail");
 const { Schedule } = require("./classes/schedule");
+const cookieParser = require("cookie-parser");
+const verifyJWT = require("./middleware/verifyJWT");
+const credentials = require("./middleware/credentials");
+const corsOptions = require("./config/corsOptions");
+const ROLES_LIST = require("./config/roles_list");
+const verifyRoles = require("./middleware/verifyRoles");
+
+//Handle fetch cookies credentials requirement
+app.use(credentials);
 
 //using cors for allow testing
-app.use(cors());
+
+app.use(cors(corsOptions));
 app.use(express.json()); // To parse the incoming requests with JSON payloads
+
+//middleware for cookies
+app.use(cookieParser());
+
 app.use(express.static("public"));
 
-//hello msg
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
+//free routes
+app.use("/", require("./routes/root"));
+app.use("/api/login", require("./routes/auth"));
+app.use("/refresh", require("./routes/refresh"));
+app.use("/logout", require("./routes/logout"));
 
-//testing
-app.get("/gettesting", (req, res) => {
-  res.json("Testing");
-});
+//Middleware
+app.use(verifyJWT);
+
+//protected routes
 
 //#region User
 //get usertype
@@ -45,58 +60,62 @@ app.get("/getusernames", async (req, res) => {
 });
 
 //sign a new user up
-app.post("/signup", bodyParser.json(), async (req, res) => {
-  //console.log(req.body);
-  const { userName, password, userType } = req.body;
-  let response = await User.signUp(userName, password, userType);
-  res.json(response);
-});
-
-//login
-app.post("/api/login", bodyParser.json(), async (req, res) => {
-  const { userName, password } = req.body;
-  let response = await User.login(userName, password, res);
-  res.json(response);
-});
+app.post(
+  "/signup",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    console.log(req.body);
+    let response = await User.signUp(req, res);
+    return response;
+  }
+);
 
 //reset password - User reset its own password
 app.post("/reset", bodyParser.json(), async (req, res) => {
-  const { userName, currentPassword, newPassword } = req.body;
-  let response = await User.resetPassword(
-    userName,
-    currentPassword,
-    newPassword
-  );
-  res.json(response);
+  let response = await User.resetPassword(req, res);
+  return response;
 });
 
 //reset password by admin
-app.post("/resetUserPass", bodyParser.json(), async (req, res) => {
-  const { userName, newPassword } = req.body;
-  let response = await User.resetUserPass(userName, newPassword);
-  res.json(response);
-});
+app.post(
+  "/resetUserPass",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    let response = await User.resetUserPass(req, res);
+    return response;
+  }
+);
 
 //Delete user
-app.delete("/deleteuser/:username", async (req, res) => {
-  const { username } = req.params;
-  let response = await User.deleteUser(username);
-  res.json(response);
-});
+app.delete(
+  "/deleteuser/:username",
+  verifyRoles(ROLES_LIST.admin),
+  async (req, res) => {
+    let response = await User.deleteUser(req, res);
+    return response;
+  }
+);
 //#endregion
 
 //#region Vehicle
 //Create new Vehicle
-app.post("/createvehicle", bodyParser.json(), async (req, res) => {
-  const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
-  let response = await Vehicle.createVehicle(
-    vehicleName,
-    vehicleModel,
-    vehicleYear,
-    vehicleColor
-  );
-  res.json(response);
-});
+app.post(
+  "/createvehicle",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
+  bodyParser.json(),
+  async (req, res) => {
+    const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
+    let response = await Vehicle.createVehicle(
+      vehicleName,
+      vehicleModel,
+      vehicleYear,
+      vehicleColor
+    );
+    res.json(response);
+  }
+);
 
 //Get all vehicles
 app.get("/getallvehicles", async (req, res) => {
@@ -105,18 +124,26 @@ app.get("/getallvehicles", async (req, res) => {
 });
 
 //Delete vehicle
-app.delete("/deletevehicle", async (req, res) => {
-  const { vehicleIds } = req.body;
-  let response = await Vehicle.deleteVehicle(vehicleIds);
-  res.json(response);
-});
+app.delete(
+  "/deletevehicle",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
+  async (req, res) => {
+    const { vehicleIds } = req.body;
+    let response = await Vehicle.deleteVehicle(vehicleIds);
+    res.json(response);
+  }
+);
 
 //Update vehicle
-app.put("/updatevehicle", async (req, res) => {
-  const { vehicle } = req.body;
-  let response = await Vehicle.updateVehicle(vehicle);
-  res.json(response);
-});
+app.put(
+  "/updatevehicle",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
+  async (req, res) => {
+    const { vehicle } = req.body;
+    let response = await Vehicle.updateVehicle(vehicle);
+    res.json(response);
+  }
+);
 
 //Get all vehicle names
 app.get("/getallvehiclenames", async (req, res) => {
@@ -134,12 +161,17 @@ app.get("/getvehicle/:vehicleId", async (req, res) => {
 
 //#region Client
 //create client
-app.post("/createclient", bodyParser.json(), async (req, res) => {
-  const { client } = req.body;
-  let response = await Client.newClient(client);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createclient",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { client } = req.body;
+    let response = await Client.newClient(client);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all clients
 app.get("/getallclients", async (req, res) => {
@@ -149,29 +181,43 @@ app.get("/getallclients", async (req, res) => {
 });
 
 //Update a client
-app.put("/updateclient", bodyParser.json(), async (req, res) => {
-  const { client } = req.body;
-  let response = await Client.updateClient(client);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updateclient",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { client } = req.body;
+    let response = await Client.updateClient(client);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete clients
-app.delete("/deleteclient", async (req, res) => {
-  const { clientIds } = req.body;
-  let response = await Client.deleteClient(clientIds);
-  res.json(response);
-});
+app.delete(
+  "/deleteclient",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { clientIds } = req.body;
+    let response = await Client.deleteClient(clientIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region Location
 //create location
-app.post("/createlocation", bodyParser.json(), async (req, res) => {
-  const { location } = req.body;
-  let response = await Location.newLocation(location);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createlocation",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { location } = req.body;
+    let response = await Location.newLocation(location);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all locations
 app.get("/getlocations", async (req, res) => {
@@ -181,19 +227,28 @@ app.get("/getlocations", async (req, res) => {
 });
 
 //Update a location
-app.put("/updatelocation", bodyParser.json(), async (req, res) => {
-  const { location } = req.body;
-  let response = await Location.updateLocation(location);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updatelocation",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { location } = req.body;
+    let response = await Location.updateLocation(location);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete location
-app.delete("/deletelocation", async (req, res) => {
-  const { locationIds } = req.body;
-  let response = await Location.deleteLocation(locationIds);
-  res.json(response);
-});
+app.delete(
+  "/deletelocation",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { locationIds } = req.body;
+    let response = await Location.deleteLocation(locationIds);
+    res.json(response);
+  }
+);
 
 //Get all location names
 app.get("/getalllocationnames", async (req, res) => {
@@ -210,12 +265,17 @@ app.get("/getlocation/:locationId", async (req, res) => {
 
 //#region FarmOut
 //create company
-app.post("/createcompany", bodyParser.json(), async (req, res) => {
-  const { company } = req.body;
-  let response = await FarmOut.newCompany(company);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createcompany",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    const { company } = req.body;
+    let response = await FarmOut.newCompany(company);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all companies
 app.get("/getallcompanies", async (req, res) => {
@@ -225,29 +285,43 @@ app.get("/getallcompanies", async (req, res) => {
 });
 
 //Update a company
-app.put("/updatecompany", bodyParser.json(), async (req, res) => {
-  const { company } = req.body;
-  let response = await FarmOut.updateCompany(company);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updatecompany",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    const { company } = req.body;
+    let response = await FarmOut.updateCompany(company);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete companies
-app.delete("/deletecompany", async (req, res) => {
-  const { companyIds } = req.body;
-  let response = await FarmOut.deleteCompany(companyIds);
-  res.json(response);
-});
+app.delete(
+  "/deletecompany",
+  verifyRoles(ROLES_LIST.admin),
+  async (req, res) => {
+    const { companyIds } = req.body;
+    let response = await FarmOut.deleteCompany(companyIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region employee
 //create employee
-app.post("/createemployee", bodyParser.json(), async (req, res) => {
-  const { employee } = req.body;
-  let response = await Employee.newEmployee(employee);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createemployee",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    const { employee } = req.body;
+    let response = await Employee.newEmployee(employee);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all
 app.get("/getallemployees", async (req, res) => {
@@ -257,19 +331,28 @@ app.get("/getallemployees", async (req, res) => {
 });
 
 //Update
-app.put("/updateemployee", bodyParser.json(), async (req, res) => {
-  const { employee } = req.body;
-  let response = await Employee.updateEmployee(employee);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updateemployee",
+  verifyRoles(ROLES_LIST.admin),
+  bodyParser.json(),
+  async (req, res) => {
+    const { employee } = req.body;
+    let response = await Employee.updateEmployee(employee);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete
-app.delete("/deleteemployee", async (req, res) => {
-  const { employeeIds } = req.body;
-  let response = await Employee.deleteEmployee(employeeIds);
-  res.json(response);
-});
+app.delete(
+  "/deleteemployee",
+  verifyRoles(ROLES_LIST.admin),
+  async (req, res) => {
+    const { employeeIds } = req.body;
+    let response = await Employee.deleteEmployee(employeeIds);
+    res.json(response);
+  }
+);
 
 //Get all employee names (first and last name)
 app.get("/getallemployeenames", async (req, res) => {
@@ -287,12 +370,17 @@ app.get("/getemployee/:employeeId", async (req, res) => {
 
 //#region Quote
 //create quote
-app.post("/createquote", bodyParser.json(), async (req, res) => {
-  const { quote } = req.body;
-  let response = await Quote.newQuote(quote);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createquote",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { quote } = req.body;
+    let response = await Quote.newQuote(quote);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all quotes
 app.get("/getallquotes", async (req, res) => {
@@ -302,29 +390,43 @@ app.get("/getallquotes", async (req, res) => {
 });
 
 //Update a Quote
-app.put("/updatequote", bodyParser.json(), async (req, res) => {
-  const { quote } = req.body;
-  let response = await Quote.updateQuote(quote);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updatequote",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { quote } = req.body;
+    let response = await Quote.updateQuote(quote);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete companies
-app.delete("/deletequote", async (req, res) => {
-  const { quoteIds } = req.body;
-  let response = await Quote.deleteQuote(quoteIds);
-  res.json(response);
-});
+app.delete(
+  "/deletequote",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { quoteIds } = req.body;
+    let response = await Quote.deleteQuote(quoteIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region Booking
 //create booking
-app.post("/createbooking", bodyParser.json(), async (req, res) => {
-  const { booking } = req.body;
-  let response = await Booking.newBooking(booking);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createbooking",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { booking } = req.body;
+    let response = await Booking.newBooking(booking);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all bookings
 app.get("/getallbookings", async (req, res) => {
@@ -334,29 +436,43 @@ app.get("/getallbookings", async (req, res) => {
 });
 
 //Update a Booking
-app.put("/updatebooking", bodyParser.json(), async (req, res) => {
-  const { booking } = req.body;
-  let response = await Booking.updateBooking(booking);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updatebooking",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { booking } = req.body;
+    let response = await Booking.updateBooking(booking);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete companies
-app.delete("/deletebooking", async (req, res) => {
-  const { bookingIds } = req.body;
-  let response = await Booking.deleteBooking(bookingIds);
-  res.json(response);
-});
+app.delete(
+  "/deletebooking",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { bookingIds } = req.body;
+    let response = await Booking.deleteBooking(bookingIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region Service
 //create service
-app.post("/createservice", bodyParser.json(), async (req, res) => {
-  const { service } = req.body;
-  let response = await Service.newService(service);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createservice",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { service } = req.body;
+    let response = await Service.newService(service);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all services
 app.get("/getallservices", async (req, res) => {
@@ -373,29 +489,54 @@ app.get("/getservices/:invoice", async (req, res) => {
 });
 
 //Update a Service
-app.put("/updateservice", bodyParser.json(), async (req, res) => {
-  const { service } = req.body;
-  let response = await Service.updateService(service);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updateservice",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { service } = req.body;
+    let response = await Service.updateService(service);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete Service
-app.delete("/deleteservice/:serviceid", async (req, res) => {
-  const { serviceid } = req.params;
-  let response = await Service.deleteService(serviceid);
-  res.json(response);
-});
+app.delete(
+  "/deleteservice/:serviceid",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { serviceid } = req.params;
+    let response = await Service.deleteService(serviceid);
+    res.json(response);
+  }
+);
+
+//Delete some services
+app.delete(
+  "/deletesomeservices",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { serviceIds } = req.body;
+    let response = await Service.deleteSomeServices(serviceIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region ServiceDetails
 //create a service detail
-app.post("/createdetail", bodyParser.json(), async (req, res) => {
-  const { detail } = req.body;
-  let response = await ServiceDetail.newDetail(detail);
-  console.log(response);
-  res.json(response);
-});
+app.post(
+  "/createdetail",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { detail } = req.body;
+    let response = await ServiceDetail.newDetail(detail);
+    console.log(response);
+    res.json(response);
+  }
+);
 
 //Get all details
 app.get("/getalldetails", async (req, res) => {
@@ -412,19 +553,39 @@ app.get("/getdetails/:serviceId", async (req, res) => {
 });
 
 //Update a service detail
-app.put("/updatedetail", bodyParser.json(), async (req, res) => {
-  const { detail } = req.body;
-  let response = await ServiceDetail.updateDetail(detail);
-  //console.log(response);
-  res.json(response);
-});
+app.put(
+  "/updatedetail",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  bodyParser.json(),
+  async (req, res) => {
+    const { detail } = req.body;
+    let response = await ServiceDetail.updateDetail(detail);
+    //console.log(response);
+    res.json(response);
+  }
+);
 
 //Delete a service detail
-app.delete("/deletedetail/:detailid", async (req, res) => {
-  const { detailid } = req.params;
-  let response = await ServiceDetail.deleteDetail(detailid);
-  res.json(response);
-});
+app.delete(
+  "/deletedetail/:detailid",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { detailid } = req.params;
+    let response = await ServiceDetail.deleteDetail(detailid);
+    res.json(response);
+  }
+);
+
+//Delete some details
+app.delete(
+  "/deletesomedetails",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    const { detailIds } = req.body;
+    let response = await ServiceDetail.deleteSomeDetails(detailIds);
+    res.json(response);
+  }
+);
 //#endregion
 
 //#region schedule

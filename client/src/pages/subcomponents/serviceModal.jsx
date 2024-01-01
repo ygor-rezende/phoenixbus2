@@ -192,6 +192,40 @@ export const ServiceModal = (props) => {
 
   const handleDeleteService = async () => {
     try {
+      //Before deleting a service it must delete the details first
+      //Get the details for the current service
+      const details = await fetch(
+        `${process.env.REACT_APP_SERVERURL}/getdetails/${serviceId}`
+      );
+      const detailsData = await details.json();
+
+      //Get the ids
+      const detailIdsToDelete = detailsData.map((detail) => {
+        return detail.detail_id;
+      });
+
+      //delete details
+      if (detailIdsToDelete.length > 0) {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/deletesomedetails`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ detailIds: detailIdsToDelete }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        if (responseMsg.failed) {
+          console.log(responseMsg.failed);
+          onError(responseMsg.failed);
+          return;
+        }
+      }
+
       const response = await fetch(
         `${process.env.REACT_APP_SERVERURL}/deleteservice/${serviceId}`,
         {
@@ -419,7 +453,9 @@ export const ServiceModal = (props) => {
           onCancel={() => setOpenDialog(false)}
           onDelete={handleDeleteService}
           title={"Confirm deleting service?"}
-          description={"Are you sure you want to delete this service?"}
+          description={
+            "Are you sure you want to delete this service and all details associated with it?"
+          }
         />
       </Box>
     </Modal>

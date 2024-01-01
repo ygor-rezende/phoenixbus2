@@ -524,30 +524,110 @@ export const Bookings = () => {
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletebooking`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bookingIds: itemsSelected }),
-        }
+    //Before deleting a booking it must delete the service and details first
+    //Find the services for the bookings
+    let serviceIdsToDelete = itemsSelected.map((id) => {
+      const services = state.servicesData.filter(
+        (service) => service.bookingId === id
       );
-      if (!response.ok) {
-        throw new Error(response.status);
+      return services.map((e) => e.id);
+    });
+
+    //flatening the array
+    serviceIdsToDelete = serviceIdsToDelete.flat();
+
+    //find details for the services (array of services Ids array)
+    const detailsArr = state.detailsData.flat();
+    let detailIdsToDelete = serviceIdsToDelete.map((serviceId) => {
+      const details = detailsArr.filter(
+        (detail) => serviceId === detail.service_id
+      );
+      return details.map((e) => e.detail_id);
+    });
+
+    //flatening the array
+    detailIdsToDelete = detailIdsToDelete.flat();
+
+    try {
+      //Delete details
+      if (detailIdsToDelete.length > 0) {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/deletesomedetails`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ detailIds: detailIdsToDelete }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        if (responseMsg.failed) {
+          console.log(responseMsg.failed);
+          setState({
+            success: false,
+            error: responseMsg.failed,
+            openSnakbar: true,
+          });
+          return;
+        }
       }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //update state and reload the data
-        clearState(responseMsg);
+
+      //delete services
+      if (serviceIdsToDelete.length > 0) {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/deletesomeservices`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ serviceIds: serviceIdsToDelete }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        if (responseMsg.failed) {
+          console.log(responseMsg.failed);
+          setState({
+            success: false,
+            error: responseMsg.failed,
+            openSnakbar: true,
+          });
+          return;
+        }
+      }
+
+      //delete bookings
+
+      if (itemsSelected.length > 0) {
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/deletebooking`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bookingIds: itemsSelected }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+        const responseMsg = await response.json();
+        console.log(responseMsg);
+        if (responseMsg.failed) {
+          console.log(responseMsg.failed);
+          setState({
+            success: false,
+            error: responseMsg.failed,
+            openSnakbar: true,
+          });
+        } else {
+          //update state and reload the data
+          clearState(responseMsg);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -561,14 +641,6 @@ export const Bookings = () => {
 
     //load service details for this booking
     const details = await getDetailsData(services);
-
-    //testing
-    services.map((service) => {
-      let allDetails = details.map((detailsArr) =>
-        detailsArr.filter((detail) => detail.service_id === service.id)
-      );
-      return allDetails;
-    });
 
     //load fields
     console.log(state.bookingsData.filter((e) => e.id === id));

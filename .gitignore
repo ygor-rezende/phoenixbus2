@@ -2,3 +2,4 @@
 *.map
 client/node_modules/.cache/.eslintcache
 *.pack
+.env

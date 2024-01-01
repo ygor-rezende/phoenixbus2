@@ -11,37 +11,72 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Alert,
+  AlertTitle,
+  Snackbar,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FaceIcon from "@mui/icons-material/Face";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import { UsePrivateGet, UsePrivateDelete } from "../../hooks/useFetchServer";
 
 const DeleteUser = () => {
   const [users, setUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isListUpdated, setIsListUpdated] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [openSnakbar, setOpenSnakbar] = useState(false);
+
+  const effectRun = useRef(false); //avoids axios canceledError after controler.abort()
+
+  const axiosPrivate = useAxiosPrivate();
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const deleteServer = UsePrivateDelete();
 
   useEffect(() => {
-    getUsers();
-  }, [isListUpdated]);
+    let isMounted = true;
+    const controler = new AbortController();
 
-  //fech the data from database
-  const getUsers = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getusernames`
-      );
-      const json = await response.json();
-      setUsers(json);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    //fech the data from database
+    const getUsers = async () => {
+      const response = await getServer("/getusernames", controler.signal);
+
+      //when server answer with 401
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setSuccess(false);
+        setError(response.error);
+        setOpenSnakbar(true);
+      }
+      //no error
+      else {
+        isMounted && setUsers(response.data);
+      }
+    };
+
+    //avoid retrieving data after controler.abort() being called
+    effectRun.current && getUsers();
+
+    return () => {
+      isMounted = false;
+      controler.abort();
+      effectRun.current = true;
+    };
+  }, [isListUpdated]);
 
   //opens the dialog to confirm delete process
   const handleDelete = (user) => {
-    console.log(user.username);
     setOpenDialog(true);
     setSelectedUser(user.username);
   };
@@ -53,30 +88,31 @@ const DeleteUser = () => {
 
   //Delete user from the database
   const handleConfirmDelete = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deleteuser/${selectedUser}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const data = await response.json();
-      console.log(data);
-      if (data.detail) {
-        console.log(data.detail);
-      } else {
-        //reload the list
-        setIsListUpdated((update) => !update);
-      }
-      //close the dialog
-      setOpenDialog(false);
-    } catch (err) {
-      console.error(err);
+    const response = await deleteServer(`/deleteuser/${selectedUser}`);
+
+    if (response.data) {
+      setError(null);
+      setSuccess(true);
+      setOpenSnakbar(true);
+      setIsListUpdated((update) => !update);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
+
+    //close the dialog
+    setOpenDialog(false);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnakbar(false);
   };
 
   return (
@@ -84,7 +120,7 @@ const DeleteUser = () => {
       <div className="delete-container-box">
         <h2>Users registered:</h2>
         <List>
-          {users.map((user) => (
+          {users?.map((user) => (
             <ListItem
               key={user.username}
               secondaryAction={
@@ -129,6 +165,28 @@ const DeleteUser = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <Snackbar
+          open={error && openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="error" onClose={handleClose}>
+            <AlertTitle>Error</AlertTitle>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={success && openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="success" onClose={handleClose}>
+            <AlertTitle>User deleted</AlertTitle>
+            {`The user ${selectedUser} was deleted with success.`}
+          </Alert>
+        </Snackbar>
       </div>
     </div>
   );

@@ -51,28 +51,28 @@ const MyDrawer = styled(Drawer, {
 export const Schedule = () => {
   const [openDrawer, setOpenDrawer] = useState(true);
   const [data, setData] = useState([]);
+  const [dateString, setDateString] = useState("Today");
 
   useEffect(() => {
-    if (data.length < 1) {
-      (async function getTodaySchedule() {
-        try {
-          const startDate = new Date().toISOString().slice(0, 10);
-          const endDate = new Date().toISOString().slice(0, 10);
-          const dates = JSON.stringify({
-            startDate: startDate,
-            endDate: endDate,
-          });
-          const response = await fetch(
-            `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
-          );
-          const responseMsg = await response.json();
-          setData(responseMsg);
-        } catch (err) {
-          console.error(err);
-        }
-      })();
-    }
-  }, [data.length]);
+    (async function getTodaySchedule() {
+      try {
+        const startDate = new Date().toISOString().slice(0, 10);
+        const endDate = new Date().toISOString().slice(0, 10);
+        const dates = JSON.stringify({
+          startDate: startDate,
+          endDate: endDate,
+        });
+        const response = await fetch(
+          `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
+        );
+        const responseMsg = await response.json();
+        setData(responseMsg);
+        setDateString("Today");
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, []);
 
   const getSchedule = async (startDate, endDate) => {
     try {
@@ -87,6 +87,7 @@ export const Schedule = () => {
       );
       const responseData = await response.json();
       setData(responseData);
+      setDateString(`${sDate} to ${eDate}`);
     } catch (err) {
       console.error(err);
     }
@@ -163,7 +164,11 @@ export const Schedule = () => {
               </Grid>
               <Grid item xs={12}>
                 <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                  <ScheduleTable data={data} />
+                  <ScheduleTable
+                    data={data}
+                    onDatePick={pickDate}
+                    dateString={dateString}
+                  />
                 </Paper>
               </Grid>
             </Grid>

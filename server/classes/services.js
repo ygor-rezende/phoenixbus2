@@ -93,6 +93,24 @@ class Service {
       if (err) return { failed: `Error: ${err.message}` };
     }
   } //deleteService
+
+  static async deleteSomeServices(serviceIds) {
+    try {
+      const deletedServices = await serviceIds.map(async (service) => {
+        return await pool.query("DELETE from services WHERE service_id = $1", [
+          service,
+        ]);
+      });
+      const deletedPromise = await Promise.all(deletedServices);
+      console.log(deletedPromise);
+      if (deletedPromise[0].rowCount)
+        return `Number of services deleted: ${deletedPromise.length}`;
+      else return { failed: "Failed to delete services" };
+    } catch (err) {
+      console.error(err);
+      if (err) return { failed: `Error: ${err.message}` };
+    }
+  } //deleteSomeServices
 }
 
 module.exports = { Service };

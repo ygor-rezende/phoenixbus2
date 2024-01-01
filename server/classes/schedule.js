@@ -15,6 +15,7 @@ class Schedule {
                 d.end_time,
                 d.service_type,
                 d.instructions,
+                d.payment,
                 e.firstname,
                 e.lastname,
                 v.vehicle_name,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import {
   Radio,
   RadioGroup,
@@ -15,8 +15,12 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import AuthContext from "../../Authentication/context/AuthProvider";
+import { useNavigate, useLocation } from "react-router-dom";
+import { UsePrivatePost } from "../../hooks/useFetchServer";
 
-const Auth = () => {
+const Register = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,28 +28,20 @@ const Auth = () => {
   const [userName, setUserName] = useState("");
   const [userType, setUserType] = useState("");
   const [openSnakbar, setOpenSnakbar] = useState(false);
-
-  //console.log(cookies);
+  const axiosPrivate = useAxiosPrivate();
+  const { setAuth } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const postServer = UsePrivatePost();
 
   const signUp = async () => {
-    const response = await fetch(`${process.env.REACT_APP_SERVERURL}/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userName: userName,
-        password: password,
-        userType: userType,
-      }),
+    const response = await postServer("/signup", {
+      userName: userName,
+      password: password,
+      userType: userType,
     });
 
-    const data = await response.json();
-    console.log(userType);
-    //if an error happens when signing up set the error
-    if (data.detail) {
-      setSuccess(false);
-      setError(data.detail);
-      setOpenSnakbar(true);
-    } else {
+    if (response.status === 201) {
       //if no error set success to display message
       setError(null);
       setSuccess(true);
@@ -55,8 +51,13 @@ const Auth = () => {
       setUserName("");
       setUserType(null);
       setPassword("");
-      //reload the page
-      //window.location.reload();
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
   };
 
@@ -181,4 +182,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Register;

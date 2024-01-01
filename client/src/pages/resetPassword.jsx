@@ -10,7 +10,9 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { useCookies } from "react-cookie";
+import useAuth from "../hooks/useAuth";
+import { useNavigate, useLocation } from "react-router-dom";
+import { UsePrivatePost } from "../hooks/useFetchServer";
 
 const ResetPassword = () => {
   const [error, setError] = useState(null);
@@ -19,31 +21,31 @@ const ResetPassword = () => {
   const [showPassword2, setShowPassword2] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [cookies, setCookie, removeCookie] = useCookies(null);
   const [openSnakbar, setOpenSnakbar] = useState(false);
 
-  const userName = cookies.Username;
-
-  //console.log(cookies);
+  const { auth, setAuth } = useAuth();
+  const userName = auth.userName;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const postServer = UsePrivatePost();
 
   const handleReset = async () => {
-    const response = await fetch(`${process.env.REACT_APP_SERVERURL}/reset`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userName: userName,
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      }),
+    const response = await postServer("/reset", {
+      userName: userName,
+      currentPassword: currentPassword,
+      newPassword: newPassword,
     });
 
-    const data = await response.json();
-    //if an error happens when signing up set the error
-    if (data.detail) {
+    //when server answer with 401
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
       setSuccess(false);
-      setError(data.detail);
+      setError(response.error);
       setOpenSnakbar(true);
-    } else {
+    } else if (response.data) {
       //if no error set success to display message
       setError(null);
       setSuccess(true);
@@ -52,8 +54,6 @@ const ResetPassword = () => {
       //Clear fields
       setCurrentPassword("");
       setNewPassword("");
-      //reload the page
-      //window.location.reload();
     }
   };
 
