@@ -1,7 +1,12 @@
 const pool = require("../db");
 
 class Service {
-  static async newService(service) {
+  static async newService(req, res) {
+    const { service } = req.body;
+    if (!service)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Service information is required" });
     try {
       //insert the new Service
       const newService = await pool.query(
@@ -21,10 +26,10 @@ class Service {
       );
       console.log(newService.rowCount);
       //send the reponse to booking
-      return `Service ${service.serviceName} created`;
+      return res.status(201).json(`Service ${service.serviceName} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newService
 
@@ -35,25 +40,36 @@ class Service {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllServices
 
-  static async getServices(invoice) {
+  static async getServices(req, res) {
+    const { invoice } = req.params;
+    if (!invoice)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing invoice information" });
     try {
       const result = await pool.query(
         "Select * FROM services WHERE booking_id = $1",
         [invoice]
       );
       //console.log(result.rows);
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return res.status(500).json({ message: err.message });
     }
   } //getAllServices
 
-  static async updateService(service) {
+  static async updateService(req, res) {
+    const { service } = req.body;
+    if (!service)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Service information is required" });
+
     try {
       const updatedService = await pool.query(
         "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, tips = $7, sales_tax = $8, optional = $9 WHERE service_id = $10",
@@ -71,30 +87,40 @@ class Service {
         ]
       );
       if (updatedService.rowCount)
-        return `Service ${service.serviceName} updated`;
-      else return { failed: "Failed to update service" };
+        return res.json(`Service ${service.serviceName} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateService
 
-  static async deleteService(serviceId) {
+  static async deleteService(req, res) {
+    const { serviceid } = req.params;
+    if (!serviceid)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing service id" });
+
     try {
       const deletedService = await pool.query(
         "DELETE from services WHERE service_id = $1",
-        [serviceId]
+        [serviceid]
       );
       console.log(deletedService);
-      if (deletedService) return `Service ${serviceId} deleted`;
-      else return { failed: "Failed to delete service" };
+      if (deletedService) return res.json(`Service ${serviceid} deleted`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteService
 
-  static async deleteSomeServices(serviceIds) {
+  static async deleteSomeServices(req, res) {
+    const { serviceIds } = req.body;
+    if (!serviceIds)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing service id" });
+
     try {
       const deletedServices = await serviceIds.map(async (service) => {
         return await pool.query("DELETE from services WHERE service_id = $1", [
@@ -104,11 +130,10 @@ class Service {
       const deletedPromise = await Promise.all(deletedServices);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of services deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete services" };
+        return res.json(`Number of services deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteSomeServices
 }

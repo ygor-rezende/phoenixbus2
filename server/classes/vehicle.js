@@ -2,12 +2,13 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Vehicle {
-  static async createVehicle(
-    vehicleName,
-    vehicleModel,
-    vehicleYear,
-    vehicleColor
-  ) {
+  static async createVehicle(req, res) {
+    const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
+    if (!vehicleColor || !vehicleModel || !vehicleName || !vehicleYear)
+      return res
+        .status(400)
+        .json({ message: "All vehicle information is required." });
+
     try {
       //generate a new id
       const newId = uuid();
@@ -16,12 +17,12 @@ class Vehicle {
         `INSERT INTO vehicles (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color) VALUES ($1, $2, $3, $4, $5)`,
         [newId, vehicleName, vehicleModel, vehicleYear, vehicleColor]
       );
-      console.log(newVehicle.rowCount);
+      //console.log(newVehicle.rowCount);
       //send the reponse to client
-      return `Vehicle ${vehicleName} created`;
+      return res.status(201).json(`Vehicle ${vehicleName} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //createVehicle
 
@@ -32,38 +33,47 @@ class Vehicle {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllVehicles
 
-  static async deleteVehicle(vehicleIds) {
+  static async deleteVehicle(req, res) {
+    const { vehicleIds } = req.body;
+    if (!vehicleIds)
+      return res.status(400).json({ message: "No vehicle was selected" });
     try {
-      const deletedVehicles = [];
-      vehicleIds.forEach(async (vehicle) => {
-        const deletedVehicle = await pool.query(
-          "DELETE from vehicles WHERE vehicle_id = $1",
-          [vehicle]
-        );
-        deletedVehicles.push(deletedVehicle);
+      const deletedVehicles = await vehicleIds.map(async (vehicle) => {
+        return await pool.query("DELETE from vehicles WHERE vehicle_id = $1", [
+          vehicle,
+        ]);
       });
-      return "Vechicle(s) deleted";
+      const deletedPromise = await Promise.all(deletedVehicles);
+      if (deletedPromise[0]?.rowCount)
+        return res.json(`Number of vehicles deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
-      if (err) return { detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteVehicle
 
-  static async updateVehicle(vehicle) {
+  static async updateVehicle(req, res) {
+    const { vehicle } = req.body;
+
+    if (!vehicle)
+      return res
+        .status(400)
+        .json({ message: "Bad request: No vehicle info provided" });
+
     try {
       const updatedVehicle = await pool.query(
         "UPDATE vehicles SET vehicle_name = $1, vehicle_model = $2, vehicle_year = $3, vehicle_color = $4 WHERE vehicle_id = $5",
         [vehicle.name, vehicle.model, vehicle.year, vehicle.color, vehicle.id]
       );
-      if (updatedVehicle.rowCount >= 0)
-        return `Updated: ${updatedVehicle.rows}`;
+      if (updatedVehicle.rowCount)
+        return res.json(`Vehicle ${vehicle.name} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //updateVehicle
 
@@ -76,20 +86,25 @@ class Vehicle {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllVehicleNames
 
-  static async getVehicleById(id) {
+  static async getVehicleById(req, res) {
+    const { vehicleId } = req.params;
+    if (!vehicleId)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing vehicle id" });
     try {
       const result = await pool.query(
         "Select * from vehicles WHERE vehicle_id = $1",
-        [id]
+        [vehicleId]
       );
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return res.status(500).json({ message: err.message });
     }
   }
 }

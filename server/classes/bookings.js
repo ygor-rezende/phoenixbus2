@@ -2,7 +2,12 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Booking {
-  static async newBooking(booking) {
+  static async newBooking(req, res) {
+    const { booking } = req.body;
+    if (!booking)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Booking information is required" });
     try {
       //generate a new id
       let newId = uuid();
@@ -40,10 +45,10 @@ class Booking {
       );
       console.log(newBooking.rowCount);
       //send the reponse to booking
-      return `Booking ${newId} created`;
+      return res.status(201).json(`Booking ${newId} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newBooking
 
@@ -54,11 +59,16 @@ class Booking {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllBookings
 
-  static async updateBooking(booking) {
+  static async updateBooking(req, res) {
+    const { booking } = req.body;
+    if (!booking)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Booking information is required" });
     try {
       const updatedBooking = await pool.query(
         "UPDATE bookings SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, pax_group = $5, num_people = $6, trip_start_date = $7, trip_end_date = $8, deposit = $9, cost = $10, mco_mca = $11, hours_quote_valid = $12, client_comments = $13, intinerary_details = $14, internal_coments = $15, quote_id = $16, booking_date = $17, responsible_name = $18, responsible_email = $19, responsible_phone = $20 WHERE invoice = $21",
@@ -86,15 +96,20 @@ class Booking {
           booking.invoice,
         ]
       );
-      if (updatedBooking.rowCount) return `Booking ${booking.invoice} updated`;
-      else return { failed: "Failed to update booking" };
+      if (updatedBooking.rowCount)
+        return res.json(`Booking ${booking.invoice} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateBooking
 
-  static async deleteBooking(bookingIds) {
+  static async deleteBooking(req, res) {
+    const { bookingIds } = req.body;
+    if (!bookingIds)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing invoice information" });
     try {
       const deletedBookings = await bookingIds.map(async (booking) => {
         return await pool.query("DELETE from bookings WHERE invoice = $1", [
@@ -103,12 +118,11 @@ class Booking {
       });
       const deletedPromise = await Promise.all(deletedBookings);
       console.log(deletedPromise);
-      if (deletedPromise[0].rowCount)
-        return `Number of bookings deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete booking" };
+      if (deletedPromise[0]?.rowCount)
+        return res.json(`Number of bookings deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteBooking
 }

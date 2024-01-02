@@ -2,7 +2,13 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class FarmOut {
-  static async newCompany(company) {
+  static async newCompany(req, res) {
+    const { company } = req.body;
+    if (!company)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Company information is required" });
+
     try {
       //generate a new id
       const newId = uuid();
@@ -31,10 +37,10 @@ class FarmOut {
       );
       console.log(newCompany.rowCount);
       //send the reponse to company
-      return `Company ${newId} created`;
+      return res.status(201).json(`Company ${company.name} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newCompany
 
@@ -45,11 +51,16 @@ class FarmOut {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllCompanies
 
-  static async updateCompany(company) {
+  static async updateCompany(req, res) {
+    const { company } = req.body;
+    if (!company)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Company information is required" });
     try {
       const updatedCompany = await pool.query(
         "UPDATE companies SET company_name = $1, contact = $2, address = $3, city = $4, company_state = $5, zip = $6, phone = $7, email = $8, ein = $9, dot = $10, insurance = $11, account = $12, routing = $13, wire = $14, zelle = $15 WHERE company_id = $16",
@@ -72,15 +83,21 @@ class FarmOut {
           company.id,
         ]
       );
-      if (updatedCompany.rowCount) return `Company ${company.name} updated`;
-      else return { failed: "Failed to update company" };
+      if (updatedCompany.rowCount)
+        return res.json(`Company ${company.name} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateCompany
 
-  static async deleteCompany(companyIds) {
+  static async deleteCompany(req, res) {
+    let { companyIds } = req.params;
+    companyIds = JSON.parse(companyIds);
+    if (!companyIds)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing company id" });
     try {
       const deletedCompanies = await companyIds.map(async (company) => {
         return await pool.query("DELETE from companies WHERE company_id = $1", [
@@ -90,11 +107,12 @@ class FarmOut {
       const deletedPromise = await Promise.all(deletedCompanies);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of companies deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete company" };
+        return res.json(
+          `Number of companies deleted: ${deletedPromise.length}`
+        );
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteCompany
 }

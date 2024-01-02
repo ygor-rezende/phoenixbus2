@@ -1,9 +1,15 @@
 const pool = require("../db");
 
 class Schedule {
-  static async getSchedule(startDate, endDate) {
+  static async getSchedule(req, res) {
     try {
-      let newEndDate = new Date(endDate);
+      const { dates } = req.params;
+      if (!dates || !dates?.startDate || !dates?.endDate)
+        return res.status(400).json("Bad request: Missing dates");
+
+      let newDates = JSON.parse(dates);
+
+      let newEndDate = new Date(newDates.endDate);
       newEndDate.setDate(newEndDate.getDate() + 1);
       newEndDate = newEndDate.toISOString().slice(0, 10);
       const result = await pool.query(
@@ -30,13 +36,13 @@ class Schedule {
                 join locations lf on lf.location_id = d.from_location_id
                 join locations lt on lt.location_id = d.to_location_id
                 WHERE s.service_date >= $1 AND s.service_date < $2`,
-        [startDate, newEndDate]
+        [newDates.startDate, newEndDate]
       );
       console.log(result.rowCount);
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   }
 }

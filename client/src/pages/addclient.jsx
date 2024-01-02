@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useEffect, useRef } from "react";
 import {
   Alert,
   AlertTitle,
@@ -16,9 +16,18 @@ import {
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
-
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../utils/table_generic";
+
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -105,37 +114,69 @@ const initialState = {
 export const AddClient = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    //Get all clients data
+    const getClientsData = async () => {
+      const response = await getServer("/getallclients", controller.signal);
+
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setState({ success: false, error: response.error, openSnakbar: true });
+      }
+      //no error
+      else {
+        let responseData = response.data;
+        responseData = responseData.map((item) => {
+          const client = {
+            id: item.client_id,
+            agency: item.agency,
+            contact: item.contact,
+            address1: item.address1,
+            address2: item.address2,
+            city: item.city,
+            state: item.client_state,
+            zip: item.zip,
+            country: item.country,
+            phone: item.phone,
+            fax: item.fax,
+            email: item.email,
+            remark: item.remark,
+          };
+          return client;
+        });
+        isMounted && setState({ clientsData: responseData });
+      }
+    }; //getClientsData
+
+    effectRun.current && getClientsData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
+  }, [state.isDataUpdated]);
+
   //Get all clients data
-  const getData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallclients`
-      );
-      let responseData = await response.json();
-      responseData = responseData.map((item) => {
-        const client = {
-          id: item.client_id,
-          agency: item.agency,
-          contact: item.contact,
-          address1: item.address1,
-          address2: item.address2,
-          city: item.city,
-          state: item.client_state,
-          zip: item.zip,
-          country: item.country,
-          phone: item.phone,
-          fax: item.fax,
-          email: item.email,
-          remark: item.remark,
-        };
-        return client;
-      });
-      setState({ clientsData: responseData });
-      return responseData;
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const getData = () => {
+    return state.clientsData;
+  }; //loadData
 
   //handle updates in the fields
   const handleOnChange = (e) => setState({ [e.target.id]: e.target.value });
@@ -201,69 +242,62 @@ export const AddClient = () => {
     return true;
   }; //isFormValid
 
-  //handle form submit
+  //handle create client
   const handleSubmit = async () => {
     //validate form
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createclient`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client: {
-              agency: state.agency,
-              contact: state.contact,
-              address1: state.address1,
-              address2: state.address2,
-              city: state.city,
-              state: state.state,
-              zip: state.zip,
-              country: state.country,
-              phone: state.phone,
-              fax: state.fax,
-              email: state.email,
-              remark: state.remark,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setState({ success: false, error: data.msg, openSnakbar: true });
-      } else {
-        //if no error set success and reset intial state
-        setState({
-          msg: data,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          agency: "",
-          contact: "",
-          address1: "",
-          address2: "",
-          city: "",
-          state: null,
-          zip: "",
-          country: "US",
-          phone: "",
-          fax: "",
-          email: "",
-          remark: "",
-          expandPanel: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const response = await postServer("/createclient", {
+      client: {
+        agency: state.agency,
+        contact: state.contact,
+        address1: state.address1,
+        address2: state.address2,
+        city: state.city,
+        state: state.state,
+        zip: state.zip,
+        country: state.country,
+        phone: state.phone,
+        fax: state.fax,
+        email: state.email,
+        remark: state.remark,
+      },
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSubmit
+
+  const clearState = (msg) => {
+    setState({
+      msg: msg,
+      error: null,
+      success: true,
+      openSnakbar: true,
+      agency: "",
+      contact: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: null,
+      zip: "",
+      country: "US",
+      phone: "",
+      fax: "",
+      email: "",
+      remark: "",
+      expandPanel: false,
+      isDataUpdated: !state.isDataUpdated,
+    });
+  };
 
   //Cancel editing
   const cancelEditing = () => {
@@ -299,124 +333,49 @@ export const AddClient = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const clientToUpdate = {
-        id: state.clientId,
-        agency: state.agency,
-        contact: state.contact,
-        address1: state.address1,
-        address2: state.address2,
-        city: state.city,
-        state: state.state,
-        zip: state.zip,
-        country: state.country,
-        phone: state.phone,
-        fax: state.fax,
-        email: state.email,
-        remark: state.remark,
-      };
 
-      console.log(clientToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updateclient`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ client: clientToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //if no error set success and reset intial state
-        setState({
-          msg: responseMsg,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          clientId: "",
-          agency: "",
-          contact: "",
-          address1: "",
-          address2: "",
-          city: "",
-          state: null,
-          zip: "",
-          country: "US",
-          phone: "",
-          fax: "",
-          email: "",
-          remark: "",
-          expandPanel: false,
-          onEditMode: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const clientToUpdate = {
+      id: state.clientId,
+      agency: state.agency,
+      contact: state.contact,
+      address1: state.address1,
+      address2: state.address2,
+      city: state.city,
+      state: state.state,
+      zip: state.zip,
+      country: state.country,
+      phone: state.phone,
+      fax: state.fax,
+      email: state.email,
+      remark: state.remark,
+    };
+
+    const response = await putServer("/updateclient", {
+      client: clientToUpdate,
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSaveChanges
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deleteclient`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clientIds: itemsSelected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //update state and reload the data
-        setState({
-          msg: responseMsg,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          clientId: "",
-          agency: "",
-          contact: "",
-          address1: "",
-          address2: "",
-          city: "",
-          state: null,
-          zip: "",
-          country: "US",
-          phone: "",
-          fax: "",
-          email: "",
-          remark: "",
-          expandPanel: false,
-          onEditMode: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const clientIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deleteclient/${clientIds}`);
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleDelete
 
@@ -584,6 +543,7 @@ export const AddClient = () => {
                 >
                   <Autocomplete
                     id="states"
+                    className="autocomplete"
                     required
                     value={state.state}
                     onChange={(e, newValue) => setState({ state: newValue })}

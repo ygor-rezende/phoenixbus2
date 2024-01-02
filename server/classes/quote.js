@@ -2,7 +2,12 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Quote {
-  static async newQuote(quote) {
+  static async newQuote(req, res) {
+    const { quote } = req.body;
+    if (!quote)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Quote information is required" });
     try {
       //generate a new id
       const newId = uuid();
@@ -44,10 +49,10 @@ class Quote {
       );
       console.log(newQuote.rowCount);
       //send the reponse to quote
-      return `Quote ${newId} created`;
+      return res.status(201).json(`Quote ${newId} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newQuote
 
@@ -58,11 +63,16 @@ class Quote {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllQuotes
 
-  static async updateQuote(quote) {
+  static async updateQuote(req, res) {
+    const { quote } = req.body;
+    if (!quote)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Quote information is required" });
     try {
       const updatedQuote = await pool.query(
         "UPDATE quotes SET client_id = $1, employee_id = $2, pickup_location_id = $3, destination_location_id = $4, return_location_id = $5, responsible_name = $6, responsible_email = $7, responsible_phone = $8, quote_date = $9, category = $10, pax_group = $11, num_people = $12, trip_start_date = $13, trip_end_date = $14, deposit = $15, cost = $16, mco_mca = $17, service_type = $18, pickup_time = $19, return_time = $20, additional_stop = $21, additional_stop_info = $22, additional_stop_detail = $23, trip_length = $24, hours_quote_valid = $25, client_comments = $26, intinerary_details = $27, internal_coments = $28 WHERE quote_id = $29",
@@ -98,15 +108,18 @@ class Quote {
           quote.quoteId,
         ]
       );
-      if (updatedQuote.rowCount) return `Quote ${quote.quoteId} updated`;
-      else return { failed: "Failed to update quote" };
+      if (updatedQuote.rowCount)
+        return res.json(`Quote ${quote.quoteId} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateQuote
 
-  static async deleteQuote(quoteIds) {
+  static async deleteQuote(req, res) {
+    const { quoteIds } = req.body;
+    if (!quoteIds)
+      return res.status(400).json({ message: "Bad request: Missing quote id" });
     try {
       const deletedQuotes = await quoteIds.map(async (quote) => {
         return await pool.query("DELETE from quotes WHERE quote_id = $1", [
@@ -116,11 +129,10 @@ class Quote {
       const deletedPromise = await Promise.all(deletedQuotes);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of quotes deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete quote" };
+        return res.json(`Number of quotes deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteQuote
 }

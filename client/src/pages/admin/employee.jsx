@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useEffect, useRef } from "react";
 import {
   Alert,
   AlertTitle,
@@ -19,6 +19,14 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../../hooks/useFetchServer";
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
@@ -130,50 +138,81 @@ const initialState = {
 export const Employee = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
-  //Get all employee data
-  const getData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallemployees`
-      );
-      let responseData = await response.json();
-      responseData = responseData.map((item) => {
-        const employee = {
-          id: item.employee_id,
-          firstname: item.firstname,
-          lastname: item.lastname,
-          birth: item.birth,
-          title: item.title,
-          hireDate: item.hire_date,
-          address: item.address,
-          city: item.city,
-          state: item.state,
-          zip: item.zip,
-          phone: item.phone,
-          email: item.email,
-          medicalCard: item.medical_card,
-          i9: item.i9,
-          drugFree: item.drug_free,
-          driverLicenceExpDate: item.drive_license_exp_date,
-          it: item.it_number,
-          nationalReg: item.national_reg,
-          experience: item.experience,
-          cldTag: item.cdl_tag,
-          insurance: item.insurance,
-          insuranceExpDate: item.insurance_exp_date,
-          mc: item.mc,
-          pointOfContact: item.point_contact,
-          emergencyContact: item.emergency_contact,
-          maritalStatus: item.marital_status,
-          notes: item.notes,
-        };
-        return employee;
-      });
-      setState({ employeesData: responseData });
-      return responseData;
-    } catch (err) {
-      console.error(err);
-    }
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    //Get all employee data
+    const getEmployeeData = async () => {
+      const response = await getServer("/getallemployees", controller.signal);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setState({ success: false, error: response.error, openSnakbar: true });
+      }
+      //no error
+      else {
+        let responseData = response.data;
+        responseData = responseData.map((item) => {
+          const employee = {
+            id: item.employee_id,
+            firstname: item.firstname,
+            lastname: item.lastname,
+            birth: item.birth,
+            title: item.title,
+            hireDate: item.hire_date,
+            address: item.address,
+            city: item.city,
+            state: item.state,
+            zip: item.zip,
+            phone: item.phone,
+            email: item.email,
+            medicalCard: item.medical_card,
+            i9: item.i9,
+            drugFree: item.drug_free,
+            driverLicenceExpDate: item.drive_license_exp_date,
+            it: item.it_number,
+            nationalReg: item.national_reg,
+            experience: item.experience,
+            cldTag: item.cdl_tag,
+            insurance: item.insurance,
+            insuranceExpDate: item.insurance_exp_date,
+            mc: item.mc,
+            pointOfContact: item.point_contact,
+            emergencyContact: item.emergency_contact,
+            maritalStatus: item.marital_status,
+            notes: item.notes,
+          };
+          return employee;
+        });
+        isMounted && setState({ employeesData: responseData });
+      }
+    }; //getEmployeeData
+
+    effectRun.current && getEmployeeData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
+  }, [state.isDataUpdated]);
+
+  //Get all employees data
+  const getData = () => {
+    return state.employeesData;
   }; //loadData
 
   //handle updates in the fields
@@ -236,56 +275,45 @@ export const Employee = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createemployee`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            employee: {
-              firstname: state.firstname,
-              lastname: state.lastname,
-              birth: state.birth,
-              title: state.title,
-              hireDate: state.hireDate,
-              address: state.address,
-              city: state.city,
-              state: state.state,
-              zip: state.zip,
-              phone: state.phone,
-              email: state.email,
-              medicalCard: state.medicalCard,
-              i9: state.i9,
-              drugFree: state.drugFree,
-              driverLicenceExpDate: state.driverLicenceExpDate,
-              it: state.it,
-              nationalReg: state.nationalReg,
-              experience: state.experience,
-              cldTag: state.cldTag,
-              insurance: state.insurance,
-              insuranceExpDate: state.insuranceExpDate,
-              mc: state.mc,
-              pointOfContact: state.pointOfContact,
-              emergencyContact: state.emergencyContact,
-              maritalStatus: state.maritalStatus,
-              notes: state.notes,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setState({ success: false, error: data.msg, openSnakbar: true });
-      } else {
-        //if no error set success and reset intial state
-        clearState(data);
-      }
-    } catch (err) {
-      console.error(err);
+    const response = await postServer("/createemployee", {
+      employee: {
+        firstname: state.firstname,
+        lastname: state.lastname,
+        birth: state.birth,
+        title: state.title,
+        hireDate: state.hireDate,
+        address: state.address,
+        city: state.city,
+        state: state.state,
+        zip: state.zip,
+        phone: state.phone,
+        email: state.email,
+        medicalCard: state.medicalCard,
+        i9: state.i9,
+        drugFree: state.drugFree,
+        driverLicenceExpDate: state.driverLicenceExpDate,
+        it: state.it,
+        nationalReg: state.nationalReg,
+        experience: state.experience,
+        cldTag: state.cldTag,
+        insurance: state.insurance,
+        insuranceExpDate: state.insuranceExpDate,
+        mc: state.mc,
+        pointOfContact: state.pointOfContact,
+        emergencyContact: state.emergencyContact,
+        maritalStatus: state.maritalStatus,
+        notes: state.notes,
+      },
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSubmit
 
@@ -384,96 +412,65 @@ export const Employee = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const employeeToUpdate = {
-        id: state.employeeId,
-        firstname: state.firstname,
-        lastname: state.lastname,
-        birth: state.birth,
-        title: state.title,
-        hireDate: state.hireDate,
-        address: state.address,
-        city: state.city,
-        state: state.state,
-        zip: state.zip,
-        phone: state.phone,
-        email: state.email,
-        medicalCard: state.medicalCard,
-        i9: state.i9,
-        drugFree: state.drugFree,
-        driverLicenceExpDate: state.driverLicenceExpDate,
-        it: state.it,
-        nationalReg: state.nationalReg,
-        experience: state.experience,
-        cldTag: state.cldTag,
-        insurance: state.insurance,
-        insuranceExpDate: state.insuranceExpDate,
-        mc: state.mc,
-        pointOfContact: state.pointOfContact,
-        emergencyContact: state.emergencyContact,
-        maritalStatus: state.maritalStatus,
-        notes: state.notes,
-      };
 
-      console.log(employeeToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updateemployee`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employee: employeeToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //if no error set success and reset intial state
-        clearState(responseMsg);
-      }
-    } catch (err) {
-      console.error(err);
+    const employeeToUpdate = {
+      id: state.employeeId,
+      firstname: state.firstname,
+      lastname: state.lastname,
+      birth: state.birth,
+      title: state.title,
+      hireDate: state.hireDate,
+      address: state.address,
+      city: state.city,
+      state: state.state,
+      zip: state.zip,
+      phone: state.phone,
+      email: state.email,
+      medicalCard: state.medicalCard,
+      i9: state.i9,
+      drugFree: state.drugFree,
+      driverLicenceExpDate: state.driverLicenceExpDate,
+      it: state.it,
+      nationalReg: state.nationalReg,
+      experience: state.experience,
+      cldTag: state.cldTag,
+      insurance: state.insurance,
+      insuranceExpDate: state.insuranceExpDate,
+      mc: state.mc,
+      pointOfContact: state.pointOfContact,
+      emergencyContact: state.emergencyContact,
+      maritalStatus: state.maritalStatus,
+      notes: state.notes,
+    };
+
+    //console.log(employeeToUpdate);
+
+    const response = await putServer("/updateemployee", {
+      employee: employeeToUpdate,
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSaveChanges
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deleteemployee`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employeeIds: itemsSelected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //update state and reload the data
-        clearState(responseMsg);
-      }
-    } catch (err) {
-      console.error(err);
+    const employeeIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deleteemployee/${employeeIds}`);
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleDelete
 
@@ -703,6 +700,7 @@ export const Employee = () => {
                   <Autocomplete
                     id="states"
                     required
+                    className="autocomplete"
                     value={state.state}
                     onChange={(e, newValue) => setState({ state: newValue })}
                     options={listOfStates}

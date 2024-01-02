@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import {
   Alert,
   AlertTitle,
@@ -23,6 +23,12 @@ import EnhancedTable from "../../utils/table_generic";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import {
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivateGet,
+  UsePrivatePut,
+} from "../../hooks/useFetchServer";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -116,20 +122,38 @@ const initialState = {
 
 export const FarmOut = () => {
   const [state, setState] = useReducer(reducer, initialState);
-  const axiosPrivate = useAxiosPrivate();
+
   const { setAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  const effectRun = useRef(false);
+
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
+
     //Get all companies data
     const getCompaniesData = async () => {
-      try {
-        const response = await axiosPrivate.get("/getallcompanies", {
-          signal: controller.signal,
+      const response = await getServer("/getallcompanies", controller.signal);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setState({
+          success: false,
+          error: response.error,
+          openSnakbar: true,
         });
+      }
+      //no error
+      else {
         let responseData = response.data;
         responseData = responseData?.map((item) => {
           const company = {
@@ -153,23 +177,17 @@ export const FarmOut = () => {
           return company;
         });
         isMounted && setState({ companiesData: responseData });
-      } catch (err) {
-        console.error(err);
-        if (err?.response?.status === 401) {
-          console.error(err);
-          setAuth({});
-          navigate("/login", { state: { from: location }, replace: true });
-        }
       }
-    }; //loadData
+    }; //getCompaniesData
 
-    getCompaniesData();
+    effectRun.current && getCompaniesData();
 
     return () => {
       isMounted = false;
       controller.abort();
+      effectRun.current = true;
     };
-  }, []);
+  }, [state.isDataUpdated]);
 
   //Get all companies data
   const getData = () => {
@@ -236,70 +254,63 @@ export const FarmOut = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createcompany`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            company: {
-              name: state.name,
-              contact: state.contact,
-              address: state.address,
-              city: state.city,
-              state: state.state,
-              zip: state.zip,
-              phone: state.phone,
-              email: state.email,
-              remark: state.remark,
-              ein: state.ein,
-              dot: state.dot,
-              insurance: state.insurance,
-              account: state.account,
-              routing: state.routing,
-              wire: state.wire,
-              zelle: state.zelle,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setState({ success: false, error: data.msg, openSnakbar: true });
-      } else {
-        //if no error set success and reset intial state
-        setState({
-          msg: data,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          name: "",
-          contact: "",
-          address: "",
-          city: "",
-          state: null,
-          zip: "",
-          phone: "",
-          email: "",
-          ein: "",
-          dot: "",
-          insurance: "",
-          account: "",
-          routing: "",
-          wire: "",
-          zelle: "",
-          expandPanel: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const response = await postServer("/createcompany", {
+      company: {
+        name: state.name,
+        contact: state.contact,
+        address: state.address,
+        city: state.city,
+        state: state.state,
+        zip: state.zip,
+        phone: state.phone,
+        email: state.email,
+        remark: state.remark,
+        ein: state.ein,
+        dot: state.dot,
+        insurance: state.insurance,
+        account: state.account,
+        routing: state.routing,
+        wire: state.wire,
+        zelle: state.zelle,
+      },
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSubmit
+
+  const clearState = (msg) => {
+    setState({
+      msg: msg,
+      error: null,
+      success: true,
+      openSnakbar: true,
+      name: "",
+      contact: "",
+      address: "",
+      city: "",
+      state: null,
+      zip: "",
+      phone: "",
+      email: "",
+      ein: "",
+      dot: "",
+      insurance: "",
+      account: "",
+      routing: "",
+      wire: "",
+      zelle: "",
+      expandPanel: false,
+      isDataUpdated: !state.isDataUpdated,
+    });
+  };
 
   //Cancel editing
   const cancelEditing = () => {
@@ -338,134 +349,53 @@ export const FarmOut = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const companyToUpdate = {
-        id: state.companyId,
-        name: state.name,
-        contact: state.contact,
-        address: state.address,
-        city: state.city,
-        state: state.state,
-        zip: state.zip,
-        phone: state.phone,
-        email: state.email,
-        remark: state.remark,
-        ein: state.ein,
-        dot: state.dot,
-        insurance: state.insurance,
-        account: state.account,
-        routing: state.routing,
-        wire: state.wire,
-        zelle: state.zelle,
-      };
 
-      console.log(companyToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatecompany`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ company: companyToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //if no error set success and reset intial state
-        setState({
-          msg: responseMsg,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          companyId: "",
-          name: "",
-          contact: "",
-          address: "",
-          city: "",
-          state: null,
-          zip: "",
-          phone: "",
-          email: "",
-          ein: "",
-          dot: "",
-          insurance: "",
-          account: "",
-          routing: "",
-          wire: "",
-          zelle: "",
-          expandPanel: false,
-          onEditMode: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const companyToUpdate = {
+      id: state.companyId,
+      name: state.name,
+      contact: state.contact,
+      address: state.address,
+      city: state.city,
+      state: state.state,
+      zip: state.zip,
+      phone: state.phone,
+      email: state.email,
+      remark: state.remark,
+      ein: state.ein,
+      dot: state.dot,
+      insurance: state.insurance,
+      account: state.account,
+      routing: state.routing,
+      wire: state.wire,
+      zelle: state.zelle,
+    };
+
+    const response = await putServer("/updatecompany", {
+      company: companyToUpdate,
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSaveChanges
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletecompany`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ companyIds: itemsSelected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //update state and reload the data
-        setState({
-          msg: responseMsg,
-          error: null,
-          success: true,
-          openSnakbar: true,
-          companyId: "",
-          name: "",
-          contact: "",
-          address: "",
-          city: "",
-          state: null,
-          zip: "",
-          phone: "",
-          email: "",
-          ein: "",
-          dot: "",
-          insurance: "",
-          account: "",
-          routing: "",
-          wire: "",
-          zelle: "",
-          expandPanel: false,
-          onEditMode: false,
-          isDataUpdated: !state.isDataUpdated,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const companyIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deletecompany/${companyIds}`);
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleDelete
 
@@ -625,6 +555,7 @@ export const FarmOut = () => {
                     id="states"
                     required
                     value={state.state}
+                    className="autocomplete"
                     onChange={(e, newValue) => setState({ state: newValue })}
                     options={listOfStates}
                     sx={{ width: 200 }}

@@ -1,7 +1,13 @@
 const pool = require("../db");
 
 class ServiceDetail {
-  static async newDetail(detail) {
+  static async newDetail(req, res) {
+    const { detail } = req.body;
+    if (!detail)
+      return res.status(400).json({
+        message: "Bad request: Service detail information is required",
+      });
+
     try {
       //insert new
       const newDetail = await pool.query(
@@ -27,10 +33,10 @@ class ServiceDetail {
       );
       console.log(newDetail.rowCount);
       //send reponse
-      return `Service detail created`;
+      return res.status(201).json(`Service detail created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newDetail
 
@@ -41,11 +47,17 @@ class ServiceDetail {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllDetails
 
-  static async getDetails(serviceId) {
+  static async getDetails(req, res) {
+    const { serviceId } = req.params;
+    if (!serviceId)
+      return res.status(400).json({
+        message: "Bad request: Missing service id",
+      });
+
     try {
       const result = await pool.query(
         "Select * FROM service_details WHERE service_id = $1",
@@ -55,11 +67,17 @@ class ServiceDetail {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return res.status(500).json({ message: err.message });
     }
   } //getDetails
 
-  static async updateDetail(detail) {
+  static async updateDetail(req, res) {
+    const { detail } = req.body;
+    if (!detail)
+      return res.status(400).json({
+        message: "Bad request: Service detail information is required",
+      });
+
     try {
       const updatedDetail = await pool.query(
         "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, base_time = $9, service_type = $10, instructions = $11, gratuity = $12, released_time = $13, payment = $14, perdiem = $15 WHERE detail_id = $16",
@@ -83,30 +101,40 @@ class ServiceDetail {
         ]
       );
       if (updatedDetail.rowCount)
-        return `Service detail ${detail.detailId} updated`;
-      else return { failed: "Failed to update detail" };
+        return res.json(`Service detail ${detail.detailId} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateDetail
 
-  static async deleteDetail(detailId) {
+  static async deleteDetail(req, res) {
+    const { detailid } = req.params;
+    if (!detailid)
+      return res.status(400).json({
+        message: "Bad request: Missing service detail id",
+      });
+
     try {
       const deletedDetail = await pool.query(
         "DELETE from service_details WHERE detail_id = $1",
-        [detailId]
+        [detailid]
       );
       console.log(deletedDetail);
-      if (deletedDetail) return `Service detail ${detailId} deleted`;
-      else return { failed: "Failed to delete detail" };
+      if (deletedDetail) return res.json(`Service detail ${detailid} deleted`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteDetail
 
-  static async deleteSomeDetails(detailIds) {
+  static async deleteSomeDetails(req, res) {
+    const { detailIds } = req.body;
+    if (!detailIds)
+      return res.status(400).json({
+        message: "Bad request: Missing service detail id",
+      });
+
     try {
       const deletedDetails = await detailIds.map(async (detail) => {
         return await pool.query(
@@ -117,11 +145,10 @@ class ServiceDetail {
       const deletedPromise = await Promise.all(deletedDetails);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of details deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete details" };
+        return res.json(`Number of details deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteSomeDetails
 }

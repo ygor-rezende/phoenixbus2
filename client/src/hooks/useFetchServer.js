@@ -80,6 +80,50 @@ export const UsePrivatePost = () => {
   return postServer;
 };
 
+export const UsePrivatePut = () => {
+  const axiosPrivate = useAxiosPrivate();
+  const statusCodes = [400, 409, 503];
+  const putServer = async (
+    endpoint,
+    paramsObject, // an object to be converted to Json
+    controllerSignal = null //controller signal
+  ) => {
+    try {
+      const response = await axiosPrivate.put(
+        endpoint,
+        JSON.stringify(paramsObject),
+        {
+          signal: controllerSignal,
+        }
+      );
+      return { data: response.data };
+    } catch (err) {
+      console.error(err);
+      if (!err?.response) {
+        return { error: "No Server response" };
+      }
+      //Unauthorized -> login again
+      else if (err?.response?.status === 401) {
+        return { disconnect: true };
+      }
+      //Missing information, service unavailable, conflict...
+      else if (statusCodes.includes(err?.response?.status)) {
+        return { error: err.response.data?.message };
+      }
+      //Internal server error
+      else if (err?.response?.status === 500) {
+        console.log(`Message from server: ${err.response.data?.message}`);
+        return { error: "Something went wrong: server error" };
+      }
+      //authToken expired (403) or another error
+      else {
+        return { error: "Something went wrong, please try again" };
+      }
+    }
+  };
+  return putServer;
+};
+
 export const UsePrivateDelete = () => {
   const axiosPrivate = useAxiosPrivate();
   const deleteServer = async (endpoint) => {

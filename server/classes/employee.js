@@ -2,7 +2,12 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Employee {
-  static async newEmployee(employee) {
+  static async newEmployee(req, res) {
+    const { employee } = req.body;
+    if (!employee)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Employee information is required" });
     try {
       //generate a new id
       const newId = uuid();
@@ -42,10 +47,10 @@ class Employee {
       );
       console.log(newEmployee.rowCount);
       //send the reponse
-      return `Employee ${newId} created`;
+      return res.status(201).json(`Employee ${employee.firstname} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newEmployee
 
@@ -56,11 +61,16 @@ class Employee {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllEmployees
 
-  static async updateEmployee(employee) {
+  static async updateEmployee(req, res) {
+    const { employee } = req.body;
+    if (!employee)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Employee information is required" });
     try {
       const updatedEmployee = await pool.query(
         "UPDATE employees SET firstname = $1, lastname = $2, birth = $3, title = $4, hire_date = $5, address = $6, city = $7, state = $8, zip = $9, phone = $10, email = $11, medical_card = $12, i9 = $13, drug_free = $14, drive_license_exp_date = $15, it_number = $16, national_reg = $17, experience = $18, cdl_tag = $19, insurance = $20, insurance_exp_date = $21, mc = $22, point_contact = $23, emergency_contact = $24, marital_status = $25, notes = $26  WHERE employee_id = $27",
@@ -94,15 +104,21 @@ class Employee {
           employee.id,
         ]
       );
-      if (updatedEmployee.rowCount) return `Employee ${employee.id} updated`;
-      else return { failed: "Failed to update employee" };
+      if (updatedEmployee.rowCount)
+        return res.json(`Employee ${employee.firstname} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateEmployee
 
-  static async deleteEmployee(employeeIds) {
+  static async deleteEmployee(req, res) {
+    let { employeeIds } = req.params;
+    employeeIds = JSON.parse(employeeIds);
+    if (!employeeIds)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing employee id" });
     try {
       const deletedEmployees = await employeeIds.map(async (employee) => {
         return await pool.query(
@@ -113,11 +129,12 @@ class Employee {
       const deletedPromise = await Promise.all(deletedEmployees);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of employees deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete employee" };
+        return res.json(
+          `Number of employees deleted: ${deletedPromise.length}`
+        );
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteEmployee
 
@@ -130,15 +147,20 @@ class Employee {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllEmployeeNames
 
-  static async getEmployeeById(id) {
+  static async getEmployeeById(req, res) {
+    const { employeeId } = req.params;
+    if (!employeeId)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing employee id" });
     try {
       const result = await pool.query(
         "Select * from employees WHERE employee_id = $1",
-        [id]
+        [employeeId]
       );
       return result.rows;
     } catch (err) {

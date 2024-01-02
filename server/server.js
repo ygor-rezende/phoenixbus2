@@ -106,14 +106,8 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
   bodyParser.json(),
   async (req, res) => {
-    const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
-    let response = await Vehicle.createVehicle(
-      vehicleName,
-      vehicleModel,
-      vehicleYear,
-      vehicleColor
-    );
-    res.json(response);
+    let response = await Vehicle.createVehicle(req, res);
+    return response;
   }
 );
 
@@ -128,9 +122,8 @@ app.delete(
   "/deletevehicle",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
   async (req, res) => {
-    const { vehicleIds } = req.body;
-    let response = await Vehicle.deleteVehicle(vehicleIds);
-    res.json(response);
+    let response = await Vehicle.deleteVehicle(req, res);
+    return response;
   }
 );
 
@@ -139,9 +132,8 @@ app.put(
   "/updatevehicle",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
   async (req, res) => {
-    const { vehicle } = req.body;
-    let response = await Vehicle.updateVehicle(vehicle);
-    res.json(response);
+    let response = await Vehicle.updateVehicle(req, res);
+    return response;
   }
 );
 
@@ -153,9 +145,8 @@ app.get("/getallvehiclenames", async (req, res) => {
 
 //Get vehicle by id
 app.get("/getvehicle/:vehicleId", async (req, res) => {
-  const { vehicleId } = req.params;
-  let response = await Vehicle.getVehicleById(vehicleId);
-  res.json(response);
+  let response = await Vehicle.getVehicleById(req, res);
+  return response;
 });
 //#endregion
 
@@ -166,10 +157,8 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { client } = req.body;
-    let response = await Client.newClient(client);
-    console.log(response);
-    res.json(response);
+    let response = await Client.newClient(req, res);
+    return response;
   }
 );
 
@@ -186,21 +175,19 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { client } = req.body;
-    let response = await Client.updateClient(client);
+    let response = await Client.updateClient(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
 //Delete clients
 app.delete(
-  "/deleteclient",
+  "/deleteclient/:clientIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { clientIds } = req.body;
-    let response = await Client.deleteClient(clientIds);
-    res.json(response);
+    let response = await Client.deleteClient(req, res);
+    return response;
   }
 );
 //#endregion
@@ -212,10 +199,8 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { location } = req.body;
-    let response = await Location.newLocation(location);
-    console.log(response);
-    res.json(response);
+    let response = await Location.newLocation(req, res);
+    return response;
   }
 );
 
@@ -232,10 +217,9 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { location } = req.body;
-    let response = await Location.updateLocation(location);
+    let response = await Location.updateLocation(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -244,9 +228,8 @@ app.delete(
   "/deletelocation",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { locationIds } = req.body;
-    let response = await Location.deleteLocation(locationIds);
-    res.json(response);
+    let response = await Location.deleteLocation(req, res);
+    return response;
   }
 );
 
@@ -257,9 +240,8 @@ app.get("/getalllocationnames", async (req, res) => {
 });
 
 app.get("/getlocation/:locationId", async (req, res) => {
-  const { locationId } = req.params;
-  let response = await Location.getLocationById(locationId);
-  res.json(response);
+  let response = await Location.getLocationById(req, res);
+  return response;
 });
 //#endregion
 
@@ -270,10 +252,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin),
   bodyParser.json(),
   async (req, res) => {
-    const { company } = req.body;
-    let response = await FarmOut.newCompany(company);
+    let response = await FarmOut.newCompany(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -290,21 +271,19 @@ app.put(
   verifyRoles(ROLES_LIST.admin),
   bodyParser.json(),
   async (req, res) => {
-    const { company } = req.body;
-    let response = await FarmOut.updateCompany(company);
+    let response = await FarmOut.updateCompany(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
 //Delete companies
 app.delete(
-  "/deletecompany",
+  "/deletecompany/:companyIds",
   verifyRoles(ROLES_LIST.admin),
   async (req, res) => {
-    const { companyIds } = req.body;
-    let response = await FarmOut.deleteCompany(companyIds);
-    res.json(response);
+    let response = await FarmOut.deleteCompany(req, res);
+    return response;
   }
 );
 //#endregion
@@ -316,10 +295,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin),
   bodyParser.json(),
   async (req, res) => {
-    const { employee } = req.body;
-    let response = await Employee.newEmployee(employee);
+    let response = await Employee.newEmployee(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -336,21 +314,20 @@ app.put(
   verifyRoles(ROLES_LIST.admin),
   bodyParser.json(),
   async (req, res) => {
-    const { employee } = req.body;
-    let response = await Employee.updateEmployee(employee);
+    let response = await Employee.updateEmployee(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
 //Delete
 app.delete(
-  "/deleteemployee",
+  "/deleteemployee/:employeeIds",
   verifyRoles(ROLES_LIST.admin),
   async (req, res) => {
-    const { employeeIds } = req.body;
-    let response = await Employee.deleteEmployee(employeeIds);
-    res.json(response);
+    console.log(req.params);
+    let response = await Employee.deleteEmployee(req, res);
+    return response;
   }
 );
 
@@ -362,9 +339,8 @@ app.get("/getallemployeenames", async (req, res) => {
 
 //Get employee by id
 app.get("/getemployee/:employeeId", async (req, res) => {
-  const { employeeId } = req.params;
-  let response = await Employee.getEmployeeById(employeeId);
-  res.json(response);
+  let response = await Employee.getEmployeeById(req, res);
+  return response;
 });
 //#endregion
 
@@ -375,10 +351,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { quote } = req.body;
-    let response = await Quote.newQuote(quote);
+    let response = await Quote.newQuote(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -395,10 +370,9 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { quote } = req.body;
-    let response = await Quote.updateQuote(quote);
+    let response = await Quote.updateQuote(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -407,9 +381,8 @@ app.delete(
   "/deletequote",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { quoteIds } = req.body;
-    let response = await Quote.deleteQuote(quoteIds);
-    res.json(response);
+    let response = await Quote.deleteQuote(req, res);
+    return response;
   }
 );
 //#endregion
@@ -421,10 +394,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { booking } = req.body;
-    let response = await Booking.newBooking(booking);
+    let response = await Booking.newBooking(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -441,10 +413,9 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { booking } = req.body;
-    let response = await Booking.updateBooking(booking);
+    let response = await Booking.updateBooking(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -453,9 +424,8 @@ app.delete(
   "/deletebooking",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { bookingIds } = req.body;
-    let response = await Booking.deleteBooking(bookingIds);
-    res.json(response);
+    let response = await Booking.deleteBooking(req, res);
+    return response;
   }
 );
 //#endregion
@@ -467,10 +437,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { service } = req.body;
-    let response = await Service.newService(service);
+    let response = await Service.newService(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -483,9 +452,8 @@ app.get("/getallservices", async (req, res) => {
 
 //get service for a specific booking
 app.get("/getservices/:invoice", async (req, res) => {
-  const { invoice } = req.params;
-  let response = await Service.getServices(invoice);
-  res.json(response);
+  let response = await Service.getServices(req, res);
+  return response;
 });
 
 //Update a Service
@@ -494,10 +462,9 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { service } = req.body;
-    let response = await Service.updateService(service);
+    let response = await Service.updateService(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -506,9 +473,8 @@ app.delete(
   "/deleteservice/:serviceid",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { serviceid } = req.params;
-    let response = await Service.deleteService(serviceid);
-    res.json(response);
+    let response = await Service.deleteService(req, res);
+    return response;
   }
 );
 
@@ -517,9 +483,8 @@ app.delete(
   "/deletesomeservices",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { serviceIds } = req.body;
-    let response = await Service.deleteSomeServices(serviceIds);
-    res.json(response);
+    let response = await Service.deleteSomeServices(req, res);
+    return response;
   }
 );
 //#endregion
@@ -531,10 +496,9 @@ app.post(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { detail } = req.body;
-    let response = await ServiceDetail.newDetail(detail);
+    let response = await ServiceDetail.newDetail(req, res);
     console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -547,9 +511,8 @@ app.get("/getalldetails", async (req, res) => {
 
 //get details for a specific service
 app.get("/getdetails/:serviceId", async (req, res) => {
-  const { serviceId } = req.params;
-  let response = await ServiceDetail.getDetails(serviceId);
-  res.json(response);
+  let response = await ServiceDetail.getDetails(req, res);
+  return response;
 });
 
 //Update a service detail
@@ -558,10 +521,9 @@ app.put(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
-    const { detail } = req.body;
-    let response = await ServiceDetail.updateDetail(detail);
+    let response = await ServiceDetail.updateDetail(req, res);
     //console.log(response);
-    res.json(response);
+    return response;
   }
 );
 
@@ -570,9 +532,8 @@ app.delete(
   "/deletedetail/:detailid",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { detailid } = req.params;
-    let response = await ServiceDetail.deleteDetail(detailid);
-    res.json(response);
+    let response = await ServiceDetail.deleteDetail(req, res);
+    return response;
   }
 );
 
@@ -581,21 +542,15 @@ app.delete(
   "/deletesomedetails",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
-    const { detailIds } = req.body;
-    let response = await ServiceDetail.deleteSomeDetails(detailIds);
-    res.json(response);
+    let response = await ServiceDetail.deleteSomeDetails(req, res);
+    return response;
   }
 );
 //#endregion
 
 //#region schedule
 app.get("/getschedule/:dates", async (req, res) => {
-  const { dates } = req.params;
-  let newDates = JSON.parse(dates);
-  let response = await Schedule.getSchedule(
-    newDates.startDate,
-    newDates.endDate
-  );
-  res.json(response);
+  let response = await Schedule.getSchedule(req, res);
+  return response;
 });
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

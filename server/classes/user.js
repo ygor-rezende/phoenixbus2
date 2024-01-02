@@ -23,7 +23,8 @@ class User {
       const result = await pool.query("SELECT username FROM users");
       return result.rows;
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      return { message: err.message };
     }
   } //getUsernames
 

@@ -2,7 +2,12 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Client {
-  static async newClient(client) {
+  static async newClient(req, res) {
+    const { client } = req.body;
+    if (!client)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Client information is required" });
     try {
       //generate a new id
       const newId = uuid();
@@ -26,12 +31,12 @@ class Client {
           client.remark,
         ]
       );
-      console.log(newClient.rowCount);
+      //console.log(newClient.rowCount);
       //send the reponse to client
-      return `Client ${newId} created`;
+      return res.status(201).json(`Client ${client.agency} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newClient
 
@@ -42,11 +47,16 @@ class Client {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllClients
 
-  static async updateClient(client) {
+  static async updateClient(req, res) {
+    const { client } = req.body;
+    if (!client)
+      return res
+        .status(400)
+        .json({ message: "Bad request: No client information is required" });
     try {
       const updatedClient = await pool.query(
         "UPDATE clients SET agency = $1, contact = $2, address1 = $3, address2 = $4, city = $5, client_state = $6, zip = $7, country = $8, phone = $9, fax = $10, email = $11, remark = $12 WHERE client_id = $13",
@@ -66,29 +76,40 @@ class Client {
           client.id,
         ]
       );
-      if (updatedClient.rowCount) return `Client ${client.agency} updated`;
-      else return { failed: "Failed to update client" };
+      if (updatedClient.rowCount)
+        return res.json(`Client ${client.agency} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateClient
 
-  static async deleteClient(clientIds) {
+  static async deleteClient(req, res) {
     try {
+      let { clientIds } = req.params;
+      clientIds = JSON.parse(clientIds);
+
+      if (!clientIds)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing client id" });
+
       const deletedClients = await clientIds.map(async (client) => {
         return await pool.query("DELETE from clients WHERE client_id = $1", [
           client,
         ]);
       });
+
       const deletedPromise = await Promise.all(deletedClients);
       console.log(deletedPromise);
+
       if (deletedPromise[0].rowCount)
-        return `Number of client(s) deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete client" };
+        return res.json(
+          `Number of client(s) deleted: ${deletedPromise.length}`
+        );
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteClient
 }

@@ -2,7 +2,13 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Location {
-  static async newLocation(location) {
+  static async newLocation(req, res) {
+    const { location } = req.body;
+    if (!location)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Location information is required" });
+
     try {
       //generate a new id
       const newId = uuid();
@@ -23,10 +29,10 @@ class Location {
       );
       console.log(newLocation.rowCount);
       //send the reponse to location
-      return `Location ${newId} created`;
+      return res.status(201).json(`Location ${location.name} created`);
     } catch (err) {
       console.error(err);
-      if (err) return { msg: err.message, detail: err.detail };
+      return res.status(500).json({ message: err.message });
     }
   } //newLocation
 
@@ -37,11 +43,16 @@ class Location {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getLocations
 
-  static async updateLocation(location) {
+  static async updateLocation(req, res) {
+    const { location } = req.body;
+    if (!location)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Location information is required" });
     try {
       const updatedLocation = await pool.query(
         "UPDATE locations SET location_name = $1, address = $2, city = $3, location_state = $4, zip = $5, phone = $6, fax = $7 WHERE location_id = $8",
@@ -56,15 +67,20 @@ class Location {
           location.id,
         ]
       );
-      if (updatedLocation.rowCount) return `Location ${location.name} updated`;
-      else return { failed: "Failed to update location" };
+      if (updatedLocation.rowCount)
+        return res.json(`Location ${location.name} updated`);
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //updateLocation
 
-  static async deleteLocation(locationIds) {
+  static async deleteLocation(req, res) {
+    const { locationIds } = req.body;
+    if (!locationIds)
+      return res
+        .status(400)
+        .json({ message: "Bad request: Missing location id" });
     try {
       const deletedLocations = await locationIds.map(async (location) => {
         return await pool.query(
@@ -75,11 +91,12 @@ class Location {
       const deletedPromise = await Promise.all(deletedLocations);
       console.log(deletedPromise);
       if (deletedPromise[0].rowCount)
-        return `Number of location(s) deleted: ${deletedPromise.length}`;
-      else return { failed: "Failed to delete location" };
+        return res.json(
+          `Number of location(s) deleted: ${deletedPromise.length}`
+        );
     } catch (err) {
       console.error(err);
-      if (err) return { failed: `Error: ${err.message}` };
+      return res.status(500).json({ message: err.message });
     }
   } //deleteLocation
 
@@ -92,20 +109,21 @@ class Location {
       return result.rows;
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   } //getAllLocationNames
 
-  static async getLocationById(id) {
+  static async getLocationById(req, res) {
+    const { locationId } = req.params;
     try {
       const result = await pool.query(
         "Select * from locations WHERE location_id = $1",
-        [id]
+        [locationId]
       );
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   }
 }
