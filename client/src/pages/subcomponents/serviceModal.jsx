@@ -21,6 +21,16 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import CustomDialog from "../../utils/customDialog";
 
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+
 export const ServiceModal = (props) => {
   const {
     modalTitle,
@@ -44,6 +54,14 @@ export const ServiceModal = (props) => {
   const [openModal, setOpenModal] = useState(false);
   const [invalidField, setInvalidField] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
 
   useEffect(() => {
     if (open > 0) {
@@ -103,86 +121,56 @@ export const ServiceModal = (props) => {
 
     if (!onEditMode) {
       //New service api call
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/createservice`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              service: {
-                bookingId: invoice,
-                serviceName: serviceName,
-                serviceCode: serviceCode,
-                serviceDate: serviceDate,
-                qty: qty,
-                charge: charge,
-                tips: tips,
-                salesTax: salesTax,
-                optional: optional,
-              },
-            }),
-          }
-        );
 
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        //if an error happens set the error
-        if (responseMsg.msg) {
-          //open snackbar to display error message
-          onError(responseMsg.msg);
-        } else {
-          //if no error set success and reset intial state
-          onSuccess(responseMsg);
-          clearState();
-        }
-      } catch (err) {
-        console.error(err);
+      const response = await postServer("/createservice", {
+        service: {
+          bookingId: invoice,
+          serviceName: serviceName,
+          serviceCode: serviceCode,
+          serviceDate: serviceDate,
+          qty: qty,
+          charge: charge,
+          tips: tips,
+          salesTax: salesTax,
+          optional: optional,
+        },
+      });
+
+      if (response?.data) {
+        onSuccess(response.data);
+        clearState();
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        onError(response.error);
       }
     } //if !onEditMode
     else {
       //update call
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/updateservice`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              service: {
-                serviceId: serviceId,
-                bookingId: invoice,
-                serviceName: serviceName,
-                serviceCode: serviceCode,
-                serviceDate: serviceDate,
-                qty: qty,
-                charge: charge,
-                tips: tips,
-                salesTax: salesTax,
-                optional: optional,
-              },
-            }),
-          }
-        );
+      const response = await putServer("/updateservice", {
+        service: {
+          serviceId: serviceId,
+          bookingId: invoice,
+          serviceName: serviceName,
+          serviceCode: serviceCode,
+          serviceDate: serviceDate,
+          qty: qty,
+          charge: charge,
+          tips: tips,
+          salesTax: salesTax,
+          optional: optional,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        //if an error happens set the error
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
-          //open snackbar to display error message
-          onError(responseMsg.failed);
-        } else {
-          //if no error set success and reset intial state
-          onSuccess(responseMsg);
-          clearState();
-        }
-      } catch (err) {
-        console.error(err);
+      if (response?.data) {
+        onSuccess(response.data);
+        clearState();
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        onError(response.error);
       }
     } //else
 
@@ -191,65 +179,46 @@ export const ServiceModal = (props) => {
   }; //handleSaveNewService
 
   const handleDeleteService = async () => {
-    try {
-      //Before deleting a service it must delete the details first
-      //Get the details for the current service
-      const details = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getdetails/${serviceId}`
-      );
-      const detailsData = await details.json();
+    //Before deleting a service it must delete the details first
+    //Get the details for the current service
+    const details = await getServer(`/getdetails/${serviceId}`);
+    const detailsData = await details.data;
 
-      //Get the ids
-      const detailIdsToDelete = detailsData.map((detail) => {
-        return detail.detail_id;
-      });
+    //Get the ids
+    const detailIdsToDelete = detailsData.map((detail) => {
+      return detail.detail_id;
+    });
 
-      //delete details
-      if (detailIdsToDelete.length > 0) {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/deletesomedetails`,
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ detailIds: detailIdsToDelete }),
-          }
-        );
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
-          onError(responseMsg.failed);
-          return;
-        }
-      }
+    //delete details
+    if (detailIdsToDelete.length > 0) {
+      const detailsIds = JSON.stringify(detailIdsToDelete);
+      const response = await deleteServer(`/deletesomedetails/${detailsIds}`);
 
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deleteservice/${serviceId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
+      if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        return;
+      } else if (response?.error) {
+        onError(response.error);
+        return;
       }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        onError(responseMsg.failed);
-      } else {
-        //update state and reload the data
-        onSuccess(responseMsg);
-      }
-      clearState();
-      onSave(invoice);
-    } catch (err) {
-      console.error(err);
     }
+
+    //delete the service
+    const response = await deleteServer(`/deleteservice/${serviceId}`);
+    if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      return;
+    } else if (response?.error) {
+      onError(response.error);
+      return;
+    } else if (response?.data) {
+      onSuccess(response.data);
+    }
+
+    clearState();
+    onSave(invoice);
   };
 
   //clear state fields utility

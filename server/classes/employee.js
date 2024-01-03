@@ -162,10 +162,10 @@ class Employee {
         "Select * from employees WHERE employee_id = $1",
         [employeeId]
       );
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      return "Query failed";
+      return { message: err.message };
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useEffect } from "react";
 import {
   Box,
   Autocomplete,
@@ -17,8 +17,17 @@ import CloseIcon from "@mui/icons-material/Close";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { useEffect } from "react";
 import CustomDialog from "../../utils/customDialog";
+
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -71,106 +80,90 @@ export const DetailModal = (props) => {
   } = props;
   const [state, setState] = useReducer(reducer, initialState);
 
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
   useEffect(() => {
     if (open > 0) {
       clearState();
 
       //get all employees (firstname and lastname) to load the autocomplete
       (async function getAllEmployees() {
-        try {
-          let response = await fetch(
-            `${process.env.REACT_APP_SERVERURL}/getallemployeenames`
-          );
-          const respData = await response.json();
+        const response = await getServer("/getallemployeenames");
+
+        if (response.disconnect) {
+          setAuth({});
+          setState({ openModal: false });
+          navigate("/login", { state: { from: location }, replace: true });
+          return;
+          //other errors
+        } else if (response.error) {
+          onError(response.error);
+          setState({ openModal: false });
+          return;
+        }
+        //no error
+        else {
           setState({
-            employees: respData,
+            employees: response?.data,
           });
-        } catch (err) {
-          console.error(err);
         }
       })();
 
       //get all vehicle names to load the autocomplete
       (async function getAllVehicles() {
-        try {
-          let response = await fetch(
-            `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
-          );
-          const respData = await response.json();
-          setState({
-            vehicles: respData,
-          });
-        } catch (err) {
-          console.error(err);
-        }
+        const response = await getServer("/getallvehiclenames");
+        setState({
+          vehicles: response?.data,
+        });
       })();
 
       //get all location names to load the autocomplete
       (async function getAllLocations() {
-        try {
-          let response = await fetch(
-            `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
-          );
-          const respData = await response.json();
-          setState({
-            serviceLocations: respData,
-          });
-        } catch (err) {
-          console.error(err);
-        }
+        const response = await getServer("/getalllocationnames");
+        setState({
+          serviceLocations: response?.data,
+        });
       })();
 
       //if on edit mode set the fields values
       if (onEditMode) {
         (async function getEmployeeById(employeeId) {
-          try {
-            let response = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getemployee/${employeeId}`
-            );
-            const employeeRespData = await response.json();
-            setState({
-              curEmployee: employeeRespData[0],
-              driverName: `${employeeRespData[0].firstname} ${employeeRespData[0].lastname}`,
-            });
-          } catch (err) {
-            console.error(err);
-          }
+          const response = await getServer(`/getemployee/${employeeId}`);
+          const employee = response?.data?.at(0);
+          setState({
+            curEmployee: employee,
+            driverName: `${employee?.firstname} ${employee?.lastname}`,
+          });
         })(data.employee_id);
 
         (async function getVehicleById(vehicleId) {
-          try {
-            let response = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getvehicle/${vehicleId}`
-            );
-            const vehicleRespData = await response.json();
-            setState({
-              curVehicle: vehicleRespData[0],
-              vehicleName: vehicleRespData[0].vehicle_name,
-            });
-          } catch (err) {
-            console.error(err);
-          }
+          const response = await getServer(`/getvehicle/${vehicleId}`);
+          const vehicle = response?.data?.at(0);
+          setState({
+            curVehicle: vehicle,
+            vehicleName: vehicle.vehicle_name,
+          });
         })(data.vehicle_id);
 
         (async function getLocationById(fromLocationId, toLocationId) {
-          try {
-            let fromLocation = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getlocation/${fromLocationId}`
-            );
-            let toLocation = await fetch(
-              `${process.env.REACT_APP_SERVERURL}/getlocation/${toLocationId}`
-            );
-            const fromRespData = await fromLocation.json();
-            const toRespData = await toLocation.json();
-            setState({
-              curFromLocation: fromRespData[0],
-              curToLocation: toRespData[0],
-              from: fromRespData[0].location_name,
-              to: toRespData[0].location_name,
-            });
-          } catch (err) {
-            console.error(err);
-          }
+          let response = await getServer(`/getlocation/${fromLocationId}`);
+          const fromLocation = response?.data?.at(0);
+
+          response = await getServer(`/getlocation/${toLocationId}`);
+          const toLocation = response?.data?.at(0);
+
+          setState({
+            curFromLocation: fromLocation,
+            curToLocation: toLocation,
+            from: fromLocation?.location_name,
+            to: toLocation?.location_name,
+          });
         })(data.from_location_id, data.to_location_id);
 
         setState({
@@ -225,98 +218,68 @@ export const DetailModal = (props) => {
 
     if (!onEditMode) {
       //New detail api call
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/createdetail`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              detail: {
-                serviceId: serviceId,
-                employeeId: state.employeeId,
-                vehicleId: state.vehicleId,
-                fromServiceLocationId: state.fromServiceLocationId,
-                toServiceLocationId: state.toServiceLocationId,
-                spotTime: state.spotTime,
-                startTime: state.startTime,
-                endTime: state.endTime,
-                baseTime: state.baseTime,
-                releasedTime: state.releasedTime,
-                type: state.type,
-                instructions: state.instructions,
-                payment: state.payment,
-                perdiem: state.perdiem,
-                gratuity: state.gratuity,
-              },
-            }),
-          }
-        );
 
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        //if an error happens set the error
-        if (responseMsg.msg) {
-          //open snackbar to display error message
-          onError(responseMsg.msg);
-        } else {
-          //if no error set success and reset intial state
-          onSuccess(responseMsg);
-          clearState();
-        }
-      } catch (err) {
-        console.error(err);
+      const response = await postServer("/createdetail", {
+        detail: {
+          serviceId: serviceId,
+          employeeId: state.employeeId,
+          vehicleId: state.vehicleId,
+          fromServiceLocationId: state.fromServiceLocationId,
+          toServiceLocationId: state.toServiceLocationId,
+          spotTime: state.spotTime,
+          startTime: state.startTime,
+          endTime: state.endTime,
+          baseTime: state.baseTime,
+          releasedTime: state.releasedTime,
+          type: state.type,
+          instructions: state.instructions,
+          payment: state.payment,
+          perdiem: state.perdiem,
+          gratuity: state.gratuity,
+        },
+      });
+
+      if (response?.data) {
+        onSuccess(response.data);
+        clearState();
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        onError(response.error);
       }
     } //if !onEditMode
     else {
       //update call
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/updatedetail`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              detail: {
-                detailId: state.detailId,
-                serviceId: serviceId,
-                employeeId: state.employeeId,
-                vehicleId: state.vehicleId,
-                fromServiceLocationId: state.fromServiceLocationId,
-                toServiceLocationId: state.toServiceLocationId,
-                spotTime: state.spotTime,
-                startTime: state.startTime,
-                endTime: state.endTime,
-                baseTime: state.baseTime,
-                releasedTime: state.releasedTime,
-                type: state.type,
-                instructions: state.instructions,
-                payment: state.payment,
-                perdiem: state.perdiem,
-                gratuity: state.gratuity,
-              },
-            }),
-          }
-        );
+      const response = await putServer("/updatedetail", {
+        detail: {
+          detailId: state.detailId,
+          serviceId: serviceId,
+          employeeId: state.employeeId,
+          vehicleId: state.vehicleId,
+          fromServiceLocationId: state.fromServiceLocationId,
+          toServiceLocationId: state.toServiceLocationId,
+          spotTime: state.spotTime,
+          startTime: state.startTime,
+          endTime: state.endTime,
+          baseTime: state.baseTime,
+          releasedTime: state.releasedTime,
+          type: state.type,
+          instructions: state.instructions,
+          payment: state.payment,
+          perdiem: state.perdiem,
+          gratuity: state.gratuity,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        //if an error happens set the error
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
-          //open snackbar to display error message
-          onError(responseMsg.failed);
-        } else {
-          //if no error set success and reset intial state
-          onSuccess(responseMsg);
-          clearState();
-        }
-      } catch (err) {
-        console.error(err);
+      if (response?.data) {
+        onSuccess(response.data);
+        clearState();
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        onError(response.error);
       }
     } //else
 
@@ -325,31 +288,19 @@ export const DetailModal = (props) => {
   }; //handleSaveNewDetail
 
   const handleDeleteDetail = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletedetail/${state.detailId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        onError(responseMsg.failed);
-      } else {
-        //update state and reload the data
-        onSuccess(responseMsg);
-      }
-      clearState();
-      onSave(invoice);
-    } catch (err) {
-      console.error(err);
+    const response = await deleteServer(`/deletedetail/${state.detailId}`);
+
+    if (response?.data) {
+      onSuccess(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      onError(response.error);
     }
+
+    clearState();
+    onSave(invoice);
   };
 
   //handle changes on Driver autocomplete

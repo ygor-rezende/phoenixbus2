@@ -419,9 +419,9 @@ app.put(
   }
 );
 
-//Delete companies
+//Delete bookings
 app.delete(
-  "/deletebooking",
+  "/deletebooking/:bookingIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Booking.deleteBooking(req, res);
@@ -438,7 +438,6 @@ app.post(
   bodyParser.json(),
   async (req, res) => {
     let response = await Service.newService(req, res);
-    console.log(response);
     return response;
   }
 );
@@ -446,7 +445,6 @@ app.post(
 //Get all services
 app.get("/getallservices", async (req, res) => {
   let response = await Service.getAllServices();
-  //console.log(response);
   res.json(response);
 });
 
@@ -480,7 +478,7 @@ app.delete(
 
 //Delete some services
 app.delete(
-  "/deletesomeservices",
+  "/deletesomeservices/:serviceIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Service.deleteSomeServices(req, res);
@@ -515,6 +513,12 @@ app.get("/getdetails/:serviceId", async (req, res) => {
   return response;
 });
 
+//get detais for 2 or more services at once
+app.get("/getdetailsforservices/:serviceIds", async (req, res) => {
+  let response = await ServiceDetail.getSomeDetails(req, res);
+  return response;
+});
+
 //Update a service detail
 app.put(
   "/updatedetail",
@@ -539,7 +543,7 @@ app.delete(
 
 //Delete some details
 app.delete(
-  "/deletesomedetails",
+  "/deletesomedetails/:detailsIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await ServiceDetail.deleteSomeDetails(req, res);

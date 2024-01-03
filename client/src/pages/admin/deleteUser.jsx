@@ -18,7 +18,6 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import FaceIcon from "@mui/icons-material/Face";
 import { useState, useEffect, useRef } from "react";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { UsePrivateGet, UsePrivateDelete } from "../../hooks/useFetchServer";
@@ -34,7 +33,6 @@ const DeleteUser = () => {
 
   const effectRun = useRef(false); //avoids axios canceledError after controler.abort()
 
-  const axiosPrivate = useAxiosPrivate();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

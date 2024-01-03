@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useEffect, useRef } from "react";
 import {
   Alert,
   AlertTitle,
@@ -36,6 +36,16 @@ import { QuotesView } from "./subcomponents/quotesView";
 import { ServiceModal } from "./subcomponents/serviceModal";
 import { CustomTabPanel } from "./subcomponents/customTabPanel";
 import { DetailModal } from "./subcomponents/detailModal";
+
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -109,144 +119,56 @@ const initialState = {
 export const Bookings = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
-  //get client an employees data
-  const getCEData = async () => {
-    try {
-      let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallclients`
-      );
-      const clientsRespData = await response.json();
+  const effectRun = useRef(false);
 
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallemployees`
-      );
-      const employeesRespData = await response.json();
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
 
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallvehiclenames`
-      );
-      const vehiclesRespData = await response.json();
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
 
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getalllocationnames`
-      );
-      const locationsRespData = await response.json();
+    //get all data
+    const getAllData = async () => {
+      let response = await getServer("/getallclients", controller.signal);
+      const clientsRespData = response.data;
 
-      setState({
-        clientsData: clientsRespData,
-        employeesData: employeesRespData,
-        vehiclesData: vehiclesRespData,
-        locationsData: locationsRespData,
-      });
+      response = await getServer("/getallemployees", controller.signal);
+      const employeesRespData = response.data;
 
-      return [clientsRespData, employeesRespData];
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  //Get all booking, client and employees data
-  const getBookingsData = async () => {
-    try {
-      let cliData = state.clientsData;
-      let empData = state.employeesData;
+      response = await getServer("/getallvehiclenames", controller.signal);
+      const vehiclesRespData = response.data;
 
-      //get client and employees data
-      if (cliData.length === 0 || empData === 0) {
-        [cliData, empData] = await getCEData();
-      }
-      //get bookings data
-      let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallbookings`
-      );
-      let bookingsRespData = await response.json();
-      bookingsRespData = bookingsRespData.map((item) => {
-        const booking = {
-          id: item.invoice,
-          quoteid: item.quote_id,
-          clientId: item.client_id,
-          agencyName: cliData.find(
-            (client) => client.client_id === item.client_id
-          ).agency,
-          agencyContact: cliData.find(
-            (client) => client.client_id === item.client_id
-          ).contact,
-          agencyEmail: cliData.find(
-            (client) => client.client_id === item.client_id
-          ).email,
-          employeeId: item.employee_id,
-          salesPerson: `${
-            empData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).firstname
-          } ${
-            empData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).lastname
-          }`,
-          responsibleName: item.responsible_name,
-          responsibleEmail: item.responsible_email,
-          responsiblePhone: item.responsible_phone,
-          quoteDate: item.quote_date,
-          bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"),
-          category: item.category,
-          paxGroup: item.pax_group,
-          numPeople: item.num_people,
-          tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"),
-          tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"),
-          deposit: item.deposit,
-          cost: item.cost,
-          arrivalProcMCOMCA: item.mco_mca,
-          numHoursQuoteValid: item.hours_quote_valid,
-          clientComments: item.client_comments,
-          intineraryDetails: item.intinerary_details,
-          internalComents: item.internal_coments,
-        };
-        return booking;
-      });
+      response = await getServer("/getalllocationnames", controller.signal);
+      const locationsRespData = response.data;
 
-      setState({
-        bookingsData: bookingsRespData,
-      });
-      return bookingsRespData;
-    } catch (err) {
-      console.error(err);
-    }
-  }; //getBookingsData
-
-  const getQuotesData = async () => {
-    try {
-      let cliData = state.clientsData;
-      let empData = state.employeesData;
-      //get client and employees data
-      if (cliData.length === 0 || empData === 0) {
-        [cliData, empData] = await getCEData();
-      }
-
-      //get quotes data
-      let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallquotes`
-      );
-      let quotesRespData = await response.json();
-      quotesRespData = quotesRespData.map((item) => {
+      response = await getServer("/getallquotes", controller.signal);
+      let quotesRespData = response.data;
+      quotesRespData = quotesRespData?.map((item) => {
         const quote = {
           id: item.quote_id,
           clientId: item.client_id,
-          agencyName: cliData.find(
+          agencyName: clientsRespData.find(
             (client) => client.client_id === item.client_id
           ).agency,
-          agencyContact: cliData.find(
+          agencyContact: clientsRespData.find(
             (client) => client.client_id === item.client_id
           ).contact,
-          agencyEmail: cliData.find(
+          agencyEmail: clientsRespData.find(
             (client) => client.client_id === item.client_id
           ).email,
           employeeId: item.employee_id,
           salesPerson: `${
-            empData.find(
+            employeesRespData.find(
               (employee) => employee.employee_id === item.employee_id
             ).firstname
           } ${
-            empData.find(
+            employeesRespData.find(
               (employee) => employee.employee_id === item.employee_id
             ).lastname
           }`,
@@ -270,13 +192,92 @@ export const Bookings = () => {
         return quote;
       });
 
-      setState({
-        quotesData: quotesRespData,
-      });
-      return quotesRespData;
-    } catch (err) {
-      console.error(err);
-    }
+      response = await getServer("/getallbookings", controller.signal);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setState({ success: false, error: response.error, openSnakbar: true });
+      }
+      //no error
+      else {
+        let bookingsRespData = response.data;
+
+        bookingsRespData = bookingsRespData?.map((item) => {
+          const booking = {
+            id: item.invoice,
+            quoteid: item.quote_id,
+            clientId: item.client_id,
+            agencyName: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).agency,
+            agencyContact: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).contact,
+            agencyEmail: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).email,
+            employeeId: item.employee_id,
+            salesPerson: `${
+              employeesRespData.find(
+                (employee) => employee.employee_id === item.employee_id
+              ).firstname
+            } ${
+              employeesRespData.find(
+                (employee) => employee.employee_id === item.employee_id
+              ).lastname
+            }`,
+            responsibleName: item.responsible_name,
+            responsibleEmail: item.responsible_email,
+            responsiblePhone: item.responsible_phone,
+            quoteDate: item.quote_date,
+            bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"),
+            category: item.category,
+            paxGroup: item.pax_group,
+            numPeople: item.num_people,
+            tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"),
+            tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"),
+            deposit: item.deposit,
+            cost: item.cost,
+            arrivalProcMCOMCA: item.mco_mca,
+            numHoursQuoteValid: item.hours_quote_valid,
+            clientComments: item.client_comments,
+            intineraryDetails: item.intinerary_details,
+            internalComents: item.internal_coments,
+          };
+          return booking;
+        });
+
+        isMounted &&
+          setState({
+            clientsData: clientsRespData,
+            employeesData: employeesRespData,
+            vehiclesData: vehiclesRespData,
+            locationsData: locationsRespData,
+            quotesData: quotesRespData,
+            bookingsData: bookingsRespData,
+          });
+      }
+    }; //getAllData
+
+    effectRun.current && getAllData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
+  }, [state.isDataUpdated]);
+
+  //Get all bookings data
+  const getBookingsData = () => {
+    return state.bookingsData;
+  }; //getBookingsData
+
+  //Get all quotes data
+  const getQuotesData = () => {
+    return state.quotesData;
   }; //getQuotesData
 
   //handle updates in the fields
@@ -334,50 +335,39 @@ export const Bookings = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createbooking`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            booking: {
-              clientId: state.clientId,
-              employeeId: state.employeeId,
-              responsibleName: state.responsibleName,
-              responsibleEmail: state.responsibleEmail,
-              responsiblePhone: state.responsiblePhone,
-              quoteId: state.quoteId,
-              quoteDate: state.quoteDate,
-              bookingDate: state.bookingDate,
-              category: state.category,
-              paxGroup: state.paxGroup,
-              numPeople: state.numPeople,
-              tripStartDate: state.tripStartDate,
-              tripEndDate: state.tripEndDate,
-              deposit: state.deposit,
-              quotedCost: state.quotedCost,
-              arrivalProcMCOMCA: state.arrivalProcMCOMCA,
-              numHoursQuoteValid: state.numHoursQuoteValid,
-              clientComments: state.clientComments,
-              intineraryDetails: state.intineraryDetails,
-              internalComments: state.internalComments,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setState({ success: false, error: data.msg, openSnakbar: true });
-      } else {
-        //if no error set success and reset intial state
-        clearState(data);
-      }
-    } catch (err) {
-      console.error(err);
+    const response = await postServer("/createbooking", {
+      booking: {
+        clientId: state.clientId,
+        employeeId: state.employeeId,
+        responsibleName: state.responsibleName,
+        responsibleEmail: state.responsibleEmail,
+        responsiblePhone: state.responsiblePhone,
+        quoteId: state.quoteId,
+        quoteDate: state.quoteDate,
+        bookingDate: state.bookingDate,
+        category: state.category,
+        paxGroup: state.paxGroup,
+        numPeople: state.numPeople,
+        tripStartDate: state.tripStartDate,
+        tripEndDate: state.tripEndDate,
+        deposit: state.deposit,
+        quotedCost: state.quotedCost,
+        arrivalProcMCOMCA: state.arrivalProcMCOMCA,
+        numHoursQuoteValid: state.numHoursQuoteValid,
+        clientComments: state.clientComments,
+        intineraryDetails: state.intineraryDetails,
+        internalComments: state.internalComments,
+      },
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSubmit
 
@@ -467,58 +457,42 @@ export const Bookings = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const bookingToUpdate = {
-        invoice: state.invoice,
-        quoteId: state.quoteId,
-        clientId: state.clientId,
-        employeeId: state.employeeId,
-        responsibleName: state.responsibleName,
-        responsibleEmail: state.responsibleEmail,
-        responsiblePhone: state.responsiblePhone,
-        bookingDate: state.bookingDate,
-        quoteDate: state.quoteDate,
-        category: state.category,
-        paxGroup: state.paxGroup,
-        numPeople: state.numPeople,
-        tripStartDate: state.tripStartDate,
-        tripEndDate: state.tripEndDate,
-        deposit: state.deposit,
-        quotedCost: state.quotedCost,
-        arrivalProcMCOMCA: state.arrivalProcMCOMCA,
-        numHoursQuoteValid: state.numHoursQuoteValid,
-        clientComments: state.clientComments,
-        intineraryDetails: state.intineraryDetails,
-        internalComments: state.internalComments,
-      };
 
-      console.log(bookingToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatebooking`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ booking: bookingToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //if no error set success and reset intial state
-        clearState(responseMsg);
-      }
-    } catch (err) {
-      console.error(err);
+    const bookingToUpdate = {
+      invoice: state.invoice,
+      quoteId: state.quoteId,
+      clientId: state.clientId,
+      employeeId: state.employeeId,
+      responsibleName: state.responsibleName,
+      responsibleEmail: state.responsibleEmail,
+      responsiblePhone: state.responsiblePhone,
+      bookingDate: state.bookingDate,
+      quoteDate: state.quoteDate,
+      category: state.category,
+      paxGroup: state.paxGroup,
+      numPeople: state.numPeople,
+      tripStartDate: state.tripStartDate,
+      tripEndDate: state.tripEndDate,
+      deposit: state.deposit,
+      quotedCost: state.quotedCost,
+      arrivalProcMCOMCA: state.arrivalProcMCOMCA,
+      numHoursQuoteValid: state.numHoursQuoteValid,
+      clientComments: state.clientComments,
+      intineraryDetails: state.intineraryDetails,
+      internalComments: state.internalComments,
+    };
+
+    const response = await putServer("/updatebooking", {
+      booking: bookingToUpdate,
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSaveChanges
 
@@ -526,111 +500,79 @@ export const Bookings = () => {
   const handleDelete = async (itemsSelected) => {
     //Before deleting a booking it must delete the service and details first
     //Find the services for the bookings
-    let serviceIdsToDelete = itemsSelected.map((id) => {
-      const services = state.servicesData.filter(
-        (service) => service.bookingId === id
-      );
-      return services.map((e) => e.id);
-    });
-
-    //flatening the array
-    serviceIdsToDelete = serviceIdsToDelete.flat();
-
-    //find details for the services (array of services Ids array)
-    const detailsArr = state.detailsData.flat();
-    let detailIdsToDelete = serviceIdsToDelete.map((serviceId) => {
-      const details = detailsArr.filter(
-        (detail) => serviceId === detail.service_id
-      );
-      return details.map((e) => e.detail_id);
-    });
-
-    //flatening the array
-    detailIdsToDelete = detailIdsToDelete.flat();
-
-    try {
-      //Delete details
-      if (detailIdsToDelete.length > 0) {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/deletesomedetails`,
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ detailIds: detailIdsToDelete }),
-          }
+    if (state.servicesData?.length > 0) {
+      let serviceIdsToDelete = itemsSelected?.map((id) => {
+        const services = state.servicesData?.filter(
+          (service) => service.bookingId === id
         );
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
-          setState({
-            success: false,
-            error: responseMsg.failed,
-            openSnakbar: true,
-          });
-          return;
-        }
-      }
+        return services?.map((e) => e.id);
+      });
+
+      //flatening the array
+      serviceIdsToDelete = serviceIdsToDelete?.flat();
+
+      if (state.detailsData?.length > 0) {
+        //find details for the services (array of services Ids array)
+        const detailsArr = state.detailsData?.flat();
+        let detailIdsToDelete = serviceIdsToDelete?.map((serviceId) => {
+          const details = detailsArr?.filter(
+            (detail) => serviceId === detail.service_id
+          );
+          return details?.map((e) => e.detail_id);
+        });
+
+        //flatening the array
+        detailIdsToDelete = detailIdsToDelete?.flat();
+
+        //Delete details
+        if (detailIdsToDelete.length > 0) {
+          //converting it to json
+          const detailsIds = JSON.stringify(detailIdsToDelete);
+          const response = await deleteServer(
+            `/deletesomedetails/${detailsIds}`
+          );
+          if (response?.error) {
+            setState({
+              error: response.error,
+              success: false,
+              openSnakbar: true,
+            });
+            return;
+          } //response?.error
+        } //detailIdsToDelete.length > 0
+      } //state.detailsData?.length > 0
 
       //delete services
       if (serviceIdsToDelete.length > 0) {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/deletesomeservices`,
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ serviceIds: serviceIdsToDelete }),
-          }
+        //converting it to json
+        const serviceIds = JSON.stringify(serviceIdsToDelete);
+        const response = await deleteServer(
+          `/deletesomeservices/${serviceIds}`
         );
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
+        if (response?.error) {
           setState({
+            error: response.error,
             success: false,
-            error: responseMsg.failed,
             openSnakbar: true,
           });
           return;
         }
-      }
+      } //serviceIdsToDelete.length > 0
+    } //state.servicesData?.length > 0
 
-      //delete bookings
-
-      if (itemsSelected.length > 0) {
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/deletebooking`,
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ bookingIds: itemsSelected }),
-          }
-        );
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        const responseMsg = await response.json();
-        console.log(responseMsg);
-        if (responseMsg.failed) {
-          console.log(responseMsg.failed);
-          setState({
-            success: false,
-            error: responseMsg.failed,
-            openSnakbar: true,
-          });
-        } else {
-          //update state and reload the data
-          clearState(responseMsg);
-        }
+    //delete bookings
+    if (itemsSelected.length > 0) {
+      //converting it to json
+      const bookingIds = JSON.stringify(itemsSelected);
+      const response = await deleteServer(`/deletebooking/${bookingIds}`);
+      if (response?.data) {
+        clearState(response.data);
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        setState({ error: response.error, success: false, openSnakbar: true });
       }
-    } catch (err) {
-      console.error(err);
     }
   }; //handleDelete
 
@@ -643,7 +585,6 @@ export const Bookings = () => {
     const details = await getDetailsData(services);
 
     //load fields
-    console.log(state.bookingsData.filter((e) => e.id === id));
     //get client id and employee id from bookings data
     const clientId = state.bookingsData.filter((e) => e.id === id)[0].clientId;
     const employeeId = state.bookingsData.filter((e) => e.id === id)[0]
@@ -713,11 +654,20 @@ export const Bookings = () => {
 
   //get services Data
   const getServicesData = async (invoice) => {
-    try {
-      let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getservices/${invoice}`
-      );
-      let servicesRespData = await response.json();
+    const response = await getServer(`/getservices/${invoice}`);
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      return;
+      //other errors
+    } else if (response.error) {
+      setState({ success: false, error: response.error, openSnakbar: true });
+      return;
+    }
+    //no error
+    else {
+      let servicesRespData = response.data;
       servicesRespData = servicesRespData.map((item) => {
         const service = {
           id: item.service_id,
@@ -733,28 +683,24 @@ export const Bookings = () => {
         };
         return service;
       });
-
       return servicesRespData;
-    } catch (err) {
-      console.error(err);
     }
   }; //getServicesData
 
   //fech details for the services in a booking
   const getDetailsData = async (services) => {
-    try {
-      //loop through services to load the details
-      let details = services.map(async (service) => {
-        let response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/getdetails/${service.id}`
-        );
-        let responseData = await response.json();
-        return responseData;
-      });
-      const detailsPromise = await Promise.all(details);
-      return detailsPromise;
-    } catch (err) {
-      console.error(err);
+    let serviceIds = services.map((service) => service.id);
+    serviceIds = JSON.stringify(serviceIds);
+    const response = await getServer(`/getdetailsforservices/${serviceIds}`);
+    if (response?.data) {
+      return response.data;
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      return;
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
+      return;
     }
   }; //getDetailsData
 
@@ -1369,8 +1315,8 @@ export const Bookings = () => {
                       value={state.tabService}
                       onChange={handleServiceClick}
                     >
-                      {state.servicesData.length > 0 &&
-                        state.servicesData.map((service) => {
+                      {state.servicesData?.length > 0 &&
+                        state.servicesData?.map((service) => {
                           return (
                             <Tab
                               label={service.serviceName}
@@ -1379,10 +1325,10 @@ export const Bookings = () => {
                           );
                         })}
                     </Tabs>
-                    {state.servicesData.length > 0 &&
-                      state.servicesData.map((service, index) => {
-                        let details = state.detailsData.map((detailsArr) =>
-                          detailsArr.filter(
+                    {state.servicesData?.length > 0 &&
+                      state.servicesData?.map((service, index) => {
+                        let details = state.detailsData?.map((detailsArr) =>
+                          detailsArr?.filter(
                             (detail) => detail.service_id === service.id
                           )
                         );
@@ -1533,22 +1479,22 @@ export const Bookings = () => {
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail.spot_time).format(
-                                              "HH:MM a"
+                                              "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail.start_time).format(
-                                              "HH:MM a"
+                                              "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail.end_time).format(
-                                              "HH:MM a"
+                                              "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail.base_time).format(
-                                              "HH:MM a"
+                                              "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>

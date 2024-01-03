@@ -105,7 +105,8 @@ class Booking {
   } //updateBooking
 
   static async deleteBooking(req, res) {
-    const { bookingIds } = req.body;
+    let { bookingIds } = req.params;
+    bookingIds = JSON.parse(bookingIds);
     if (!bookingIds)
       return res
         .status(400)

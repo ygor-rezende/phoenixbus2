@@ -51,6 +51,7 @@ class ServiceDetail {
     }
   } //getAllDetails
 
+  //get details for one service
   static async getDetails(req, res) {
     const { serviceId } = req.params;
     if (!serviceId)
@@ -64,12 +65,38 @@ class ServiceDetail {
         [serviceId]
       );
       //console.log(result.rows);
-      return result.rows;
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
     }
   } //getDetails
+
+  //get details for 2 or more services
+  static async getSomeDetails(req, res) {
+    try {
+      let { serviceIds } = req.params;
+      serviceIds = JSON.parse(serviceIds);
+      if (!serviceIds)
+        return res.status(400).json({
+          message: "Bad request: Missing service ids",
+        });
+
+      const details = await serviceIds.map(async (serviceId) => {
+        const result = await pool.query(
+          "Select * FROM service_details WHERE service_id = $1",
+          [serviceId]
+        );
+        return result.rows;
+      });
+
+      const detailsPromise = await Promise.all(details);
+      return res.json(detailsPromise);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    }
+  } //getSomeDetails
 
   static async updateDetail(req, res) {
     const { detail } = req.body;
@@ -129,13 +156,14 @@ class ServiceDetail {
   } //deleteDetail
 
   static async deleteSomeDetails(req, res) {
-    const { detailIds } = req.body;
-    if (!detailIds)
-      return res.status(400).json({
-        message: "Bad request: Missing service detail id",
-      });
-
     try {
+      let { detailIds } = req.params;
+      detailIds = JSON.parse(detailIds);
+      if (!detailIds)
+        return res.status(400).json({
+          message: "Bad request: Missing service detail id",
+        });
+
       const deletedDetails = await detailIds.map(async (detail) => {
         return await pool.query(
           "DELETE from service_details WHERE detail_id = $1",

@@ -115,7 +115,8 @@ class Service {
   } //deleteService
 
   static async deleteSomeServices(req, res) {
-    const { serviceIds } = req.body;
+    let { serviceIds } = req.params;
+    serviceIds = JSON.parse(serviceIds);
     if (!serviceIds)
       return res
         .status(400)
