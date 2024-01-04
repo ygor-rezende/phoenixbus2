@@ -93,11 +93,11 @@ CREATE TABLE employees(
 
 CREATE TABLE quotes (
     quote_id VARCHAR(255) PRIMARY KEY,
-    client_id VARCHAR(255) NOT NULL,
-    employee_id VARCHAR(255) NOT NULL, 
-    pickup_location_id VARCHAR(255), 
-    destination_location_id VARCHAR(255), 
-    return_location_id VARCHAR(255), 
+    client_id VARCHAR(255) NOT NULL REFERENCES clients(client_id),
+    employee_id VARCHAR(255) NOT NULL REFERENCES employees(employee_id), 
+    pickup_location_id VARCHAR(255) REFERENCES locations(location_id), 
+    destination_location_id VARCHAR(255) REFERENCES locations(location_id), 
+    return_location_id VARCHAR(255) REFERENCES locations(location_id), 
     responsible_name VARCHAR(50),
     responsible_email VARCHAR(50),
     responsible_phone  VARCHAR(16),
@@ -180,3 +180,9 @@ CREATE TABLE service_details (
     gratuity DECIMAL(10,2), 
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )
+
+
+ALTER TABLE child_table 
+ADD CONSTRAINT constraint_name 
+FOREIGN KEY (fk_columns) 
+REFERENCES parent_table (parent_key_columns);

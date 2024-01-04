@@ -136,19 +136,19 @@ export const Bookings = () => {
     //get all data
     const getAllData = async () => {
       let response = await getServer("/getallclients", controller.signal);
-      const clientsRespData = response.data;
+      const clientsRespData = response?.data;
 
       response = await getServer("/getallemployees", controller.signal);
-      const employeesRespData = response.data;
+      const employeesRespData = response?.data;
 
       response = await getServer("/getallvehiclenames", controller.signal);
-      const vehiclesRespData = response.data;
+      const vehiclesRespData = response?.data;
 
       response = await getServer("/getalllocationnames", controller.signal);
-      const locationsRespData = response.data;
+      const locationsRespData = response?.data;
 
       response = await getServer("/getallquotes", controller.signal);
-      let quotesRespData = response.data;
+      let quotesRespData = response?.data;
       quotesRespData = quotesRespData?.map((item) => {
         const quote = {
           id: item.quote_id,

@@ -12,6 +12,7 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import DateRangeIcon from "@mui/icons-material/DateRange";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { BusIcon } from "../../utils/busIcon";
 
 export const ScheduleListItems = (props) => {
   return (

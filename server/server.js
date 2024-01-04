@@ -119,7 +119,7 @@ app.get("/getallvehicles", async (req, res) => {
 
 //Delete vehicle
 app.delete(
-  "/deletevehicle",
+  "/deletevehicle/:vehicleIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
   async (req, res) => {
     let response = await Vehicle.deleteVehicle(req, res);
@@ -225,7 +225,7 @@ app.put(
 
 //Delete location
 app.delete(
-  "/deletelocation",
+  "/deletelocation/:locationIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Location.deleteLocation(req, res);
@@ -352,7 +352,7 @@ app.post(
   bodyParser.json(),
   async (req, res) => {
     let response = await Quote.newQuote(req, res);
-    console.log(response);
+    //console.log(response);
     return response;
   }
 );
@@ -378,7 +378,7 @@ app.put(
 
 //Delete companies
 app.delete(
-  "/deletequote",
+  "/deletequote/:quoteIds",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Quote.deleteQuote(req, res);

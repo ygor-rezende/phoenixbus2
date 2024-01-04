@@ -76,7 +76,8 @@ class Location {
   } //updateLocation
 
   static async deleteLocation(req, res) {
-    const { locationIds } = req.body;
+    let { locationIds } = req.params;
+    locationIds = JSON.parse(locationIds);
     if (!locationIds)
       return res
         .status(400)

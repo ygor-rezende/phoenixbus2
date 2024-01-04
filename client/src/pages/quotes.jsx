@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useEffect, useRef, useMemo } from "react";
 import {
   Alert,
   AlertTitle,
@@ -35,6 +35,16 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
 import EnhancedTable from "../utils/table_generic";
+
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -106,102 +116,126 @@ const initialState = {
 export const Quotes = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const getQuotesData = async () => {
+      let response = await getServer("/getallclients", controller.signal);
+      const clientsRespData = response?.data;
+
+      response = await getServer("/getallemployees", controller.signal);
+      const employeesRespData = response?.data;
+
+      response = await getServer("/getlocations", controller.signal);
+      const locationsRespData = response?.data;
+
+      response = await getServer("/getallquotes", controller.signal);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response.error) {
+        setState({ success: false, error: response.error, openSnakbar: true });
+      } else {
+        let quotesRespData = response?.data;
+        quotesRespData = quotesRespData?.map((item) => {
+          const quote = {
+            id: item.quote_id,
+            clientId: item.client_id,
+            agencyName: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).agency,
+            agencyContact: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).contact,
+            agencyEmail: clientsRespData.find(
+              (client) => client.client_id === item.client_id
+            ).email,
+            responsibleName: item.responsible_name,
+            responsibleEmail: item.responsible_email,
+            responsiblePhone: item.responsible_phone,
+            pickupLocationId: item.pickup_location_id,
+            pickupLocationName:
+              locationsRespData.find(
+                (location) => location.location_id === item.pickup_location_id
+              )?.location_name ?? null,
+            destinationLocationId: item.destination_location_id,
+            destinationLocationName:
+              locationsRespData.find(
+                (location) =>
+                  location.location_id === item.destination_location_id
+              )?.location_name ?? null,
+            returnLocationId: item.return_location_id,
+            returnLocationName:
+              locationsRespData.find(
+                (location) => location.location_id === item.return_location_id
+              )?.location_name ?? null,
+            employeeId: item.employee_id,
+            salesPerson: `${
+              employeesRespData.find(
+                (employee) => employee.employee_id === item.employee_id
+              ).firstname
+            } ${
+              employeesRespData.find(
+                (employee) => employee.employee_id === item.employee_id
+              ).lastname
+            }`,
+            quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
+            category: item.category,
+            paxGroup: item.pax_group,
+            numPeople: item.num_people,
+            tripStartDate: item.trip_start_date,
+            tripEndDate: item.trip_end_date,
+            deposit: item.deposit,
+            cost: item.cost,
+            arrivalProcMCOMCA: item.mco_mca,
+            serviceType: item.service_type,
+            pickupTime: item.pickup_time,
+            returnTime: item.return_time,
+            addStop: item.additional_stop,
+            addStopInfo: item.additional_stop_info,
+            addStopDetail: item.additional_stop_detail,
+            tripLength: item.trip_length,
+            numHoursQuoteValid: item.hours_quote_valid,
+            clientComments: item.client_comments,
+            intineraryDetails: item.intinerary_details,
+            internalComents: item.internal_coments,
+          };
+          return quote;
+        });
+
+        isMounted &&
+          setState({
+            quotesData: quotesRespData,
+            clientsData: clientsRespData,
+            employeesData: employeesRespData,
+            locationsData: locationsRespData,
+          });
+      }
+    }; //getQuotesData
+
+    effectRun.current && getQuotesData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
+  }, [state.isDataUpdated]);
+
   //Get all quotes, client, employees, and locations data
-  const getData = async () => {
-    try {
-      //get client, employees data
-      let response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallclients`
-      );
-      const clientsRespData = await response.json();
-
-      response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getallemployees`
-      );
-      const employeesRespData = await response.json();
-
-      response = await fetch(`${process.env.REACT_APP_SERVERURL}/getlocations`);
-      const locationsRespData = await response.json();
-
-      //get quotes data
-      response = await fetch(`${process.env.REACT_APP_SERVERURL}/getallquotes`);
-      let quotesRespData = await response.json();
-      quotesRespData = quotesRespData.map((item) => {
-        const quote = {
-          id: item.quote_id,
-          clientId: item.client_id,
-          agencyName: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).agency,
-          agencyContact: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).contact,
-          agencyEmail: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).email,
-          responsibleName: item.responsible_name,
-          responsibleEmail: item.responsible_email,
-          responsiblePhone: item.responsible_phone,
-          pickupLocationId: item.pickup_location_id,
-          pickupLocationName:
-            locationsRespData.find(
-              (location) => location.location_id === item.pickup_location_id
-            )?.location_name ?? null,
-          destinationLocationId: item.destination_location_id,
-          destinationLocationName:
-            locationsRespData.find(
-              (location) =>
-                location.location_id === item.destination_location_id
-            )?.location_name ?? null,
-          returnLocationId: item.return_location_id,
-          returnLocationName:
-            locationsRespData.find(
-              (location) => location.location_id === item.return_location_id
-            )?.location_name ?? null,
-          employeeId: item.employee_id,
-          salesPerson: `${
-            employeesRespData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).firstname
-          } ${
-            employeesRespData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).lastname
-          }`,
-          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
-          category: item.category,
-          paxGroup: item.pax_group,
-          numPeople: item.num_people,
-          tripStartDate: item.trip_start_date,
-          tripEndDate: item.trip_end_date,
-          deposit: item.deposit,
-          cost: item.cost,
-          arrivalProcMCOMCA: item.mco_mca,
-          serviceType: item.service_type,
-          pickupTime: item.pickup_time,
-          returnTime: item.return_time,
-          addStop: item.additional_stop,
-          addStopInfo: item.additional_stop_info,
-          addStopDetail: item.additional_stop_detail,
-          tripLength: item.trip_length,
-          numHoursQuoteValid: item.hours_quote_valid,
-          clientComments: item.client_comments,
-          intineraryDetails: item.intinerary_details,
-          internalComents: item.internal_coments,
-        };
-        return quote;
-      });
-
-      setState({
-        quotesData: quotesRespData,
-        clientsData: clientsRespData,
-        employeesData: employeesRespData,
-        locationsData: locationsRespData,
-      });
-      return quotesRespData;
-    } catch (err) {
-      console.error(err);
-    }
+  const getData = () => {
+    return state.quotesData;
   }; //loadData
 
   //handle updates in the fields
@@ -259,58 +293,47 @@ export const Quotes = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createquote`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            quote: {
-              clientId: state.clientId,
-              employeeId: state.employeeId,
-              pickupLocationId: state.pickupLocationId,
-              destinationLocationId: state.destinationLocationId,
-              returnLocationId: state.returnLocationId,
-              responsibleName: state.responsibleName,
-              responsibleEmail: state.responsibleEmail,
-              responsiblePhone: state.responsiblePhone,
-              serviceType: state.serviceType,
-              pickupTime: state.pickupTime,
-              returnTime: state.returnTime,
-              addStop: state.addStop,
-              addStopInfo: state.addStopInfo,
-              addStopDetail: state.addStopDetail,
-              tripLength: state.tripLength,
-              quoteDate: state.quoteDate,
-              category: state.category,
-              paxGroup: state.paxGroup,
-              numPeople: state.numPeople,
-              tripStartDate: state.tripStartDate,
-              tripEndDate: state.tripEndDate,
-              deposit: state.deposit,
-              quotedCost: state.quotedCost,
-              arrivalProcMCOMCA: state.arrivalProcMCOMCA,
-              numHoursQuoteValid: state.numHoursQuoteValid,
-              clientComments: state.clientComments,
-              intineraryDetails: state.intineraryDetails,
-              internalComments: state.internalComments,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setState({ success: false, error: data.msg, openSnakbar: true });
-      } else {
-        //if no error set success and reset intial state
-        clearState(data);
-      }
-    } catch (err) {
-      console.error(err);
+    const response = await postServer("/createquote", {
+      quote: {
+        clientId: state.clientId,
+        employeeId: state.employeeId,
+        pickupLocationId: state.pickupLocationId,
+        destinationLocationId: state.destinationLocationId,
+        returnLocationId: state.returnLocationId,
+        responsibleName: state.responsibleName,
+        responsibleEmail: state.responsibleEmail,
+        responsiblePhone: state.responsiblePhone,
+        serviceType: state.serviceType,
+        pickupTime: state.pickupTime,
+        returnTime: state.returnTime,
+        addStop: state.addStop,
+        addStopInfo: state.addStopInfo,
+        addStopDetail: state.addStopDetail,
+        tripLength: state.tripLength,
+        quoteDate: state.quoteDate,
+        category: state.category,
+        paxGroup: state.paxGroup,
+        numPeople: state.numPeople,
+        tripStartDate: state.tripStartDate,
+        tripEndDate: state.tripEndDate,
+        deposit: state.deposit,
+        quotedCost: state.quotedCost,
+        arrivalProcMCOMCA: state.arrivalProcMCOMCA,
+        numHoursQuoteValid: state.numHoursQuoteValid,
+        clientComments: state.clientComments,
+        intineraryDetails: state.intineraryDetails,
+        internalComments: state.internalComments,
+      },
+    });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSubmit
 
@@ -421,98 +444,63 @@ export const Quotes = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const quoteToUpdate = {
-        quoteId: state.quoteId,
-        clientId: state.clientId,
-        employeeId: state.employeeId,
-        pickupLocationId: state.pickupLocationId,
-        destinationLocationId: state.destinationLocationId,
-        returnLocationId: state.returnLocationId,
-        responsibleName: state.responsibleName,
-        responsibleEmail: state.responsibleEmail,
-        responsiblePhone: state.responsiblePhone,
-        serviceType: state.serviceType,
-        pickupTime: state.pickupTime,
-        returnTime: state.returnTime,
-        addStop: state.addStop,
-        addStopInfo: state.addStopInfo,
-        addStopDetail: state.addStopDetail,
-        tripLength: state.tripLength,
-        quoteDate: state.quoteDate,
-        category: state.category,
-        paxGroup: state.paxGroup,
-        numPeople: state.numPeople,
-        tripStartDate: state.tripStartDate,
-        tripEndDate: state.tripEndDate,
-        deposit: state.deposit,
-        quotedCost: state.quotedCost,
-        arrivalProcMCOMCA: state.arrivalProcMCOMCA,
-        numHoursQuoteValid: state.numHoursQuoteValid,
-        clientComments: state.clientComments,
-        intineraryDetails: state.intineraryDetails,
-        internalComments: state.internalComments,
-      };
 
-      console.log(quoteToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatequote`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quote: quoteToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //if no error set success and reset intial state
-        clearState(responseMsg);
-      }
-    } catch (err) {
-      console.error(err);
+    const quoteToUpdate = {
+      quoteId: state.quoteId,
+      clientId: state.clientId,
+      employeeId: state.employeeId,
+      pickupLocationId: state.pickupLocationId,
+      destinationLocationId: state.destinationLocationId,
+      returnLocationId: state.returnLocationId,
+      responsibleName: state.responsibleName,
+      responsibleEmail: state.responsibleEmail,
+      responsiblePhone: state.responsiblePhone,
+      serviceType: state.serviceType,
+      pickupTime: state.pickupTime,
+      returnTime: state.returnTime,
+      addStop: state.addStop,
+      addStopInfo: state.addStopInfo,
+      addStopDetail: state.addStopDetail,
+      tripLength: state.tripLength,
+      quoteDate: state.quoteDate,
+      category: state.category,
+      paxGroup: state.paxGroup,
+      numPeople: state.numPeople,
+      tripStartDate: state.tripStartDate,
+      tripEndDate: state.tripEndDate,
+      deposit: state.deposit,
+      quotedCost: state.quotedCost,
+      arrivalProcMCOMCA: state.arrivalProcMCOMCA,
+      numHoursQuoteValid: state.numHoursQuoteValid,
+      clientComments: state.clientComments,
+      intineraryDetails: state.intineraryDetails,
+      internalComments: state.internalComments,
+    };
+
+    const response = await putServer("/updatequote", { quote: quoteToUpdate });
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleSaveChanges
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletequote`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quoteIds: itemsSelected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setState({
-          success: false,
-          error: responseMsg.failed,
-          openSnakbar: true,
-        });
-      } else {
-        //update state and reload the data
-        clearState(responseMsg);
-      }
-    } catch (err) {
-      console.error(err);
+    const quoteIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deletequote/${quoteIds}`);
+
+    if (response?.data) {
+      clearState(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
     }
   }; //handleDelete
 
@@ -710,12 +698,12 @@ export const Quotes = () => {
         serviceType: e.target.value,
         returnLocationId: "",
         returnLocationName: null,
-        tripLength: "",
+        tripLength: 0.0,
       });
     } else if (e.target.value === "RT") {
       setState({
         serviceType: e.target.value,
-        tripLength: "",
+        tripLength: 0.0,
       });
     } else if (e.target.value === "CH") {
       setState({
@@ -728,7 +716,7 @@ export const Quotes = () => {
         serviceType: e.target.value,
         returnLocationId: "",
         returnLocationName: null,
-        tripLength: "",
+        tripLength: 0.0,
       });
     }
   };
@@ -776,7 +764,7 @@ export const Quotes = () => {
                     isOptionEqualToValue={(option, value) =>
                       option.agency === value
                     }
-                    options={state.clientsData.map((element) => {
+                    options={state.clientsData?.map((element) => {
                       const client = {
                         clientId: element.client_id,
                         agency: element.agency,
@@ -865,7 +853,7 @@ export const Quotes = () => {
                     isOptionEqualToValue={(option, value) =>
                       option.salesPerson === value
                     }
-                    options={state.employeesData.map((element) => {
+                    options={state.employeesData?.map((element) => {
                       const employee = {
                         employeeId: element.employee_id,
                         salesPerson: `${element.firstname} ${element.lastname}`,
@@ -1016,7 +1004,7 @@ export const Quotes = () => {
                     isOptionEqualToValue={(option, value) =>
                       option.locationName === value
                     }
-                    options={state.locationsData.map((element) => {
+                    options={state.locationsData?.map((element) => {
                       const location = {
                         locationId: element.location_id,
                         locationName: element.location_name,
@@ -1043,7 +1031,7 @@ export const Quotes = () => {
                     isOptionEqualToValue={(option, value) =>
                       option.locationName === value
                     }
-                    options={state.locationsData.map((element) => {
+                    options={state.locationsData?.map((element) => {
                       const location = {
                         locationId: element.location_id,
                         locationName: element.location_name,
@@ -1071,7 +1059,7 @@ export const Quotes = () => {
                       isOptionEqualToValue={(option, value) =>
                         option.locationName === value
                       }
-                      options={state.locationsData.map((element) => {
+                      options={state.locationsData?.map((element) => {
                         const location = {
                           locationId: element.location_id,
                           locationName: element.location_name,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Alert,
   AlertTitle,
@@ -18,6 +18,16 @@ import EnhancedTable from "../utils/table_generic";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditLocationAltIcon from "@mui/icons-material/EditLocationAlt";
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
+
+import {
+  UsePrivateGet,
+  UsePrivatePost,
+  UsePrivateDelete,
+  UsePrivatePut,
+} from "../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const states = [
   "AK",
@@ -96,31 +106,64 @@ export const ServiceLocation = () => {
   const [isDataUpdated, setIsDataUpdated] = useState(false);
   const [onEditMode, setOnEditMode] = useState(false);
 
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const postServer = UsePrivatePost();
+  const putServer = UsePrivatePut();
+  const deleteServer = UsePrivateDelete();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    //Get all locations data
+    const getLocations = async () => {
+      const response = await getServer("/getlocations", controller.signal);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setSuccess(false);
+        setError(response.error);
+        setOpenSnakbar(true);
+      }
+      //no error
+      else {
+        let responseData = await response.data;
+        responseData = responseData.map((item) => {
+          const location = {
+            id: item.location_id,
+            name: item.location_name,
+            address: item.address,
+            city: item.city,
+            state: item.location_state,
+            zip: item.zip,
+            phone: item.phone,
+            fax: item.fax,
+          };
+          return location;
+        });
+        isMounted && setLocations(responseData);
+      }
+    }; //getLocations
+
+    effectRun.current && getLocations();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
+  }, [isDataUpdated]);
+
   //Get all locations data
-  const getLocations = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getlocations`
-      );
-      let responseData = await response.json();
-      responseData = responseData.map((item) => {
-        const location = {
-          id: item.location_id,
-          name: item.location_name,
-          address: item.address,
-          city: item.city,
-          state: item.location_state,
-          zip: item.zip,
-          phone: item.phone,
-          fax: item.fax,
-        };
-        return location;
-      });
-      setLocations(responseData);
-      return responseData;
-    } catch (err) {
-      console.error(err);
-    }
+  const getData = () => {
+    return locations;
   }; //getLocations
 
   //handle changes on phone field
@@ -174,48 +217,37 @@ export const ServiceLocation = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/createlocation`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: {
-              name: name,
-              address: address,
-              city: city,
-              state: state,
-              zip: zip,
-              phone: phone,
-              fax: fax,
-            },
-          }),
-        }
-      );
 
-      const data = await response.json();
-      console.log(data);
-      //if an error happens when signing up set the error
-      if (data.msg) {
-        setSuccess(false);
-        setError(data.msg);
-        setOpenSnakbar(true);
-      } else {
-        //if no error set success and reset intial state
-        setMsg(data);
-        setError(null);
-        setSuccess(true);
-        setOpenSnakbar(true);
+    const response = await postServer("/createlocation", {
+      location: {
+        name: name,
+        address: address,
+        city: city,
+        state: state,
+        zip: zip,
+        phone: phone,
+        fax: fax,
+      },
+    });
 
-        //clear fields
-        clearFields();
+    if (response?.data) {
+      setMsg(response.data);
+      setError(null);
+      setSuccess(true);
+      setOpenSnakbar(true);
 
-        setExpandPanel(false);
-        setIsDataUpdated(!isDataUpdated);
-      }
-    } catch (err) {
-      console.error(err);
+      //clear fields
+      clearFields();
+
+      setExpandPanel(false);
+      setIsDataUpdated(!isDataUpdated);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
   }; //handleSubmit
 
@@ -252,94 +284,105 @@ export const ServiceLocation = () => {
     if (!isFormValid()) {
       return;
     }
-    try {
-      const locationToUpdate = {
-        id: locationId,
-        name: name,
-        address: address,
-        city: city,
-        state: state,
-        zip: zip,
-        phone: phone,
-        fax: fax,
-      };
 
-      console.log(locationToUpdate);
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/updatelocation`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ location: locationToUpdate }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setError(responseMsg.failed);
-        setSuccess(false);
-        setOpenSnakbar(true);
-      } else {
-        //if no error set success and reset intial state
-        setMsg(responseMsg);
-        setError(null);
-        setSuccess(true);
-        setOpenSnakbar(true);
+    const locationToUpdate = {
+      id: locationId,
+      name: name,
+      address: address,
+      city: city,
+      state: state,
+      zip: zip,
+      phone: phone,
+      fax: fax,
+    };
 
-        //clear fields
-        clearFields();
+    const response = await putServer("/updatelocation", {
+      location: locationToUpdate,
+    });
 
-        setExpandPanel(false);
-        setIsDataUpdated(!isDataUpdated);
-        setOnEditMode(false);
-      }
-    } catch (err) {
-      console.error(err);
+    if (response?.data) {
+      setMsg(response.data);
+      setError(null);
+      setSuccess(true);
+      setOpenSnakbar(true);
+
+      //clear fields
+      clearFields();
+
+      setExpandPanel(false);
+      setIsDataUpdated(!isDataUpdated);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
   }; //handleSaveChanges
 
   //Delete one or more locations from the database
   const handleDelete = async (itemsSelected) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/deletelocation`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ locationIds: itemsSelected }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      const responseMsg = await response.json();
-      console.log(responseMsg);
-      if (responseMsg.failed) {
-        console.log(responseMsg.failed);
-        setError(responseMsg.failed);
-        setSuccess(false);
-        setOpenSnakbar(true);
-      } else {
-        //update state and reload the data
-        setMsg(responseMsg);
-        setError(null);
-        setSuccess(true);
-        setOpenSnakbar(true);
+    const locationIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deletelocation/${locationIds}`);
 
-        //clear fields
-        clearFields();
+    if (response?.data) {
+      setMsg(response.data);
+      setError(null);
+      setSuccess(true);
+      setOpenSnakbar(true);
 
-        setExpandPanel(false);
-        setIsDataUpdated(!isDataUpdated);
-        setOnEditMode(false);
-      }
-    } catch (err) {
-      console.error(err);
+      //clear fields
+      clearFields();
+
+      setExpandPanel(false);
+      setIsDataUpdated(!isDataUpdated);
+      setOnEditMode(false);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setSuccess(false);
+      setError(response.error);
+      setOpenSnakbar(true);
     }
+
+    // try {
+    //   const response = await fetch(
+    //     `${process.env.REACT_APP_SERVERURL}/deletelocation`,
+    //     {
+    //       method: "DELETE",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({ locationIds: itemsSelected }),
+    //     }
+    //   );
+    //   if (!response.ok) {
+    //     throw new Error(response.status);
+    //   }
+    //   const responseMsg = await response.json();
+    //   console.log(responseMsg);
+    //   if (responseMsg.failed) {
+    //     console.log(responseMsg.failed);
+    //     setError(responseMsg.failed);
+    //     setSuccess(false);
+    //     setOpenSnakbar(true);
+    //   } else {
+    //     //update state and reload the data
+    //     setMsg(responseMsg);
+    //     setError(null);
+    //     setSuccess(true);
+    //     setOpenSnakbar(true);
+
+    //     //clear fields
+    //     clearFields();
+
+    //     setExpandPanel(false);
+    //     setIsDataUpdated(!isDataUpdated);
+    //     setOnEditMode(false);
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    // }
   }; //handleDelete
 
   //Show location information when clicking on a table row
@@ -468,6 +511,7 @@ export const ServiceLocation = () => {
                 >
                   <Autocomplete
                     id="states"
+                    className="autocomplete"
                     required
                     value={state}
                     onChange={(e, newValue) => setState(newValue)}
@@ -586,7 +630,7 @@ export const ServiceLocation = () => {
           <p></p>
           <EnhancedTable
             headings={headings}
-            loadData={getLocations}
+            loadData={getData}
             dataUpdated={isDataUpdated}
             editData={handleItemClick}
             boxChecked={handleBoxChecked}

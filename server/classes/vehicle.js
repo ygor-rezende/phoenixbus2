@@ -38,7 +38,8 @@ class Vehicle {
   } //getAllVehicles
 
   static async deleteVehicle(req, res) {
-    const { vehicleIds } = req.body;
+    let { vehicleIds } = req.params;
+    vehicleIds = JSON.parse(vehicleIds);
     if (!vehicleIds)
       return res.status(400).json({ message: "No vehicle was selected" });
     try {

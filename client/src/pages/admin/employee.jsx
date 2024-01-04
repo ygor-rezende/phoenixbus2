@@ -443,8 +443,6 @@ export const Employee = () => {
       notes: state.notes,
     };
 
-    //console.log(employeeToUpdate);
-
     const response = await putServer("/updateemployee", {
       employee: employeeToUpdate,
     });

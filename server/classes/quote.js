@@ -117,7 +117,9 @@ class Quote {
   } //updateQuote
 
   static async deleteQuote(req, res) {
-    const { quoteIds } = req.body;
+    let { quoteIds } = req.params;
+    quoteIds = JSON.parse(quoteIds);
+
     if (!quoteIds)
       return res.status(400).json({ message: "Bad request: Missing quote id" });
     try {

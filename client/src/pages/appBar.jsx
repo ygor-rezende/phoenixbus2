@@ -107,13 +107,6 @@ const APPBar = () => {
             >
               Service Locations
             </MenuItem>
-            <MenuItem
-              component={NavLink}
-              to="/addreservation"
-              onClick={handleClose}
-            >
-              Reservations
-            </MenuItem>
 
             <MenuItem
               component={NavLink}
