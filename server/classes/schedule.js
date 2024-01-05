@@ -4,10 +4,9 @@ class Schedule {
   static async getSchedule(req, res) {
     try {
       const { dates } = req.params;
-      if (!dates || !dates?.startDate || !dates?.endDate)
-        return res.status(400).json("Bad request: Missing dates");
-
       let newDates = JSON.parse(dates);
+      if (!newDates || !newDates?.startDate || !newDates?.endDate)
+        return res.status(400).json("Bad request: Missing dates");
 
       let newEndDate = new Date(newDates.endDate);
       newEndDate.setDate(newEndDate.getDate() + 1);

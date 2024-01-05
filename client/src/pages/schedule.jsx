@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import {
   Divider,
   IconButton,
@@ -17,6 +17,11 @@ import {
   ScheduleListItems,
   TimeListItems,
 } from "./schedule_subcomponents/listitems";
+
+import { UsePrivateGet, UsePrivatePut } from "../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 import { ScheduleTable } from "./schedule_subcomponents/schedule_table";
 
@@ -53,8 +58,19 @@ export const Schedule = () => {
   const [data, setData] = useState([]);
   const [dateString, setDateString] = useState("Today");
 
+  const effectRun = useRef(false);
+
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getServer = UsePrivateGet();
+  const putServer = UsePrivatePut();
+
   useEffect(() => {
-    (async function getTodaySchedule() {
+    let isMounted = true;
+    let controller = new AbortController();
+
+    async function getTodaySchedule() {
       try {
         const startDate = new Date().toISOString().slice(0, 10);
         const endDate = new Date().toISOString().slice(0, 10);
@@ -62,16 +78,35 @@ export const Schedule = () => {
           startDate: startDate,
           endDate: endDate,
         });
-        const response = await fetch(
-          `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
+
+        const response = await getServer(
+          `/getschedule/${dates}`,
+          controller.signal
         );
-        const responseMsg = await response.json();
-        setData(responseMsg);
-        setDateString("Today");
+
+        if (response.disconnect) {
+          setAuth({});
+          navigate("/login", { state: { from: location }, replace: true });
+          //other errors
+        }
+        //no error
+        else {
+          const responseMsg = await response.data;
+          isMounted && setData(responseMsg);
+          setDateString("Today");
+        }
       } catch (err) {
         console.error(err);
       }
-    })();
+    }
+
+    effectRun.current && getTodaySchedule();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      effectRun.current = true;
+    };
   }, []);
 
   const getSchedule = async (startDate, endDate) => {
@@ -82,12 +117,19 @@ export const Schedule = () => {
         startDate: sDate,
         endDate: eDate,
       });
-      const response = await fetch(
-        `${process.env.REACT_APP_SERVERURL}/getschedule/${dates}`
-      );
-      const responseData = await response.json();
-      setData(responseData);
-      setDateString(`${sDate} to ${eDate}`);
+
+      const response = await getServer(`/getschedule/${dates}`);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      }
+      //no error
+      else {
+        const responseData = await response.data;
+        setData(responseData);
+        setDateString(`${sDate} to ${eDate}`);
+      }
     } catch (err) {
       console.error(err);
     }

@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Children, Fragment, useState } from "react";
 import {
   Typography,
   Table,
@@ -15,6 +15,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+const BoldTableCell = (props) => {
+  return (
+    <TableCell {...props} style={{ fontWeight: "bold" }}>
+      {props.children}
+    </TableCell>
+  );
+};
 
 export const ScheduleTable = (props) => {
   const { data, onDatePick, dateString } = props;
@@ -84,21 +92,21 @@ export const ScheduleTable = (props) => {
       <Divider />
       <Table size="small">
         <TableHead>
-          <TableRow>
-            <TableCell>Invoice</TableCell>
-            <TableCell>Spot Time</TableCell>
-            <TableCell>Service Time</TableCell>
-            <TableCell>End Time</TableCell>
-            <TableCell>Driver</TableCell>
-            <TableCell>Vehicle</TableCell>
-            <TableCell align="right">Payment</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>From</TableCell>
-            <TableCell>City From</TableCell>
-            <TableCell>To</TableCell>
-            <TableCell>City To</TableCell>
-            <TableCell>Instruction</TableCell>
-            <TableCell align="right">Charge</TableCell>
+          <TableRow style={{ backgroundColor: "lightGrey" }}>
+            <BoldTableCell>Invoice</BoldTableCell>
+            <BoldTableCell>Spot Time</BoldTableCell>
+            <BoldTableCell>Service Time</BoldTableCell>
+            <BoldTableCell>End Time</BoldTableCell>
+            <BoldTableCell>Driver</BoldTableCell>
+            <BoldTableCell>Vehicle</BoldTableCell>
+            <BoldTableCell align="right">Payment</BoldTableCell>
+            <BoldTableCell>Type</BoldTableCell>
+            <BoldTableCell>From</BoldTableCell>
+            <BoldTableCell>City From</BoldTableCell>
+            <BoldTableCell>To</BoldTableCell>
+            <BoldTableCell>City To</BoldTableCell>
+            <BoldTableCell>Instruction</BoldTableCell>
+            <BoldTableCell align="right">Charge</BoldTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -106,11 +114,11 @@ export const ScheduleTable = (props) => {
             return (
               <TableRow key={index}>
                 <TableCell>{row?.invoice.slice(0, 8)}</TableCell>
-                <TableCell>{dayjs(row?.spot_time).format("HH:MM a")}</TableCell>
+                <TableCell>{dayjs(row?.spot_time).format("HH:mm a")}</TableCell>
                 <TableCell>
-                  {dayjs(row?.start_time).format("HH:MM a")}
+                  {dayjs(row?.start_time).format("HH:mm a")}
                 </TableCell>
-                <TableCell>{dayjs(row?.end_time).format("HH:MM a")}</TableCell>
+                <TableCell>{dayjs(row?.end_time).format("HH:mm a")}</TableCell>
                 <TableCell>{`${row?.firstname} ${row?.lastname}`}</TableCell>
                 <TableCell>{row?.vehicle_name}</TableCell>
                 <TableCell align="right">{row?.payment}</TableCell>
