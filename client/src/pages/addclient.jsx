@@ -164,7 +164,7 @@ export const AddClient = () => {
       }
     }; //getClientsData
 
-    effectRun.current && getClientsData();
+    getClientsData();
 
     return () => {
       isMounted = false;
