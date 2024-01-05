@@ -152,7 +152,7 @@ export const ServiceLocation = () => {
       }
     }; //getLocations
 
-    effectRun.current && getLocations();
+    getLocations();
 
     return () => {
       isMounted = false;

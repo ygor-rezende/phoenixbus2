@@ -81,7 +81,7 @@ const AddVehicle = () => {
       }
     };
 
-    effectRun.current && getVehiclesData();
+    getVehiclesData();
 
     return () => {
       isMounted = false;

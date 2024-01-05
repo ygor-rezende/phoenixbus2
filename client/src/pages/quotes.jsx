@@ -224,7 +224,7 @@ export const Quotes = () => {
       }
     }; //getQuotesData
 
-    effectRun.current && getQuotesData();
+    getQuotesData();
 
     return () => {
       isMounted = false;

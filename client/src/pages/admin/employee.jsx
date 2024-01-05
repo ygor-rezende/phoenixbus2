@@ -201,7 +201,7 @@ export const Employee = () => {
       }
     }; //getEmployeeData
 
-    effectRun.current && getEmployeeData();
+    getEmployeeData();
 
     return () => {
       isMounted = false;

@@ -100,7 +100,7 @@ export const Schedule = () => {
       }
     }
 
-    effectRun.current && getTodaySchedule();
+    getTodaySchedule();
 
     return () => {
       isMounted = false;

@@ -261,7 +261,7 @@ export const Bookings = () => {
       }
     }; //getAllData
 
-    effectRun.current && getAllData();
+    getAllData();
 
     return () => {
       isMounted = false;

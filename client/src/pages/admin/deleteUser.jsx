@@ -64,7 +64,7 @@ const DeleteUser = () => {
     };
 
     //avoid retrieving data after controler.abort() being called
-    effectRun.current && getUsers();
+    getUsers();
 
     return () => {
       isMounted = false;

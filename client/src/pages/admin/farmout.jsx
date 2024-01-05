@@ -180,7 +180,7 @@ export const FarmOut = () => {
       }
     }; //getCompaniesData
 
-    effectRun.current && getCompaniesData();
+    getCompaniesData();
 
     return () => {
       isMounted = false;

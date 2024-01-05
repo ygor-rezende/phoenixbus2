@@ -54,7 +54,7 @@ const ResetUserPassword = () => {
       }
     };
 
-    effectRun.current && getUsersData();
+    getUsersData();
 
     return () => {
       isMounted = false;
