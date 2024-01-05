@@ -25,8 +25,8 @@ const verifyRoles = require("./middleware/verifyRoles");
 app.use(credentials);
 
 //using cors for allow testing
+app.use(cors(corsOptions));
 
-//app.use(cors(corsOptions));
 app.use(express.json()); // To parse the incoming requests with JSON payloads
 
 //middleware for cookies
