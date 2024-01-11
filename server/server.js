@@ -557,4 +557,17 @@ app.get("/getschedule/:dates", async (req, res) => {
   let response = await Schedule.getSchedule(req, res);
   return response;
 });
+
+app.put(
+  "/updateSchedule",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
+  bodyParser.json(),
+  async (req, res) => {
+    let response = await Schedule.updateSchedule(req, res);
+    return response;
+  }
+);
+
+//#endregion
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

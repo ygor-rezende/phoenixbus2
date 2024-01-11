@@ -25,7 +25,7 @@ const BoldTableCell = (props) => {
 };
 
 export const ScheduleTable = (props) => {
-  const { data, onDatePick, dateString } = props;
+  const { data, onDatePick, dateString, editData } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -41,6 +41,12 @@ export const ScheduleTable = (props) => {
         );
       }
     }
+  };
+
+  //Calls the parent function to show the data for editing
+  //when the user clicks a row
+  const handleClick = (event, detailId) => {
+    editData(detailId);
   };
 
   return (
@@ -105,14 +111,19 @@ export const ScheduleTable = (props) => {
             <BoldTableCell>City From</BoldTableCell>
             <BoldTableCell>To</BoldTableCell>
             <BoldTableCell>City To</BoldTableCell>
-            <BoldTableCell>Instruction</BoldTableCell>
+            <BoldTableCell>Instructions</BoldTableCell>
             <BoldTableCell align="right">Charge</BoldTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {data?.map((row, index) => {
             return (
-              <TableRow key={index}>
+              <TableRow
+                key={index}
+                hover
+                onClick={(e) => handleClick(e, row.detail_id)}
+                sx={{ cursor: "pointer" }}
+              >
                 <TableCell>{row?.invoice.slice(0, 8)}</TableCell>
                 <TableCell>{dayjs(row?.spot_time).format("HH:mm a")}</TableCell>
                 <TableCell>

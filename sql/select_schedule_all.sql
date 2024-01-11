@@ -1,17 +1,23 @@
 select 
 b.invoice,
+s.service_id,
 s.charge,
+d.detail_id,
 d.spot_time,
 d.start_time,
 d.end_time,
 d.service_type,
 d.instructions,
 d.payment,
+e.employee_id,
 e.firstname,
 e.lastname,
+v.vehicle_id,
 v.vehicle_name,
+lf.location_id as from_location_id,
 lf.location_name as from_location,
 lf.city as from_city,
+lt.location_id as to_location_id,
 lt.location_name as to_location,
 lt.city as to_city
 from bookings b join services s on b.invoice = s.booking_id

@@ -9,6 +9,9 @@ import {
   Container,
   Grid,
   Paper,
+  Snackbar,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import { styled, createTheme } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -17,6 +20,8 @@ import {
   ScheduleListItems,
   TimeListItems,
 } from "./schedule_subcomponents/listitems";
+
+import { ScheduleModal } from "./schedule_subcomponents/scheduleModal";
 
 import { UsePrivateGet, UsePrivatePut } from "../hooks/useFetchServer";
 
@@ -56,7 +61,18 @@ const MyDrawer = styled(Drawer, {
 export const Schedule = () => {
   const [openDrawer, setOpenDrawer] = useState(true);
   const [data, setData] = useState([]);
+  const [rowData, setRowData] = useState(null);
   const [dateString, setDateString] = useState("Today");
+  const [triggerModal, setTriggerModal] = useState(0);
+  const [employees, setEmployees] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [openSnakbar, setOpenSnakbar] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const effectRun = useRef(false);
 
@@ -70,13 +86,31 @@ export const Schedule = () => {
     let isMounted = true;
     let controller = new AbortController();
 
+    (async function getSupportData() {
+      let response = await getServer("/getallemployeenames", controller.signal);
+      const empRespData = response?.data;
+
+      response = await getServer("/getalllocationnames", controller.signal);
+      const locRespData = response?.data;
+
+      response = await getServer("/getallvehiclenames", controller.signal);
+      const vehRespData = response?.data;
+
+      setEmployees(empRespData);
+      setLocations(locRespData);
+      setVehicles(vehRespData);
+    })();
+
     async function getTodaySchedule() {
       try {
-        const startDate = new Date().toISOString().slice(0, 10);
-        const endDate = new Date().toISOString().slice(0, 10);
+        const startDate = new Date().toISOString();
+        const endDate = new Date().toISOString();
+        setStartDate(startDate);
+        setEndDate(endDate);
+
         const dates = JSON.stringify({
-          startDate: startDate,
-          endDate: endDate,
+          startDate: startDate.slice(0, 10),
+          endDate: endDate.slice(0, 10),
         });
 
         const response = await getServer(
@@ -111,6 +145,9 @@ export const Schedule = () => {
 
   const getSchedule = async (startDate, endDate) => {
     try {
+      setStartDate(startDate);
+      setEndDate(endDate);
+
       const sDate = startDate.slice(0, 10);
       const eDate = endDate.slice(0, 10);
       const dates = JSON.stringify({
@@ -142,6 +179,36 @@ export const Schedule = () => {
   //when user clicks on one of the date options displayed on ListItems component
   const pickDate = (startDate, endDate) => {
     getSchedule(startDate, endDate);
+  };
+
+  //display error from Service modal child
+  const handleOnError = (msg) => {
+    setSuccess(false);
+    setError(msg);
+    setOpenSnakbar(true);
+  };
+
+  //display error from Service modal child
+  const handleOnSuccess = (msg) => {
+    setSuccess(true);
+    setError(null);
+    setOpenSnakbar(true);
+    setMsg(msg);
+  };
+
+  const handleOnRowClick = (detailId) => {
+    const dataFound = data?.find((item) => item.detail_id === detailId);
+
+    setRowData(dataFound);
+    setTriggerModal(triggerModal + 1);
+  };
+
+  //closes the snakbar
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnakbar(false);
   };
 
   return (
@@ -210,12 +277,46 @@ export const Schedule = () => {
                     data={data}
                     onDatePick={pickDate}
                     dateString={dateString}
+                    editData={handleOnRowClick}
                   />
                 </Paper>
               </Grid>
             </Grid>
           </Container>
         </Box>
+        <ScheduleModal
+          onError={handleOnError}
+          onSuccess={handleOnSuccess}
+          onSave={getSchedule}
+          open={triggerModal}
+          rowData={rowData}
+          empData={employees}
+          locData={locations}
+          vehData={vehicles}
+          startDate={startDate}
+          endDate={endDate}
+        />
+        <Snackbar
+          open={error && openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="error" onClose={handleClose}>
+            <AlertTitle>Error</AlertTitle>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={success && openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="success" onClose={handleClose}>
+            <AlertTitle>Schedule Updated</AlertTitle>
+            {msg}
+          </Alert>
+        </Snackbar>
       </Box>
     </Fragment>
   );

@@ -540,7 +540,7 @@ export const DetailModal = (props) => {
             </div>
 
             <div
-              id="from-box"
+              id="to-box"
               className="modalField"
               style={{ display: "inline-block" }}
             >
