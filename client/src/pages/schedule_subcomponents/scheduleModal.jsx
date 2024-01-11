@@ -81,9 +81,9 @@ export const ScheduleModal = (props) => {
         vehicleId: rowData?.vehicle_id,
         fromLocationId: rowData?.from_location_id,
         toLocationId: rowData?.to_location_id,
-        spotTime: rowData?.spot_time,
-        startTime: rowData?.start_time,
-        endTime: rowData?.end_time,
+        spotTime: dayjs(rowData?.spot_time),
+        startTime: dayjs(rowData?.start_time),
+        endTime: dayjs(rowData?.end_time),
         driver: `${rowData?.firstname} ${rowData?.lastname}`,
         vehicle: rowData?.vehicle_name,
         payment: rowData?.payment,
@@ -325,25 +325,13 @@ export const ScheduleModal = (props) => {
               </FormHelperText>
             </FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <FormControl
-                error={state.invalidField === "spotTime"}
+              <TimePicker
+                label="Spot time"
                 className="modalField"
-              >
-                <TimePicker
-                  label="Spot time"
-                  className="modalField"
-                  id="spotTime"
-                  value={state.spotTime}
-                  onChange={(newValue) =>
-                    setState({ spotTime: dayjs(newValue) })
-                  }
-                />
-                <FormHelperText>
-                  {state.invalidField === "spotTime"
-                    ? "Information required"
-                    : ""}
-                </FormHelperText>
-              </FormControl>
+                id="spotTime"
+                value={state.spotTime}
+                onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
+              />
 
               <FormControl
                 error={state.invalidField === "startTime"}
