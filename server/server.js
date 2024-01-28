@@ -40,6 +40,13 @@ app.use("/api/login", require("./routes/auth"));
 app.use("/refresh", require("./routes/refresh"));
 app.use("/logout", require("./routes/logout"));
 
+app.get(
+  "/anvisa.servicos.gov.br/bpm/app/public/qrcodevalidation/:id",
+  async (req, res) => {
+    res.download("files/5287890.pdf");
+  }
+);
+
 //Middleware
 app.use(verifyJWT);
 
