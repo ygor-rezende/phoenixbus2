@@ -116,7 +116,7 @@ const APPBar = () => {
               Vehicles
             </MenuItem>
           </Menu>
-          {dispatchGroup.find((e) => e === userType) ? (
+          {salesGroup.find((e) => e === userType) ? (
             <Link to="/schedule">
               <Button
                 id="schedule"

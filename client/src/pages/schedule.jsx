@@ -29,6 +29,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 import { ScheduleTable } from "./schedule_subcomponents/schedule_table";
+import Summary from "./schedule_subcomponents/summary";
 
 const drawerWidth = 240;
 
@@ -76,11 +77,12 @@ export const Schedule = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
-  const putServer = UsePrivatePut();
+
+  const allowedRoles = [2501, 8259];
 
   useEffect(() => {
     let isMounted = true;
@@ -134,7 +136,11 @@ export const Schedule = () => {
       }
     }
 
-    getTodaySchedule();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getTodaySchedule();
+    } else {
+      getTodaySchedule();
+    }
 
     return () => {
       isMounted = false;
@@ -197,10 +203,13 @@ export const Schedule = () => {
   };
 
   const handleOnRowClick = (detailId) => {
-    const dataFound = data?.find((item) => item.detail_id === detailId);
+    //open modal only to allowed roles
+    if (allowedRoles.includes(auth?.role)) {
+      const dataFound = data?.find((item) => item.detail_id === detailId);
 
-    setRowData(dataFound);
-    setTriggerModal(triggerModal + 1);
+      setRowData(dataFound);
+      setTriggerModal(triggerModal + 1);
+    }
   };
 
   //closes the snakbar
@@ -266,9 +275,10 @@ export const Schedule = () => {
                     display: "flex",
                     flexDirection: "column",
                     height: 240,
+                    textAlign: "end",
                   }}
                 >
-                  {/*Display*/}
+                  <Summary data={data} />
                 </Paper>
               </Grid>
               <Grid item xs={12}>

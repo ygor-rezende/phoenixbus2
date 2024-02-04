@@ -201,7 +201,11 @@ export const Employee = () => {
       }
     }; //getEmployeeData
 
-    getEmployeeData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getEmployeeData();
+    } else {
+      getEmployeeData();
+    }
 
     return () => {
       isMounted = false;

@@ -64,7 +64,11 @@ const DeleteUser = () => {
     };
 
     //avoid retrieving data after controler.abort() being called
-    getUsers();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getUsers();
+    } else {
+      getUsers();
+    }
 
     return () => {
       isMounted = false;

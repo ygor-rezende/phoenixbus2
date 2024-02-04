@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef } from "react";
+import React, { useReducer, useEffect, useRef } from "react";
 import {
   Alert,
   AlertTitle,
@@ -46,6 +46,9 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
+import Invoice from "./pdfReports/invoice";
+import * as FileSaver from "file-saver";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -261,7 +264,11 @@ export const Bookings = () => {
       }
     }; //getAllData
 
-    getAllData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getAllData();
+    } else {
+      getAllData();
+    }
 
     return () => {
       isMounted = false;
@@ -895,6 +902,46 @@ export const Bookings = () => {
     });
   };
 
+  //function to generate invoice PDF
+  const generatePdfDoc = async (filename) => {
+    try {
+      const blob = await pdf(
+        <Invoice
+          date={dayjs(state.tripStartDate).format("YYYY-MM-DD")}
+          invoiceNum={state.invoice}
+          responsible={state.responsibleName}
+          destination={"Universal"}
+          account={"1830"}
+          address={"123 Main St"}
+          city={"Orlando"}
+          state={"FL"}
+          phone={state.responsiblePhone}
+          email={state.responsibleEmail}
+          group={state.paxGroup}
+          passengers={state.numPeople}
+          bookingDate={dayjs(state.bookingDate).format("YYYY-MM-DD")}
+          arrival={"10:30 am"}
+          departure={"11:00 am"}
+          reference={""}
+          payment={0.0}
+          charges={0.0}
+          tax={0.0}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
+  //Handle download pdf click
+  const handleDownloadInvoice = () => {
+    generatePdfDoc(`invoice${state.invoice}.pdf`);
+  };
+
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
@@ -1304,6 +1351,15 @@ export const Bookings = () => {
                   >
                     New Service Order
                   </Button>
+
+                  <Button
+                    style={{ marginLeft: "10px" }}
+                    variant="contained"
+                    onClick={handleDownloadInvoice}
+                  >
+                    Download Invoice
+                  </Button>
+
                   <p></p>
                   <Divider />
                   <Typography variant="h5" color="primary">

@@ -20,7 +20,6 @@ import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
 
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import {
@@ -180,7 +179,11 @@ export const FarmOut = () => {
       }
     }; //getCompaniesData
 
-    getCompaniesData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getCompaniesData();
+    } else {
+      getCompaniesData();
+    }
 
     return () => {
       isMounted = false;

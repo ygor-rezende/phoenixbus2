@@ -26,6 +26,7 @@ import { Bookings } from "./pages/bookings.jsx";
 import RequireAuth from "./Authentication/RequireAuth.js";
 import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
+import Invoice from "./pages/pdfReports/invoice.js";
 
 const App = () => {
   const ROLES = {
@@ -61,6 +62,7 @@ const App = () => {
                 <Route path="/servicelocations" element={<ServiceLocation />} />
                 <Route path="/quotes" element={<Quotes />} />
                 <Route path="/bookings" element={<Bookings />} />
+                <Route path="/schedule" element={<Schedule />} />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.driver]} />}>
                 <Route path="/driverpage" element={<ScheduledRoutes />} />
@@ -70,7 +72,6 @@ const App = () => {
                   <RequireAuth allowedRoles={[ROLES.admin, ROLES.dispatch]} />
                 }
               >
-                <Route path="/schedule" element={<Schedule />} />
                 <Route path="/addvehicle" element={<AddVehicle />} exact />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.admin]} />}>

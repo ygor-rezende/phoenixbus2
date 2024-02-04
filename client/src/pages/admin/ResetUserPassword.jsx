@@ -54,7 +54,11 @@ const ResetUserPassword = () => {
       }
     };
 
-    getUsersData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getUsersData();
+    } else {
+      getUsersData();
+    }
 
     return () => {
       isMounted = false;

@@ -164,7 +164,11 @@ export const AddClient = () => {
       }
     }; //getClientsData
 
-    getClientsData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getClientsData();
+    } else {
+      getClientsData();
+    }
 
     return () => {
       isMounted = false;

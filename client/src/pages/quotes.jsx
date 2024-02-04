@@ -224,7 +224,11 @@ export const Quotes = () => {
       }
     }; //getQuotesData
 
-    getQuotesData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getQuotesData();
+    } else {
+      getQuotesData();
+    }
 
     return () => {
       isMounted = false;

@@ -81,7 +81,11 @@ const AddVehicle = () => {
       }
     };
 
-    getVehiclesData();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getVehiclesData();
+    } else {
+      getVehiclesData();
+    }
 
     return () => {
       isMounted = false;

@@ -152,7 +152,11 @@ export const ServiceLocation = () => {
       }
     }; //getLocations
 
-    getLocations();
+    if (process.env.NODE_ENV === "development") {
+      effectRun.current && getLocations();
+    } else {
+      getLocations();
+    }
 
     return () => {
       isMounted = false;

@@ -382,7 +382,6 @@ export const ScheduleModal = (props) => {
             >
               <Autocomplete
                 id="driver"
-                required
                 className="autocomplete"
                 value={state.driver}
                 onChange={handleDriverChange}
@@ -422,7 +421,6 @@ export const ScheduleModal = (props) => {
               <Autocomplete
                 id="vehicle"
                 className="autocomplete"
-                required
                 value={state.vehicle}
                 onChange={handleVehicleChange}
                 isOptionEqualToValue={(option, value) =>
@@ -460,7 +458,6 @@ export const ScheduleModal = (props) => {
             >
               <Autocomplete
                 id="from"
-                required
                 className="autocomplete"
                 value={state.from}
                 onChange={handleFromLocationChange}
@@ -499,7 +496,6 @@ export const ScheduleModal = (props) => {
             >
               <Autocomplete
                 id="to"
-                required
                 className="autocomplete"
                 value={state.to}
                 onChange={handleToLocationChange}
