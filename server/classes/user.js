@@ -29,20 +29,20 @@ class User {
   } //getUsernames
 
   static async signUp(req, res) {
-    const { userName, password, userType } = req.body;
-    //check if the username and password are filled in
-    if (!userName || !password)
-      return res
-        .status(400)
-        .json({ message: "Username and password are required." });
-
-    //check if the user is duplicated
-    const users = await this.getUsernames();
-    const duplicate = users.find((user) => user.username === userName);
-    if (duplicate)
-      return res.status(409).json({ message: "User already exists" }); //conflict
-
     try {
+      const { userName, password, userType } = req.body;
+      //check if the username and password are filled in
+      if (!userName || !password)
+        return res
+          .status(400)
+          .json({ message: "Username and password are required." });
+
+      //check if the user is duplicated
+      const users = await this.getUsernames();
+      const duplicate = users.find((user) => user.username === userName);
+      if (duplicate)
+        return res.status(409).json({ message: "User already exists" }); //conflict
+
       //encript password
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);

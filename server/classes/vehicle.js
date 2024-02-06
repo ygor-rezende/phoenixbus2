@@ -3,21 +3,21 @@ const pool = require("../db");
 
 class Vehicle {
   static async createVehicle(req, res) {
-    const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
-    if (!vehicleColor || !vehicleModel || !vehicleName || !vehicleYear)
-      return res
-        .status(400)
-        .json({ message: "All vehicle information is required." });
-
     try {
+      const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
+
+      if (!vehicleColor || !vehicleModel || !vehicleName || !vehicleYear)
+        return res
+          .status(400)
+          .json({ message: "All vehicle information is required." });
+
       //generate a new id
       const newId = uuid();
       //insert the new vehicle
-      const newVehicle = await pool.query(
-        `INSERT INTO vehicles (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color) VALUES ($1, $2, $3, $4, $5)`,
-        [newId, vehicleName, vehicleModel, vehicleYear, vehicleColor]
+      await pool.query(
+        `CALL create_vehicle(vehicle_id => '${newId}'::TEXT, vehicle_name => '${vehicleName}'::TEXT, vehicle_model => '${vehicleModel}'::TEXT, vehicle_year => ${vehicleYear}, vehicle_color => '${vehicleColor}'::TEXT)`
       );
-      //console.log(newVehicle.rowCount);
+
       //send the reponse to client
       return res.status(201).json(`Vehicle ${vehicleName} created`);
     } catch (err) {
@@ -38,40 +38,48 @@ class Vehicle {
   } //getAllVehicles
 
   static async deleteVehicle(req, res) {
-    let { vehicleIds } = req.params;
-    vehicleIds = JSON.parse(vehicleIds);
-    if (!vehicleIds)
-      return res.status(400).json({ message: "No vehicle was selected" });
+    const client = await pool.connect();
+
     try {
+      let { vehicleIds } = req.params;
+      vehicleIds = JSON.parse(vehicleIds);
+
+      if (!vehicleIds)
+        return res.status(400).json({ message: "No vehicle was selected" });
+
+      await client.query("BEGIN");
       const deletedVehicles = await vehicleIds.map(async (vehicle) => {
-        return await pool.query("DELETE from vehicles WHERE vehicle_id = $1", [
-          vehicle,
-        ]);
+        await client.query(
+          `CALL delete_vehicle(vehicleId=> '${vehicle}'::TEXT)`
+        );
+        return 1;
       });
       const deletedPromise = await Promise.all(deletedVehicles);
-      if (deletedPromise[0]?.rowCount)
-        return res.json(`Number of vehicles deleted: ${deletedPromise.length}`);
+      await client.query("COMMIT");
+      return res.json(`Number of vehicles deleted: ${deletedPromise.length}`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //deleteVehicle
 
   static async updateVehicle(req, res) {
-    const { vehicle } = req.body;
-
-    if (!vehicle)
-      return res
-        .status(400)
-        .json({ message: "Bad request: No vehicle info provided" });
-
     try {
-      const updatedVehicle = await pool.query(
-        "UPDATE vehicles SET vehicle_name = $1, vehicle_model = $2, vehicle_year = $3, vehicle_color = $4 WHERE vehicle_id = $5",
-        [vehicle.name, vehicle.model, vehicle.year, vehicle.color, vehicle.id]
+      const { vehicle } = req.body;
+
+      if (!vehicle)
+        return res
+          .status(400)
+          .json({ message: "Bad request: No vehicle info provided" });
+
+      await pool.query(
+        `CALL update_vehicle(vehicleId => '${vehicle.id}'::TEXT, vehicleName => '${vehicle.name}'::TEXT, vehicleModel => '${vehicle.model}'::TEXT, vehicleYear => ${vehicle.year}, vehicleColor => '${vehicle.color}'::TEXT)`
       );
-      if (updatedVehicle.rowCount)
-        return res.json(`Vehicle ${vehicle.name} updated`);
+
+      return res.json(`Vehicle ${vehicle.name} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -92,12 +100,13 @@ class Vehicle {
   } //getAllVehicleNames
 
   static async getVehicleById(req, res) {
-    const { vehicleId } = req.params;
-    if (!vehicleId)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Missing vehicle id" });
     try {
+      const { vehicleId } = req.params;
+      if (!vehicleId)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing vehicle id" });
+
       const result = await pool.query(
         "Select * from vehicles WHERE vehicle_id = $1",
         [vehicleId]
