@@ -28,6 +28,7 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import GoogleAutoComplete from "../api/google_place";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -35,62 +36,68 @@ const reducer = (prevState, upadatedProp) => ({
 });
 
 const listOfStates = [
-  "Alabama",
-  "Alaska",
-  "Arizona",
-  "Arkansas",
-  "California",
-  "Colorado",
-  "Connecticut",
-  "Delaware",
-  "Florida",
-  "Georgia",
-  "Hawaii",
-  "Idaho",
-  "Illinois",
-  "Indiana",
-  "Iowa",
-  "Kansas",
-  "Kentucky",
-  "Louisiana",
-  "Maine",
-  "Maryland",
-  "Massachusetts",
-  "Michigan",
-  "Minnesota",
-  "Mississippi",
-  "Missouri",
-  "Montana",
-  "Nebraska",
-  "Nevada",
-  "New Hampshire",
-  "New Jersey",
-  "New Mexico",
-  "New York",
-  "North Carolina",
-  "North Dakota",
-  "Ohio",
-  "Oklahoma",
-  "Oregon",
-  "Pennsylvania",
-  "Rhode Island",
-  "South Carolina",
-  "South Dakota",
-  "Tennessee",
-  "Texas",
-  "Utah",
-  "Vermont",
-  "Virginia",
-  "Washington",
-  "West Virginia",
-  "Wisconsin",
-  "Wyoming",
+  "AK",
+  "AL",
+  "AR",
+  "AS",
+  "AZ",
+  "CA",
+  "CO",
+  "CT",
+  "DC",
+  "DE",
+  "FL",
+  "GA",
+  "GU",
+  "HI",
+  "IA",
+  "ID",
+  "IL",
+  "IN",
+  "KS",
+  "KY",
+  "LA",
+  "MA",
+  "MD",
+  "ME",
+  "MI",
+  "MN",
+  "MO",
+  "MS",
+  "MT",
+  "NC",
+  "ND",
+  "NE",
+  "NH",
+  "NJ",
+  "NM",
+  "NV",
+  "NY",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "PR",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VA",
+  "VI",
+  "VT",
+  "WA",
+  "WI",
+  "WV",
+  "WY",
 ];
 
 const initialState = {
   clientId: "",
   agency: "",
   contact: "",
+  searchAddress: "",
   address1: "",
   address2: "",
   city: "",
@@ -288,6 +295,7 @@ export const AddClient = () => {
       openSnakbar: true,
       agency: "",
       contact: "",
+      searchAddress: "",
       address1: "",
       address2: "",
       city: "",
@@ -311,6 +319,7 @@ export const AddClient = () => {
       invalidField: "",
       agency: "",
       contact: "",
+      searchAddress: "",
       address1: "",
       address2: "",
       city: "",
@@ -392,6 +401,7 @@ export const AddClient = () => {
       expandPanel: true,
       clientId: id,
       invalidField: "",
+      searchAddress: "",
       agency: state.clientsData.filter((e) => e.id === id)[0].agency,
       contact: state.clientsData.filter((e) => e.id === id)[0].contact,
       address1: state.clientsData.filter((e) => e.id === id)[0].address1,
@@ -410,6 +420,24 @@ export const AddClient = () => {
   //cancel editing when a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
+  };
+
+  const updateAddress = (
+    address1,
+    city,
+    state,
+    zip,
+    country,
+    searchAddress
+  ) => {
+    setState({
+      searchAddress: searchAddress,
+      address1: address1,
+      city: city,
+      state: state,
+      zip: zip,
+      country: country,
+    });
   };
 
   //table headings
@@ -500,6 +528,26 @@ export const AddClient = () => {
                 />
 
                 <TextField
+                  error={state.invalidField === "email"}
+                  helperText={
+                    state.invalidField === "email" ? "Information required" : ""
+                  }
+                  className="textfield"
+                  id="email"
+                  required
+                  label="E-Mail"
+                  type="email"
+                  placeholder="E-Mail"
+                  value={state.email}
+                  onChange={handleOnChange}
+                />
+
+                <GoogleAutoComplete
+                  updateFields={updateAddress}
+                  value={state.searchAddress}
+                />
+
+                <TextField
                   error={state.invalidField === "address1"}
                   helperText={
                     state.invalidField === "address1"
@@ -554,6 +602,7 @@ export const AddClient = () => {
                     options={listOfStates}
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.toString()}
+                    isOptionEqualToValue={(option, value) => option === value}
                     renderInput={(params) => (
                       <TextField
                         required
@@ -630,21 +679,6 @@ export const AddClient = () => {
                   inputProps={{ maxLength: 15 }}
                   value={state.fax}
                   onChange={handleFaxChange}
-                />
-
-                <TextField
-                  error={state.invalidField === "email"}
-                  helperText={
-                    state.invalidField === "email" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="email"
-                  required
-                  label="E-Mail"
-                  type="email"
-                  placeholder="E-Mail"
-                  value={state.email}
-                  onChange={handleOnChange}
                 />
 
                 <TextField
