@@ -29,6 +29,8 @@ import {
   UsePrivatePut,
 } from "../../hooks/useFetchServer";
 
+import GoogleAutoComplete from "../../api/google_place";
+
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
   ...upadatedProp,
@@ -96,6 +98,7 @@ const initialState = {
   companyId: "",
   name: "",
   contact: "",
+  searchAddress: "",
   address: "",
   city: "",
   state: null,
@@ -297,6 +300,7 @@ export const FarmOut = () => {
       openSnakbar: true,
       name: "",
       contact: "",
+      searchAddress: "",
       address: "",
       city: "",
       state: null,
@@ -312,6 +316,7 @@ export const FarmOut = () => {
       zelle: "",
       expandPanel: false,
       isDataUpdated: !state.isDataUpdated,
+      onEditMode: false,
     });
   };
 
@@ -323,6 +328,7 @@ export const FarmOut = () => {
       invalidField: "",
       name: "",
       contact: "",
+      searchAddress: "",
       address: "",
       city: "",
       state: null,
@@ -411,6 +417,7 @@ export const FarmOut = () => {
       expandPanel: true,
       companyId: id,
       invalidField: "",
+      searchAddress: "",
       name: state.companiesData.filter((e) => e.id === id)[0].name,
       contact: state.companiesData.filter((e) => e.id === id)[0].contact,
       address: state.companiesData.filter((e) => e.id === id)[0].address,
@@ -432,6 +439,23 @@ export const FarmOut = () => {
   //cancel editing when a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
+  };
+
+  const updateAddress = (
+    address1,
+    city,
+    state,
+    zip,
+    country,
+    searchAddress
+  ) => {
+    setState({
+      searchAddress: searchAddress,
+      address: address1,
+      city: city,
+      state: state,
+      zip: zip,
+    });
   };
 
   //table headings
@@ -516,6 +540,26 @@ export const FarmOut = () => {
                   placeholder="Contact"
                   value={state.contact}
                   onChange={handleOnChange}
+                />
+
+                <TextField
+                  error={state.invalidField === "email"}
+                  helperText={
+                    state.invalidField === "email" ? "Information required" : ""
+                  }
+                  className="textfield"
+                  id="email"
+                  required
+                  label="E-Mail"
+                  type="email"
+                  placeholder="E-Mail"
+                  value={state.email}
+                  onChange={handleOnChange}
+                />
+
+                <GoogleAutoComplete
+                  updateFields={updateAddress}
+                  value={state.searchAddress}
                 />
 
                 <TextField
@@ -609,21 +653,6 @@ export const FarmOut = () => {
                   onChange={handlePhoneChange}
                   onlyCountries={["US", "CA"]}
                   inputProps={{ maxLength: 15 }}
-                />
-
-                <TextField
-                  error={state.invalidField === "email"}
-                  helperText={
-                    state.invalidField === "email" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="email"
-                  required
-                  label="E-Mail"
-                  type="email"
-                  placeholder="E-Mail"
-                  value={state.email}
-                  onChange={handleOnChange}
                 />
 
                 <TextField

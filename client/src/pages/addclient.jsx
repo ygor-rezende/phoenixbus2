@@ -308,6 +308,7 @@ export const AddClient = () => {
       remark: "",
       expandPanel: false,
       isDataUpdated: !state.isDataUpdated,
+      onEditMode: false,
     });
   };
 

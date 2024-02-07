@@ -30,6 +30,7 @@ import useAuth from "../../hooks/useAuth";
 
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
+import GoogleAutoComplete from "../../api/google_place";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -102,10 +103,10 @@ const initialState = {
   title: "",
   hireDate: "",
   ssn: "",
+  searchAddress: "",
   address: "",
   city: "",
   state: null,
-  country: "US",
   zip: "",
   phone: "",
   email: "",
@@ -335,10 +336,10 @@ export const Employee = () => {
       title: "",
       hireDate: "",
       ssn: "",
+      searchAddress: "",
       address: "",
       city: "",
       state: null,
-      country: "US",
       zip: "",
       phone: "",
       email: "",
@@ -377,10 +378,10 @@ export const Employee = () => {
       title: "",
       hireDate: "",
       ssn: "",
+      searchAddress: "",
       address: "",
       city: "",
       state: null,
-      country: "US",
       zip: "",
       phone: "",
       email: "",
@@ -485,6 +486,7 @@ export const Employee = () => {
       expandPanel: true,
       employeeId: id,
       invalidField: "",
+      searchAddress: "",
       firstname: state.employeesData.filter((e) => e.id === id)[0].firstname,
       lastname: state.employeesData.filter((e) => e.id === id)[0].lastname,
       address: state.employeesData.filter((e) => e.id === id)[0].address,
@@ -524,6 +526,23 @@ export const Employee = () => {
   //cancel editing when a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
+  };
+
+  const updateAddress = (
+    address1,
+    city,
+    state,
+    zip,
+    country,
+    searchAddress
+  ) => {
+    setState({
+      searchAddress: searchAddress,
+      address: address1,
+      city: city,
+      state: state,
+      zip: zip,
+    });
   };
 
   //table headings
@@ -664,6 +683,26 @@ export const Employee = () => {
                 </LocalizationProvider>
 
                 <TextField
+                  error={state.invalidField === "email"}
+                  helperText={
+                    state.invalidField === "email" ? "Information required" : ""
+                  }
+                  className="textfield"
+                  id="email"
+                  required
+                  label="E-Mail"
+                  type="email"
+                  placeholder="E-Mail"
+                  value={state.email}
+                  onChange={handleOnChange}
+                />
+
+                <GoogleAutoComplete
+                  updateFields={updateAddress}
+                  value={state.searchAddress}
+                />
+
+                <TextField
                   error={state.invalidField === "address"}
                   helperText={
                     state.invalidField === "address"
@@ -755,21 +794,6 @@ export const Employee = () => {
                   onChange={handlePhoneChange}
                   onlyCountries={["US", "CA"]}
                   inputProps={{ maxLength: 15 }}
-                />
-
-                <TextField
-                  error={state.invalidField === "email"}
-                  helperText={
-                    state.invalidField === "email" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="email"
-                  required
-                  label="E-Mail"
-                  type="email"
-                  placeholder="E-Mail"
-                  value={state.email}
-                  onChange={handleOnChange}
                 />
 
                 <TextField

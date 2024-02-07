@@ -17,7 +17,9 @@ const GoogleAutoComplete = (props) => {
       options
     );
     autoCompleteRef.current.addListener("place_changed", onPlaceChanged);
+  });
 
+  useEffect(() => {
     inputRef.current.value = value;
   }, [value]);
 
@@ -52,7 +54,7 @@ const GoogleAutoComplete = (props) => {
         alignItems: "center",
         padding: "16.5px 14px",
         margin: "10px 10px",
-        width: "91%",
+        width: "90%",
       }}
       id="addressAutocomplete"
       ref={inputRef}

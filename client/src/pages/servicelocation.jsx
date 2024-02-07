@@ -28,6 +28,7 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import GoogleAutoComplete from "../api/google_place";
 
 const states = [
   "AK",
@@ -90,6 +91,7 @@ const states = [
 export const ServiceLocation = () => {
   const [locationId, setLocationId] = useState("");
   const [name, setName] = useState("");
+  const [searchAddress, setSearchAddress] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState(null);
@@ -259,6 +261,7 @@ export const ServiceLocation = () => {
   const clearFields = () => {
     setLocationId("");
     setName("");
+    setSearchAddress("");
     setAddress("");
     setCity("");
     setState(null);
@@ -315,6 +318,7 @@ export const ServiceLocation = () => {
 
       setExpandPanel(false);
       setIsDataUpdated(!isDataUpdated);
+      setOnEditMode(false);
     } else if (response?.disconnect) {
       setAuth({});
       navigate("/login", { state: { from: location }, replace: true });
@@ -350,43 +354,6 @@ export const ServiceLocation = () => {
       setError(response.error);
       setOpenSnakbar(true);
     }
-
-    // try {
-    //   const response = await fetch(
-    //     `${process.env.REACT_APP_SERVERURL}/deletelocation`,
-    //     {
-    //       method: "DELETE",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: JSON.stringify({ locationIds: itemsSelected }),
-    //     }
-    //   );
-    //   if (!response.ok) {
-    //     throw new Error(response.status);
-    //   }
-    //   const responseMsg = await response.json();
-    //   console.log(responseMsg);
-    //   if (responseMsg.failed) {
-    //     console.log(responseMsg.failed);
-    //     setError(responseMsg.failed);
-    //     setSuccess(false);
-    //     setOpenSnakbar(true);
-    //   } else {
-    //     //update state and reload the data
-    //     setMsg(responseMsg);
-    //     setError(null);
-    //     setSuccess(true);
-    //     setOpenSnakbar(true);
-
-    //     //clear fields
-    //     clearFields();
-
-    //     setExpandPanel(false);
-    //     setIsDataUpdated(!isDataUpdated);
-    //     setOnEditMode(false);
-    //   }
-    // } catch (err) {
-    //   console.error(err);
-    // }
   }; //handleDelete
 
   //Show location information when clicking on a table row
@@ -397,6 +364,7 @@ export const ServiceLocation = () => {
     setExpandPanel(true);
     setLocationId(id);
     setInvalidField("");
+    setSearchAddress("");
     setName(locations.filter((e) => e.id === id)[0].name);
     setAddress(locations.filter((e) => e.id === id)[0].address);
     setCity(locations.filter((e) => e.id === id)[0].city);
@@ -409,6 +377,21 @@ export const ServiceLocation = () => {
   //cancel editing if a checkbox is selected
   const handleBoxChecked = (isItemChecked) => {
     if (isItemChecked) cancelEditing();
+  };
+
+  const updateAddress = (
+    address1,
+    city,
+    state,
+    zip,
+    country,
+    searchAddress
+  ) => {
+    setSearchAddress(searchAddress);
+    setAddress(address1);
+    setCity(city);
+    setState(state);
+    setZip(zip);
   };
 
   const headings = [
@@ -462,6 +445,10 @@ export const ServiceLocation = () => {
                 </Box>
               )}
             </AccordionSummary>
+            <GoogleAutoComplete
+              updateFields={updateAddress}
+              value={searchAddress}
+            />
             <AccordionDetails>
               <Box className="fieldsbox1">
                 <TextField
