@@ -12,6 +12,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -99,9 +101,9 @@ const initialState = {
   employeeId: "",
   firstname: "",
   lastname: "",
-  birth: dayjs("2010-01-01"),
+  birth: null,
   title: "",
-  hireDate: "",
+  hireDate: null,
   ssn: "",
   searchAddress: "",
   address: "",
@@ -111,16 +113,15 @@ const initialState = {
   phone: "",
   email: "",
   medicalCard: false,
-  medicalExpDate: "",
   i9: false,
   drugFree: false,
-  driverLicenceExpDate: "",
+  driverLicenceExpDate: null,
   it: "",
   nationalReg: "",
   experience: "",
   cldTag: "",
   insurance: "",
-  insuranceExpDate: "",
+  insuranceExpDate: null,
   mc: "",
   pointOfContact: "",
   emergencyContact: "",
@@ -171,9 +172,9 @@ export const Employee = () => {
             id: item.employee_id,
             firstname: item.firstname,
             lastname: item.lastname,
-            birth: item.birth,
+            birth: dayjs(item.birth),
             title: item.title,
-            hireDate: item.hire_date,
+            hireDate: dayjs(item.hire_date),
             address: item.address,
             city: item.city,
             state: item.state,
@@ -183,13 +184,13 @@ export const Employee = () => {
             medicalCard: item.medical_card,
             i9: item.i9,
             drugFree: item.drug_free,
-            driverLicenceExpDate: item.drive_license_exp_date,
+            driverLicenceExpDate: dayjs(item.drive_license_exp_date),
             it: item.it_number,
             nationalReg: item.national_reg,
             experience: item.experience,
             cldTag: item.cdl_tag,
             insurance: item.insurance,
-            insuranceExpDate: item.insurance_exp_date,
+            insuranceExpDate: dayjs(item.insurance_exp_date),
             mc: item.mc,
             pointOfContact: item.point_contact,
             emergencyContact: item.emergency_contact,
@@ -332,9 +333,9 @@ export const Employee = () => {
       employeeId: "",
       firstname: "",
       lastname: "",
-      birth: "",
+      birth: null,
       title: "",
-      hireDate: "",
+      hireDate: null,
       ssn: "",
       searchAddress: "",
       address: "",
@@ -344,16 +345,15 @@ export const Employee = () => {
       phone: "",
       email: "",
       medicalCard: false,
-      medicalExpDate: "",
       i9: false,
       drugFree: false,
-      driverLicenceExpDate: "",
+      driverLicenceExpDate: null,
       it: "",
       nationalReg: "",
       experience: "",
       cldTag: "",
       insurance: "",
-      insuranceExpDate: "",
+      insuranceExpDate: null,
       mc: "",
       pointOfContact: "",
       emergencyContact: "",
@@ -374,9 +374,9 @@ export const Employee = () => {
       employeeId: "",
       firstname: "",
       lastname: "",
-      birth: "",
+      birth: null,
       title: "",
-      hireDate: "",
+      hireDate: null,
       ssn: "",
       searchAddress: "",
       address: "",
@@ -386,16 +386,15 @@ export const Employee = () => {
       phone: "",
       email: "",
       medicalCard: false,
-      medicalExpDate: "",
       i9: false,
       drugFree: false,
-      driverLicenceExpDate: "",
+      driverLicenceExpDate: null,
       it: "",
       nationalReg: "",
       experience: "",
       cldTag: "",
       insurance: "",
-      insuranceExpDate: "",
+      insuranceExpDate: null,
       mc: "",
       pointOfContact: "",
       emergencyContact: "",
@@ -495,23 +494,27 @@ export const Employee = () => {
       zip: state.employeesData.filter((e) => e.id === id)[0].zip,
       phone: state.employeesData.filter((e) => e.id === id)[0].phone,
       email: state.employeesData.filter((e) => e.id === id)[0].email,
-      birth: state.employeesData.filter((e) => e.id === id)[0].birth,
+      birth: dayjs(state.employeesData.filter((e) => e.id === id)[0].birth),
       title: state.employeesData.filter((e) => e.id === id)[0].title,
       insurance: state.employeesData.filter((e) => e.id === id)[0].insurance,
-      hireDate: state.employeesData.filter((e) => e.id === id)[0].hireDate,
+      hireDate: dayjs(
+        state.employeesData.filter((e) => e.id === id)[0].hireDate
+      ),
       medicalCard: state.employeesData.filter((e) => e.id === id)[0]
         .medicalCard,
       i9: state.employeesData.filter((e) => e.id === id)[0].i9,
       drugFree: state.employeesData.filter((e) => e.id === id)[0].drugFree,
-      driverLicenceExpDate: state.employeesData.filter((e) => e.id === id)[0]
-        .driverLicenceExpDate,
+      driverLicenceExpDate: dayjs(
+        state.employeesData.filter((e) => e.id === id)[0].driverLicenceExpDate
+      ),
       it: state.employeesData.filter((e) => e.id === id)[0].it,
       nationalReg: state.employeesData.filter((e) => e.id === id)[0]
         .nationalReg,
       experience: state.employeesData.filter((e) => e.id === id)[0].experience,
       cldTag: state.employeesData.filter((e) => e.id === id)[0].cldTag,
-      insuranceExpDate: state.employeesData.filter((e) => e.id === id)[0]
-        .insuranceExpDate,
+      insuranceExpDate: dayjs(
+        state.employeesData.filter((e) => e.id === id)[0].insuranceExpDate
+      ),
       mc: state.employeesData.filter((e) => e.id === id)[0].mc,
       pointOfContact: state.employeesData.filter((e) => e.id === id)[0]
         .pointOfContact,
@@ -644,7 +647,7 @@ export const Employee = () => {
                     id="birth"
                     required
                     placeholder="Birth Date"
-                    value={dayjs(state.birth)}
+                    value={state.birth}
                     onChange={(newValue) => setState({ birth: newValue })}
                   />
                 </LocalizationProvider>
@@ -677,7 +680,7 @@ export const Employee = () => {
                     required
                     label="Hire Date"
                     placeholder="Hire Date"
-                    value={dayjs(state.hireDate)}
+                    value={state.hireDate}
                     onChange={(newValue) => setState({ hireDate: newValue })}
                   />
                 </LocalizationProvider>
@@ -797,53 +800,52 @@ export const Employee = () => {
                 />
 
                 <TextField
-                  error={state.invalidField === "medicalCard"}
-                  helperText={
-                    state.invalidField === "medicalCard"
-                      ? "Information required"
-                      : ""
-                  }
                   className="textfield"
-                  id="medicalCard"
-                  required
-                  label="Medical card"
+                  id="experience"
+                  label="Experience"
                   type="text"
-                  placeholder="Medical card"
-                  value={state.medicalCard}
+                  placeholder="Experience"
+                  value={state.experience}
                   onChange={handleOnChange}
                 />
 
-                <TextField
-                  error={state.invalidField === "i9"}
-                  helperText={
-                    state.invalidField === "i9" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="i9"
-                  required
-                  label="I9"
-                  type="text"
-                  placeholder="I9"
-                  value={state.i9}
-                  onChange={handleOnChange}
-                />
+                <Box className="textfield" sx={{ display: "inline-block" }}>
+                  <FormControlLabel
+                    style={{ alignSelf: "center" }}
+                    label="Medical card"
+                    control={
+                      <Checkbox
+                        checked={state.medicalCard}
+                        onChange={(e) =>
+                          setState({ medicalCard: e.target.checked })
+                        }
+                      />
+                    }
+                  />
+                  <FormControlLabel
+                    style={{ alignSelf: "center" }}
+                    label="I9"
+                    control={
+                      <Checkbox
+                        checked={state.i9}
+                        onChange={(e) => setState({ i9: e.target.checked })}
+                      />
+                    }
+                  />
 
-                <TextField
-                  error={state.invalidField === "drugFree"}
-                  helperText={
-                    state.invalidField === "drugFree"
-                      ? "Information required"
-                      : ""
-                  }
-                  className="textfield"
-                  id="drugFree"
-                  required
-                  label="Drug Free"
-                  type="text"
-                  placeholder="Drug Free"
-                  value={state.drugFree}
-                  onChange={handleOnChange}
-                />
+                  <FormControlLabel
+                    style={{ alignSelf: "center" }}
+                    label="Drug Free"
+                    control={
+                      <Checkbox
+                        checked={state.drugFree}
+                        onChange={(e) =>
+                          setState({ drugFree: e.target.checked })
+                        }
+                      />
+                    }
+                  />
+                </Box>
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
@@ -851,7 +853,7 @@ export const Employee = () => {
                     id="driverLicenceExpDate"
                     label="Driver Licence Expire Date"
                     placeholder="Driver Licence Expire Date"
-                    value={dayjs(state.driverLicenceExpDate)}
+                    value={state.driverLicenceExpDate}
                     onChange={(newValue) =>
                       setState({ driverLicenceExpDate: newValue })
                     }
@@ -875,16 +877,6 @@ export const Employee = () => {
                   type="text"
                   placeholder="National Register"
                   value={state.nationalReg}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  className="textfield"
-                  id="experience"
-                  label="Experience"
-                  type="text"
-                  placeholder="Experience"
-                  value={state.experience}
                   onChange={handleOnChange}
                 />
 
@@ -914,7 +906,7 @@ export const Employee = () => {
                     id="insuranceExpDate"
                     label="Insurance Expire Date"
                     placeholder="Insurance Expire Date"
-                    value={dayjs(state.insuranceExpDate)}
+                    value={state.insuranceExpDate}
                     onChange={(newValue) =>
                       setState({ insuranceExpDate: newValue })
                     }
