@@ -23,6 +23,9 @@ class Schedule {
         d.service_type,
         d.instructions,
         d.payment,
+        d.use_farmout,
+        c.company_id,
+        c.company_name,
         e.employee_id,
         e.firstname,
         e.lastname,
@@ -40,6 +43,7 @@ class Schedule {
         join vehicles v on v.vehicle_id = d.vehicle_id
         join locations lf on lf.location_id = d.from_location_id
         join locations lt on lt.location_id = d.to_location_id
+        join companies c on c.company_id = d.company_id
         WHERE s.service_date >= $1 AND s.service_date < $2`,
         [newDates.startDate, newEndDate]
       );
@@ -63,7 +67,7 @@ class Schedule {
       );
 
       const updatedDetail = await pool.query(
-        "UPDATE service_details SET spot_time = $1, start_time = $2, end_time = $3, service_type = $4, instructions = $5, payment = $6, employee_id = $7, vehicle_id = $8, from_location_id = $9, to_location_id = $10 WHERE detail_id = $11",
+        "UPDATE service_details SET spot_time = $1, start_time = $2, end_time = $3, service_type = $4, instructions = $5, payment = $6, employee_id = $7, vehicle_id = $8, from_location_id = $9, to_location_id = $10, use_farmout = $11, company_id = $12 WHERE detail_id = $13",
         [
           detail.spotTime,
           detail.startTime,
@@ -75,6 +79,8 @@ class Schedule {
           detail.vehicleId,
           detail.fromLocationId,
           detail.toLocationId,
+          detail.useFarmout,
+          detail.companyId,
           detail.detailId,
         ]
       );

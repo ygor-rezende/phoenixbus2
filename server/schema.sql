@@ -164,10 +164,12 @@ CREATE TABLE services (
 CREATE TABLE service_details (
     detail_id SERIAL,
     service_id INT NOT NULL,
-    employee_id VARCHAR(50) NOT NULL,
+    employee_id VARCHAR(50),
+    company_id VARCHAR(50),
     vehicle_id VARCHAR(50) NOT NULL,
     from_location_id VARCHAR(50) NOT NULL,
     to_location_id VARCHAR(50) NOT NULL,
+    use_farmout BOOLEAN,
     spot_time VARCHAR(30),
     start_time VARCHAR(30), 
     end_time VARCHAR(30),

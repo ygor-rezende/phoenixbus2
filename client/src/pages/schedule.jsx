@@ -68,6 +68,7 @@ export const Schedule = () => {
   const [employees, setEmployees] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [msg, setMsg] = useState("");
@@ -98,9 +99,13 @@ export const Schedule = () => {
       response = await getServer("/getallvehiclenames", controller.signal);
       const vehRespData = response?.data;
 
+      response = await getServer("/getallcompanynames", controller.signal);
+      const companyRespData = response.data;
+
       setEmployees(empRespData);
       setLocations(locRespData);
       setVehicles(vehRespData);
+      setCompanies(companyRespData);
     })();
 
     async function getTodaySchedule() {
@@ -303,6 +308,7 @@ export const Schedule = () => {
           empData={employees}
           locData={locations}
           vehData={vehicles}
+          compData={companies}
           startDate={startDate}
           endDate={endDate}
         />

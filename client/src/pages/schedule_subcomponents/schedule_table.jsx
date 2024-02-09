@@ -122,7 +122,10 @@ export const ScheduleTable = (props) => {
                 key={index}
                 hover
                 onClick={(e) => handleClick(e, row.detail_id)}
-                sx={{ cursor: "pointer" }}
+                sx={{
+                  cursor: "pointer",
+                  bgcolor: row?.use_farmout ? "aquamarine" : "whitesmoke",
+                }}
               >
                 <TableCell>{row?.invoice.slice(0, 8)}</TableCell>
                 <TableCell>{dayjs(row?.spot_time).format("HH:mm a")}</TableCell>
@@ -130,8 +133,14 @@ export const ScheduleTable = (props) => {
                   {dayjs(row?.start_time).format("HH:mm a")}
                 </TableCell>
                 <TableCell>{dayjs(row?.end_time).format("HH:mm a")}</TableCell>
-                <TableCell>{`${row?.firstname} ${row?.lastname}`}</TableCell>
-                <TableCell>{row?.vehicle_name}</TableCell>
+                <TableCell>
+                  {row?.use_farmout
+                    ? row?.company_name
+                    : `${row?.firstname} ${row?.lastname}`}
+                </TableCell>
+                <TableCell>
+                  {row?.use_farmout ? "Farm-out" : row?.vehicle_name}
+                </TableCell>
                 <TableCell align="right">{row?.payment}</TableCell>
                 <TableCell>{row?.service_type}</TableCell>
                 <TableCell>{row?.from_location}</TableCell>

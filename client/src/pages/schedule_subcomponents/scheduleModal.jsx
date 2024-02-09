@@ -12,6 +12,8 @@ import {
   FormControl,
   FormHelperText,
   InputLabel,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -30,6 +32,7 @@ const initialState = {
   detailId: 0,
   employeeId: "",
   vehicleId: "",
+  companyId: "",
   fromLocationId: "",
   toLocationId: "",
   spotTime: null,
@@ -37,6 +40,7 @@ const initialState = {
   endTime: null,
   driver: null,
   vehicle: null,
+  company: null,
   payment: 0.0,
   type: "",
   from: null,
@@ -45,6 +49,7 @@ const initialState = {
   charge: 0.0,
   openModal: false,
   invalidField: "",
+  useFarmout: false,
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -58,6 +63,7 @@ export const ScheduleModal = (props) => {
     empData,
     locData,
     vehData,
+    compData,
     onSave,
     startDate,
     endDate,
@@ -79,6 +85,7 @@ export const ScheduleModal = (props) => {
         detailId: rowData?.detail_id,
         employeeId: rowData?.employee_id,
         vehicleId: rowData?.vehicle_id,
+        companyId: rowData?.company_id,
         fromLocationId: rowData?.from_location_id,
         toLocationId: rowData?.to_location_id,
         spotTime: dayjs(rowData?.spot_time),
@@ -86,12 +93,14 @@ export const ScheduleModal = (props) => {
         endTime: dayjs(rowData?.end_time),
         driver: `${rowData?.firstname} ${rowData?.lastname}`,
         vehicle: rowData?.vehicle_name,
+        company: rowData?.company_name,
         payment: rowData?.payment,
         type: rowData?.service_type,
         from: rowData?.from_location,
         to: rowData?.to_location,
         instructions: rowData?.instructions,
         charge: rowData?.charge,
+        useFarmout: rowData?.use_farmout,
         openModal: true,
       });
     }
@@ -130,8 +139,10 @@ export const ScheduleModal = (props) => {
         payment: state.payment,
         employeeId: state.employeeId,
         vehicleId: state.vehicleId,
+        companyId: state.companyId,
         fromLocationId: state.fromLocationId,
         toLocationId: state.toLocationId,
+        useFarmout: state.useFarmout,
       },
     });
 
@@ -156,6 +167,7 @@ export const ScheduleModal = (props) => {
       detailId: 0,
       employeeId: "",
       vehicleId: "",
+      companyId: "",
       fromLocationId: "",
       toLocationId: "",
       spotTime: null,
@@ -163,6 +175,7 @@ export const ScheduleModal = (props) => {
       endTime: null,
       driver: null,
       vehicle: null,
+      company: null,
       payment: 0.0,
       type: "",
       from: null,
@@ -171,6 +184,7 @@ export const ScheduleModal = (props) => {
       charge: 0.0,
       openModal: false,
       invalidField: "",
+      useFarmout: false,
     });
   }; //clearState
 
@@ -188,16 +202,6 @@ export const ScheduleModal = (props) => {
 
     if (!state.endTime) {
       setState({ invalidField: "endTime" });
-      return;
-    }
-
-    if (!state.driver) {
-      setState({ invalidField: "driver" });
-      return;
-    }
-
-    if (!state.vehicle) {
-      setState({ invalidField: "vehicle" });
       return;
     }
 
@@ -267,6 +271,16 @@ export const ScheduleModal = (props) => {
     }
   };
 
+  //handle changes on company autocomplete
+  const handleCompanyChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        companyId: newValue.companyId,
+        company: newValue.company,
+      });
+    }
+  };
+
   return (
     <Modal
       open={state.openModal}
@@ -289,6 +303,18 @@ export const ScheduleModal = (props) => {
         >
           Editing Schedule
         </Typography>
+
+        <FormControlLabel
+          style={{ alignSelf: "center" }}
+          label="Use Farm-out"
+          control={
+            <Switch
+              checked={state.useFarmout}
+              onChange={(e) => setState({ useFarmout: e.target.checked })}
+            />
+          }
+        />
+
         <Box sx={{ display: "flex" }}>
           <Box className="modal2Columns">
             <TextField
@@ -338,7 +364,7 @@ export const ScheduleModal = (props) => {
                 className="modalField"
               >
                 <TimePicker
-                  label="Start time"
+                  label="Service time"
                   className="modalField"
                   id="startTime"
                   value={state.startTime}
@@ -375,81 +401,94 @@ export const ScheduleModal = (props) => {
             </LocalizationProvider>
           </Box>
           <Box className="modal2Columns">
-            <div
-              id="driver-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="driver"
-                className="autocomplete"
-                value={state.driver}
-                onChange={handleDriverChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.driver === value
-                }
-                options={empData?.map((element) => {
-                  const employee = {
-                    employeeId: element.employee_id,
-                    driver: `${element.firstname} ${element.lastname}`,
-                  };
-                  return employee;
-                })}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.driver ?? option}
-                renderInput={(params) => (
-                  <TextField
-                    required
-                    {...params}
-                    label="Driver"
-                    error={state.invalidField === "driver"}
-                    helperText={
-                      state.invalidField === "driver"
-                        ? "Information required"
-                        : ""
-                    }
-                  />
-                )}
-              />
-            </div>
+            {state.useFarmout && (
+              <div
+                id="company-box"
+                className="modalField"
+                style={{ display: "inline-block" }}
+              >
+                <Autocomplete
+                  id="company"
+                  className="autocomplete"
+                  value={state.company}
+                  onChange={handleCompanyChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.company === value
+                  }
+                  options={compData?.map((element) => {
+                    const company = {
+                      companyId: element.company_id,
+                      company: element.company_name,
+                    };
+                    return company;
+                  })}
+                  sx={{ width: 200 }}
+                  getOptionLabel={(option) => option.company ?? option}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Company" />
+                  )}
+                />
+              </div>
+            )}
 
-            <div
-              id="vehicle-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="vehicle"
-                className="autocomplete"
-                value={state.vehicle}
-                onChange={handleVehicleChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.vehicleName === value
-                }
-                options={vehData?.map((element) => {
-                  const vehicle = {
-                    vehicleId: element.vehicle_id,
-                    vehicleName: element.vehicle_name,
-                  };
-                  return vehicle;
-                })}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.vehicleName ?? option}
-                renderInput={(params) => (
-                  <TextField
-                    required
-                    {...params}
-                    label="Vehicle"
-                    error={state.invalidField === "vehicle"}
-                    helperText={
-                      state.invalidField === "vehicle"
-                        ? "Information required"
-                        : ""
+            {!state.useFarmout && (
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  id="driver-box"
+                  className="modalField"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="driver"
+                    className="autocomplete"
+                    value={state.driver}
+                    onChange={handleDriverChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.driver === value
                     }
+                    options={empData?.map((element) => {
+                      const employee = {
+                        employeeId: element.employee_id,
+                        driver: `${element.firstname} ${element.lastname}`,
+                      };
+                      return employee;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.driver ?? option}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Driver" />
+                    )}
                   />
-                )}
-              />
-            </div>
+                </div>
+                <div
+                  id="vehicle-box"
+                  className="modalField"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="vehicle"
+                    className="autocomplete"
+                    value={state.vehicle}
+                    onChange={handleVehicleChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.vehicleName === value
+                    }
+                    options={vehData?.map((element) => {
+                      const vehicle = {
+                        vehicleId: element.vehicle_id,
+                        vehicleName: element.vehicle_name,
+                      };
+                      return vehicle;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.vehicleName ?? option}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Vehicle" />
+                    )}
+                  />
+                </div>{" "}
+              </Box>
+            )}
 
             <div
               id="from-box"

@@ -115,6 +115,19 @@ class FarmOut {
       return res.status(500).json({ message: err.message });
     }
   } //deleteCompany
+
+  static async getAllCompanyNames() {
+    try {
+      const result = await pool.query(
+        "Select company_id, company_name FROM companies"
+      );
+
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getAllCompanyNames
 }
 
 module.exports = { FarmOut };

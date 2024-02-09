@@ -703,6 +703,7 @@ export const Employee = () => {
                 <GoogleAutoComplete
                   updateFields={updateAddress}
                   value={state.searchAddress}
+                  searchType={"address"}
                 />
 
                 <TextField

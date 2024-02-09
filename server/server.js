@@ -265,6 +265,12 @@ app.get("/getallcompanies", async (req, res) => {
   res.json(response);
 });
 
+//Get all company names
+app.get("/getallcompanynames", async (req, res) => {
+  let response = await FarmOut.getAllCompanyNames();
+  res.json(response);
+});
+
 //Update a company
 app.put(
   "/updatecompany",

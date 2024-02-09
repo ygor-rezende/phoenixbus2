@@ -36,14 +36,14 @@ export default function Summary(props) {
     <React.Fragment>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
         {" "}
-        Num of Trips
+        Number of Trips
       </Typography>
       <Typography component="p" variant="h5">
         {numTrips}
       </Typography>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
         {" "}
-        Num of Invoices
+        Number of Invoices
       </Typography>
       <Typography component="p" variant="h5">
         {numInvoices}
