@@ -559,10 +559,14 @@ app.delete(
 //#endregion
 
 //#region schedule
-app.get("/getschedule/:dates", async (req, res) => {
-  let response = await Schedule.getSchedule(req, res);
-  return response;
-});
+app.get(
+  "/getschedule/:dates",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Schedule.getSchedule(req, res);
+    return response;
+  }
+);
 
 app.put(
   "/updateSchedule",

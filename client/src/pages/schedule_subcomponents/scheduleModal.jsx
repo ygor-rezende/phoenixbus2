@@ -30,9 +30,9 @@ const initialState = {
   invoice: "",
   serviceId: 0,
   detailId: 0,
-  employeeId: "",
-  vehicleId: "",
-  companyId: "",
+  employeeId: null,
+  vehicleId: null,
+  companyId: null,
   fromLocationId: "",
   toLocationId: "",
   spotTime: null,
@@ -91,7 +91,9 @@ export const ScheduleModal = (props) => {
         spotTime: dayjs(rowData?.spot_time),
         startTime: dayjs(rowData?.start_time),
         endTime: dayjs(rowData?.end_time),
-        driver: `${rowData?.firstname} ${rowData?.lastname}`,
+        driver: rowData?.firstname
+          ? `${rowData?.firstname} ${rowData?.lastname}`
+          : null,
         vehicle: rowData?.vehicle_name,
         company: rowData?.company_name,
         payment: rowData?.payment,
@@ -165,9 +167,9 @@ export const ScheduleModal = (props) => {
       invoice: "",
       serviceId: 0,
       detailId: 0,
-      employeeId: "",
-      vehicleId: "",
-      companyId: "",
+      employeeId: null,
+      vehicleId: null,
+      companyId: null,
       fromLocationId: "",
       toLocationId: "",
       spotTime: null,
@@ -217,6 +219,21 @@ export const ScheduleModal = (props) => {
 
     if (!state.to) {
       setState({ invalidField: "to" });
+      return;
+    }
+
+    if (!state.driver && !state.useFarmout) {
+      setState({ invalidField: "driver" });
+      return;
+    }
+
+    if (!state.vehicle && !state.useFarmout) {
+      setState({ invalidField: "vehicle" });
+      return;
+    }
+
+    if (!state.company && state.useFarmout) {
+      setState({ invalidField: "company" });
       return;
     }
 
@@ -281,6 +298,19 @@ export const ScheduleModal = (props) => {
     }
   };
 
+  const handleCheckFarmout = (e) => {
+    const isChecked = e.target.checked;
+    if (isChecked)
+      setState({
+        driver: null,
+        vehicle: null,
+        employeeId: null,
+        vehicleId: null,
+        useFarmout: isChecked,
+      });
+    else setState({ company: null, companyId: null, useFarmout: isChecked });
+  };
+
   return (
     <Modal
       open={state.openModal}
@@ -308,10 +338,7 @@ export const ScheduleModal = (props) => {
           style={{ alignSelf: "center" }}
           label="Use Farm-out"
           control={
-            <Switch
-              checked={state.useFarmout}
-              onChange={(e) => setState({ useFarmout: e.target.checked })}
-            />
+            <Switch checked={state.useFarmout} onChange={handleCheckFarmout} />
           }
         />
 
@@ -425,7 +452,17 @@ export const ScheduleModal = (props) => {
                   sx={{ width: 200 }}
                   getOptionLabel={(option) => option.company ?? option}
                   renderInput={(params) => (
-                    <TextField {...params} label="Company" />
+                    <TextField
+                      {...params}
+                      required
+                      label="Company"
+                      error={state.invalidField === "company"}
+                      helperText={
+                        state.invalidField === "company"
+                          ? "Information required"
+                          : ""
+                      }
+                    />
                   )}
                 />
               </div>
@@ -456,7 +493,17 @@ export const ScheduleModal = (props) => {
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.driver ?? option}
                     renderInput={(params) => (
-                      <TextField {...params} label="Driver" />
+                      <TextField
+                        {...params}
+                        required
+                        label="Driver"
+                        error={state.invalidField === "driver"}
+                        helperText={
+                          state.invalidField === "driver"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
                     )}
                   />
                 </div>
@@ -483,7 +530,17 @@ export const ScheduleModal = (props) => {
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.vehicleName ?? option}
                     renderInput={(params) => (
-                      <TextField {...params} label="Vehicle" />
+                      <TextField
+                        {...params}
+                        required
+                        label="Vehicle"
+                        error={state.invalidField === "vehicle"}
+                        helperText={
+                          state.invalidField === "vehicle"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
                     )}
                   />
                 </div>{" "}

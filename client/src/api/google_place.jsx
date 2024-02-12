@@ -44,7 +44,7 @@ const GoogleAutoComplete = (props) => {
   function onPlaceChanged() {
     const place = autoCompleteRef.current.getPlace();
 
-    if (!place.geometry) {
+    if (!place?.geometry) {
       inputRef.current.value = "";
     } else {
       try {

@@ -39,11 +39,11 @@ class Schedule {
         lt.city as to_city
         from bookings b join services s on b.invoice = s.booking_id
         join service_details d on d.service_id = s.service_id
-        join employees e on e.employee_id = d.employee_id
-        join vehicles v on v.vehicle_id = d.vehicle_id
+        full outer join employees e on e.employee_id = d.employee_id
+        full outer join vehicles v on v.vehicle_id = d.vehicle_id
         join locations lf on lf.location_id = d.from_location_id
         join locations lt on lt.location_id = d.to_location_id
-        join companies c on c.company_id = d.company_id
+        full outer join companies c on c.company_id = d.company_id
         WHERE s.service_date >= $1 AND s.service_date < $2`,
         [newDates.startDate, newEndDate]
       );

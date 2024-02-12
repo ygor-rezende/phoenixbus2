@@ -23,7 +23,7 @@ export default function Summary(props) {
       }, 0);
 
       //set state
-      totInvoice.length > 0
+      totInvoice?.length > 0
         ? setNumInvoices(totInvoice.length)
         : setNumInvoices(0);
       totTrips ? setNumTrips(totTrips) : setNumTrips(0);
