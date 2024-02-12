@@ -26,7 +26,6 @@ import { Bookings } from "./pages/bookings.jsx";
 import RequireAuth from "./Authentication/RequireAuth.js";
 import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
-import Invoice from "./pages/pdfReports/invoice.js";
 
 const App = () => {
   const ROLES = {

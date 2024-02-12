@@ -130,6 +130,7 @@ class User {
           sameSite: "None",
           secure: true,
           maxAge: 10 * 60 * 60 * 1000,
+          partitioned: true,
         });
 
         return res.json({
