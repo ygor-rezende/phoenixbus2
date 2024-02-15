@@ -14,6 +14,7 @@ const { Employee } = require("./classes/employee");
 const { Service } = require("./classes/services");
 const { ServiceDetail } = require("./classes/serviceDetail");
 const { Schedule } = require("./classes/schedule");
+const { Driver } = require("./classes/driver");
 const cookieParser = require("cookie-parser");
 const verifyJWT = require("./middleware/verifyJWT");
 const credentials = require("./middleware/credentials");
@@ -577,7 +578,16 @@ app.put(
     return response;
   }
 );
-
 //#endregion
+
+//#region driver trips
+app.get(
+  "/getTripsByDriver/:driverId",
+  verifyRoles(ROLES_LIST.driver, ROLES_LIST.admin),
+  async (req, res) => {
+    let response = await Driver.getTripsByDriver(req, res);
+    return response;
+  }
+);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

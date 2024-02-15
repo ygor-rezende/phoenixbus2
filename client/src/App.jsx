@@ -63,7 +63,11 @@ const App = () => {
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/schedule" element={<Schedule />} />
               </Route>
-              <Route element={<RequireAuth allowedRoles={[ROLES.driver]} />}>
+              <Route
+                element={
+                  <RequireAuth allowedRoles={[ROLES.driver, ROLES.admin]} />
+                }
+              >
                 <Route path="/driverpage" element={<ScheduledRoutes />} />
               </Route>
               <Route

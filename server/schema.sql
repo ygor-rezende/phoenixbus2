@@ -63,6 +63,7 @@ CREATE TABLE companies (
 
 CREATE TABLE employees(
     employee_id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) REFERENCES users(username) UNIQUE,
     firstname VARCHAR(30) NOT NULL,
     lastname VARCHAR(30) NOT NULL,
     birth VARCHAR(30),

@@ -105,10 +105,7 @@ const Login = () => {
   }, [persist]);
 
   return (
-    <div
-      className="page"
-      style={{ alignItems: "center", display: "flex", flexDirection: "column" }}
-    >
+    <div className="loginPage">
       <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
         <LockOutlinedIcon />
       </Avatar>

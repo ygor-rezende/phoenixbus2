@@ -65,7 +65,7 @@ const AddVehicle = () => {
       }
       //no error
       else {
-        let responseData = await response?.data;
+        let responseData = response?.data;
         responseData = responseData.map((item) => {
           const vehicles = {
             id: item.vehicle_id,

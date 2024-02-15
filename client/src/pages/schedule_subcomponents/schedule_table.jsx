@@ -128,11 +128,11 @@ export const ScheduleTable = (props) => {
                 }}
               >
                 <TableCell>{row?.invoice.slice(0, 8)}</TableCell>
-                <TableCell>{dayjs(row?.spot_time).format("HH:mm a")}</TableCell>
+                <TableCell>{dayjs(row?.spot_time).format("hh:mm a")}</TableCell>
                 <TableCell>
-                  {dayjs(row?.start_time).format("HH:mm a")}
+                  {dayjs(row?.start_time).format("hh:mm a")}
                 </TableCell>
-                <TableCell>{dayjs(row?.end_time).format("HH:mm a")}</TableCell>
+                <TableCell>{dayjs(row?.end_time).format("hh:mm a")}</TableCell>
                 <TableCell>
                   {row?.use_farmout
                     ? row?.company_name
