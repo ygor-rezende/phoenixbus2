@@ -21,7 +21,8 @@ CREATE TYPE my_table_type AS (
 	to_address VARCHAR(255),
 	to_city VARCHAR(100),
 	to_state VARCHAR(255),
-	to_zip VARCHAR(6)
+	to_zip VARCHAR(6),
+	num_people SMALLINT
 );
 CREATE OR REPLACE FUNCTION get_trips_by_driver (userId VARCHAR(255))
 RETURNS TABLE (table_result my_table_type) language plpgsql AS $$

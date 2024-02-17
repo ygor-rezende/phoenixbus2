@@ -19,7 +19,7 @@ export default function Summary(props) {
 
       //Total charge
       const totalCharge = data?.reduce((total, current) => {
-        return total + current.charge;
+        return total + Number(current.charge);
       }, 0);
 
       //set state

@@ -262,6 +262,16 @@ export const Schedule = () => {
         >
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
+                  <ScheduleTable
+                    data={data}
+                    onDatePick={pickDate}
+                    dateString={dateString}
+                    editData={handleOnRowClick}
+                  />
+                </Paper>
+              </Grid>
               <Grid item xs={12} md={8} lg={9}>
                 <Paper
                   sx={{
@@ -284,16 +294,6 @@ export const Schedule = () => {
                   }}
                 >
                   <Summary data={data} />
-                </Paper>
-              </Grid>
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                  <ScheduleTable
-                    data={data}
-                    onDatePick={pickDate}
-                    dateString={dateString}
-                    editData={handleOnRowClick}
-                  />
                 </Paper>
               </Grid>
             </Grid>

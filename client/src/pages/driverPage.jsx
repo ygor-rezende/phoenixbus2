@@ -102,20 +102,9 @@ export const ScheduledRoutes = () => {
     };
   }, []);
 
-  const handleLinkClick = () => {
-    window.open(
-      "https://www.google.com/maps/dir/?api=1&travelmode=driving&layer=traffic&destination=28.538336,-81.37923"
-    );
-  };
-
   return (
     <>
-      <Typography
-        component="h2"
-        variant="h5"
-        onClick={handleLinkClick}
-        gutterBottom
-      >
+      <Typography component="h2" variant="h5" gutterBottom>
         {todaysTrip?.fromLocationName} to {todaysTrip?.toLocationName}
       </Typography>
       <div

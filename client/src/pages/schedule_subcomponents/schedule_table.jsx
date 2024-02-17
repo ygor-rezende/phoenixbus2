@@ -10,15 +10,38 @@ import {
   IconButton,
   Avatar,
   TableBody,
+  Tooltip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
+import PlaceIcon from "@mui/icons-material/Place";
+import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
+import { BusIcon } from "../../utils/busIcon";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
 const BoldTableCell = (props) => {
   return (
-    <TableCell {...props} style={{ fontWeight: "bold" }}>
+    <TableCell {...props} style={{ fontWeight: "bold", color: "white" }}>
+      {props.children}
+    </TableCell>
+  );
+};
+
+const SmallBoldCell = (props) => {
+  return (
+    <TableCell
+      {...props}
+      sx={{
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "primary.main",
+      }}
+    >
       {props.children}
     </TableCell>
   );
@@ -28,6 +51,7 @@ export const ScheduleTable = (props) => {
   const { data, onDatePick, dateString, editData } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [extendLine, setExtendLine] = useState("");
 
   const handleSearch = () => {
     if (startDate && endDate) {
@@ -98,61 +122,152 @@ export const ScheduleTable = (props) => {
       <Divider />
       <Table size="small">
         <TableHead>
-          <TableRow style={{ backgroundColor: "lightGrey" }}>
+          <TableRow sx={{ backgroundColor: "primary.main" }}>
             <BoldTableCell>Invoice</BoldTableCell>
-            <BoldTableCell>Spot Time</BoldTableCell>
-            <BoldTableCell>Service Time</BoldTableCell>
-            <BoldTableCell>End Time</BoldTableCell>
+            <BoldTableCell>Start/PickUp</BoldTableCell>
+            <BoldTableCell>End/Drop Off</BoldTableCell>
             <BoldTableCell>Driver</BoldTableCell>
             <BoldTableCell>Vehicle</BoldTableCell>
-            <BoldTableCell align="right">Payment</BoldTableCell>
             <BoldTableCell>Type</BoldTableCell>
-            <BoldTableCell>From</BoldTableCell>
-            <BoldTableCell>City From</BoldTableCell>
-            <BoldTableCell>To</BoldTableCell>
-            <BoldTableCell>City To</BoldTableCell>
-            <BoldTableCell>Instructions</BoldTableCell>
             <BoldTableCell align="right">Charge</BoldTableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>
-          {data?.map((row, index) => {
-            return (
+
+        {data?.map((row, index) => {
+          return (
+            <TableBody>
               <TableRow
                 key={index}
-                hover
-                onClick={(e) => handleClick(e, row.detail_id)}
                 sx={{
                   cursor: "pointer",
                   bgcolor: row?.use_farmout ? "aquamarine" : "whitesmoke",
                 }}
               >
-                <TableCell>{row?.invoice.slice(0, 8)}</TableCell>
-                <TableCell>{dayjs(row?.spot_time).format("hh:mm a")}</TableCell>
+                <TableCell>{row?.invoice?.slice(0, 8)}</TableCell>
                 <TableCell>
-                  {dayjs(row?.start_time).format("hh:mm a")}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                      gutterBottom
+                    >
+                      <AccessAlarmIcon color="primary" />
+                      {dayjs(row?.start_time).format("hh:mm a")}
+                      {" | "}
+                      {row?.service_date?.slice(0, 10)}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                    >
+                      <PlaceIcon color="primary" /> {row?.from_location} /{" "}
+                      {row?.from_city}
+                    </Typography>
+                  </Box>
                 </TableCell>
-                <TableCell>{dayjs(row?.end_time).format("hh:mm a")}</TableCell>
                 <TableCell>
-                  {row?.use_farmout
-                    ? row?.company_name
-                    : `${row?.firstname} ${row?.lastname}`}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                      gutterBottom
+                    >
+                      <AccessAlarmIcon color="success" />{" "}
+                      {dayjs(row?.end_time).format("hh:mm a")}
+                      {" | "}
+                      {row?.service_date?.slice(0, 10)}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                    >
+                      <PlaceIcon color="success" /> {row?.to_location} /{" "}
+                      {row?.to_city}
+                    </Typography>
+                  </Box>
                 </TableCell>
                 <TableCell>
-                  {row?.use_farmout ? "Farm-out" : row?.vehicle_name}
+                  {row?.use_farmout ? row?.company_name : `${row?.firstname}`}
                 </TableCell>
-                <TableCell align="right">{row?.payment}</TableCell>
+                <TableCell>
+                  <Box style={{ display: "flex", alignItems: "center" }}>
+                    <BusIcon color={row?.vehicle_color} />
+                    {row?.use_farmout ? "Farm-out" : row?.vehicle_name}
+                  </Box>
+                </TableCell>
+
                 <TableCell>{row?.service_type}</TableCell>
-                <TableCell>{row?.from_location}</TableCell>
-                <TableCell>{row?.from_city}</TableCell>
-                <TableCell>{row?.to_location}</TableCell>
-                <TableCell>{row?.to_city}</TableCell>
-                <TableCell>{row?.instructions}</TableCell>
-                <TableCell align="right">{row?.charge}</TableCell>
+
+                <TableCell align="right">${row?.charge}</TableCell>
+                <TableCell padding="none">
+                  <Tooltip title="Edit">
+                    <IconButton onClick={(e) => handleClick(e, row?.detail_id)}>
+                      <EditNoteIcon color="primary" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+                <TableCell padding="none">
+                  {extendLine === index ? (
+                    <Tooltip title="Shrink">
+                      <IconButton onClick={() => setExtendLine("")}>
+                        <ExpandLessIcon color="primary" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Expand">
+                      <IconButton onClick={() => setExtendLine(index)}>
+                        <ExpandMoreIcon color="primary" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
+
+              {extendLine === index ? (
+                <TableRow key={"r" + index}>
+                  <TableCell colSpan="9">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <SmallBoldCell>Driver</SmallBoldCell>
+                          <SmallBoldCell>Instructions</SmallBoldCell>
+                          <SmallBoldCell>Driver Payment</SmallBoldCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+                          <SmallBoldCell
+                            style={{ color: "black", fontWeight: "normal" }}
+                          >
+                            {row?.use_farmout
+                              ? row?.company_name
+                              : `${row?.firstname} ${row?.lastname}`}
+                          </SmallBoldCell>
+                          <SmallBoldCell
+                            style={{ color: "black", fontWeight: "normal" }}
+                          >
+                            {row?.instructions}
+                          </SmallBoldCell>
+                          <SmallBoldCell
+                            style={{ color: "black", fontWeight: "normal" }}
+                          >
+                            ${row?.payment}
+                          </SmallBoldCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          );
+        })}
       </Table>
     </Fragment>
   );

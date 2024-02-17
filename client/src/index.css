@@ -172,3 +172,8 @@
     margin: 2em 0;
     font-size: smaller;
   }
+
+  .scheduleFromTo{
+    display: flex;
+    align-items: center;
+  }
