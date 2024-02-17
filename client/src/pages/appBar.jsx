@@ -208,7 +208,7 @@ const APPBar = () => {
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
                 >
-                  My Routes
+                  My Trips
                 </Button>
               </Link>
             ) : null}
@@ -241,13 +241,7 @@ const APPBar = () => {
               >
                 Driver Payroll
               </MenuItem>
-              <MenuItem
-                component={NavLink}
-                to="/printInvoice"
-                onClick={handleCloseAccounting}
-              >
-                Print Invoice
-              </MenuItem>
+
               <MenuItem
                 component={NavLink}
                 to="/sales"

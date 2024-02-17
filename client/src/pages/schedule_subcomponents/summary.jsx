@@ -12,10 +12,9 @@ export default function Summary(props) {
       //Total of trips
       const totTrips = data?.length;
 
-      //Num of invoices
-      const totInvoice = data?.filter((element, index, array) => {
-        return array.indexOf(element) === index;
-      });
+      //Num of unique invoices
+      const invoices = data?.map((e) => e.invoice);
+      const uniqueInvoices = new Set(invoices);
 
       //Total charge
       const totalCharge = data?.reduce((total, current) => {
@@ -23,8 +22,8 @@ export default function Summary(props) {
       }, 0);
 
       //set state
-      totInvoice?.length > 0
-        ? setNumInvoices(totInvoice.length)
+      uniqueInvoices?.size > 0
+        ? setNumInvoices(uniqueInvoices.size)
         : setNumInvoices(0);
       totTrips ? setNumTrips(totTrips) : setNumTrips(0);
       setTotalCharge(Number(totalCharge));

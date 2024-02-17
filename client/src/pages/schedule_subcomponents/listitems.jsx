@@ -4,6 +4,7 @@ import {
   ListItemIcon,
   ListItemText,
   ListSubheader,
+  Tooltip,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
@@ -78,30 +79,36 @@ export const TimeListItems = (props) => {
 
   return (
     <Fragment>
-      <ListItemButton
-        onClick={(event) => onDatePick(curentMonth.start, curentMonth.end)}
-      >
-        <ListItemIcon>
-          <CalendarMonthIcon />
-        </ListItemIcon>
-        <ListItemText primary="Current Month" />
-      </ListItemButton>
-      <ListItemButton
-        onClick={(event) => onDatePick(currentWeek.start, currentWeek.end)}
-      >
-        <ListItemIcon>
-          <DateRangeIcon />
-        </ListItemIcon>
-        <ListItemText primary="Current Week" />
-      </ListItemButton>
-      <ListItemButton
-        onClick={(event) => onDatePick(todayDates.start, todayDates.end)}
-      >
-        <ListItemIcon>
-          <CalendarTodayIcon />
-        </ListItemIcon>
-        <ListItemText primary="Today's Trips" />
-      </ListItemButton>
+      <Tooltip title="Current Month">
+        <ListItemButton
+          onClick={(event) => onDatePick(curentMonth.start, curentMonth.end)}
+        >
+          <ListItemIcon>
+            <CalendarMonthIcon />
+          </ListItemIcon>
+          <ListItemText primary="Current Month" />
+        </ListItemButton>
+      </Tooltip>
+      <Tooltip title="Current Week">
+        <ListItemButton
+          onClick={(event) => onDatePick(currentWeek.start, currentWeek.end)}
+        >
+          <ListItemIcon>
+            <DateRangeIcon />
+          </ListItemIcon>
+          <ListItemText primary="Current Week" />
+        </ListItemButton>
+      </Tooltip>
+      <Tooltip title="Today's Trips">
+        <ListItemButton
+          onClick={(event) => onDatePick(todayDates.start, todayDates.end)}
+        >
+          <ListItemIcon>
+            <CalendarTodayIcon />
+          </ListItemIcon>
+          <ListItemText primary="Today's Trips" />
+        </ListItemButton>
+      </Tooltip>
     </Fragment>
   );
 };

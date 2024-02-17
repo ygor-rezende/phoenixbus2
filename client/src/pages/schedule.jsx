@@ -134,7 +134,7 @@ export const Schedule = () => {
         else {
           const responseMsg = await response.data;
           isMounted && setData(responseMsg);
-          setDateString("Today");
+          setDateString(`for Today (${startDate.slice(0, 10)})`);
         }
       } catch (err) {
         console.error(err);
@@ -176,7 +176,10 @@ export const Schedule = () => {
       else {
         const responseData = await response.data;
         setData(responseData);
-        setDateString(`${sDate} to ${eDate}`);
+        if (sDate === eDate && sDate === new Date().toISOString().slice(0, 10))
+          setDateString(`for Today (${sDate})`);
+        else if (sDate === eDate) setDateString(`for ${sDate}`);
+        else setDateString(`from ${sDate} to ${eDate}`);
       }
     } catch (err) {
       console.error(err);

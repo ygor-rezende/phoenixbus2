@@ -15,6 +15,7 @@ export const ScheduledRoutes = () => {
   const [openSnakbar, setOpenSnakbar] = useState(false);
   const [tripsData, setTripsData] = useState([]);
   const [todaysTrip, setTodaysTrip] = useState({});
+  const [upcomingTrips, setUpcomingTrips] = useState([]);
 
   const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
@@ -75,19 +76,24 @@ export const ScheduledRoutes = () => {
         });
 
         if (isMounted) {
-          setTodayData(responseData);
+          refineData(responseData);
           setTripsData(responseData);
         }
       }
     }; //getTrips
 
-    const setTodayData = (tripsData) => {
+    const refineData = (tripsData) => {
+      //Get today's trip
       let today = new Date().toISOString();
       today = today?.slice(0, 10);
 
       const todayTrip = tripsData?.find((trip) => trip.serviceDate === today);
       setTodaysTrip(todayTrip);
-    };
+
+      //set upcoming trips
+      const upcoming = tripsData?.filter((trip) => trip.serviceDate > today);
+      setUpcomingTrips(upcoming);
+    }; //refineData
 
     if (process.env.NODE_ENV === "development") {
       effectRun.current && getTrips();
@@ -104,73 +110,101 @@ export const ScheduledRoutes = () => {
 
   return (
     <>
-      <Typography component="h2" variant="h5" gutterBottom>
-        {todaysTrip?.fromLocationName} to {todaysTrip?.toLocationName}
-      </Typography>
-      <div
-        style={{
-          textAlign: "start",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ display: "flex" }}>
-          {todaysTrip.icon}
-          <Typography>{todaysTrip?.vehicleName}</Typography>
+      {todaysTrip?.length > 0 ? (
+        <Box>
+          <Typography component="h2" variant="h5" gutterBottom>
+            {todaysTrip?.fromLocationName} to {todaysTrip?.toLocationName}
+          </Typography>
+          <div
+            style={{
+              textAlign: "start",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex" }}>
+              {todaysTrip?.icon}
+              <Typography>{todaysTrip?.vehicleName}</Typography>
+            </Box>
+
+            <Typography>{todaysTrip?.numPeople} Passengers</Typography>
+          </div>
+
+          <GoogleMaps
+            origin={todaysTrip?.fromAddress?.concat(
+              ", ",
+              todaysTrip?.fromCity,
+              ", ",
+              todaysTrip?.fromZip,
+              " ",
+              todaysTrip?.fromState
+            )}
+            destination={todaysTrip?.toAddress?.concat(
+              ", ",
+              todaysTrip?.toCity,
+              ", ",
+              todaysTrip?.toZip,
+              " ",
+              todaysTrip?.toState
+            )}
+          />
+
+          <Typography
+            textAlign="start"
+            fontSize={14}
+            color="purple"
+            gutterBottom
+          >
+            Trip Requirements: {todaysTrip?.instructions}
+          </Typography>
+
+          <Box className="tripDetails">
+            <div>
+              <Typography>
+                Origin: {todaysTrip?.fromAddress}, {todaysTrip?.fromCity},{" "}
+                {todaysTrip?.fromZip} {todaysTrip?.fromState}
+              </Typography>
+              <Typography>
+                Spot Time: {todaysTrip?.serviceDate} -{" "}
+                {dayjs(todaysTrip?.spotTime).format("hh:mm A")}
+              </Typography>
+              <Typography>
+                Pickup Time: {todaysTrip?.serviceDate} -{" "}
+                {dayjs(todaysTrip?.startTime).format("hh:mm A")}
+              </Typography>
+            </div>
+            <div>
+              <Typography>
+                Destination: {todaysTrip?.toAddress}, {todaysTrip?.toCity},{" "}
+                {todaysTrip?.toZip} {todaysTrip?.toState}
+              </Typography>
+              <Typography>
+                Estimated Arrival: {todaysTrip?.serviceDate} -{" "}
+                {dayjs(todaysTrip?.endTime).format("hh:mm A")}
+              </Typography>
+            </div>
+          </Box>
         </Box>
-
-        <Typography>{todaysTrip?.numPeople} Passengers</Typography>
-      </div>
-
-      <GoogleMaps
-        origin={todaysTrip?.fromAddress?.concat(
-          ", ",
-          todaysTrip?.fromCity,
-          ", ",
-          todaysTrip?.fromZip,
-          " ",
-          todaysTrip?.fromState
-        )}
-        destination={todaysTrip?.toAddress?.concat(
-          ", ",
-          todaysTrip?.toCity,
-          ", ",
-          todaysTrip?.toZip,
-          " ",
-          todaysTrip?.toState
-        )}
-      />
-
-      <Typography textAlign="start" fontSize={14} color="purple" gutterBottom>
-        Trip Requirements: {todaysTrip?.instructions}
-      </Typography>
-
-      <Box className="tripDetails">
-        <div>
-          <Typography>
-            Origin: {todaysTrip?.fromAddress}, {todaysTrip?.fromCity},{" "}
-            {todaysTrip?.fromZip} {todaysTrip?.fromState}
+      ) : (
+        <Box>
+          <Typography component="h2" variant="h5" gutterBottom>
+            You have no trips today
           </Typography>
-          <Typography>
-            Spot Time: {todaysTrip?.serviceDate} -{" "}
-            {dayjs(todaysTrip?.spotTime).format("hh:mm A")}
-          </Typography>
-          <Typography>
-            Pickup Time: {todaysTrip?.serviceDate} -{" "}
-            {dayjs(todaysTrip?.startTime).format("hh:mm A")}
-          </Typography>
-        </div>
-        <div>
-          <Typography>
-            Destination: {todaysTrip?.toAddress}, {todaysTrip?.toCity},{" "}
-            {todaysTrip?.toZip} {todaysTrip?.toState}
-          </Typography>
-          <Typography>
-            Estimated Arrival: {todaysTrip?.serviceDate} -{" "}
-            {dayjs(todaysTrip?.endTime).format("hh:mm A")}
-          </Typography>
-        </div>
-      </Box>
+          {upcomingTrips?.length > 0 ? (
+            <Box>
+              <Typography>Upcoming Trips</Typography>
+              {upcomingTrips.map((trip) => {
+                return (
+                  <Typography>
+                    {trip?.serviceDate} | {trip?.fromLocationName} to{" "}
+                    {trip?.toLocationName}
+                  </Typography>
+                );
+              })}
+            </Box>
+          ) : null}
+        </Box>
+      )}
     </>
   );
 };

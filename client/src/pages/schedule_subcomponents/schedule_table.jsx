@@ -76,7 +76,7 @@ export const ScheduleTable = (props) => {
   return (
     <Fragment>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
-        {`Schedule for ${dateString}`}
+        {`Schedule ${dateString}`}
       </Typography>
       <Divider />
       <Box sx={{ display: "flex", justifyContent: "center", margin: "1em" }}>

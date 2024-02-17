@@ -1375,8 +1375,8 @@ export const Bookings = () => {
                         state.servicesData?.map((service) => {
                           return (
                             <Tab
-                              label={service.serviceName}
-                              key={service.id}
+                              label={service?.serviceName}
+                              key={service?.id}
                             ></Tab>
                           );
                         })}
@@ -1393,7 +1393,7 @@ export const Bookings = () => {
                           <CustomTabPanel
                             value={state.tabService}
                             index={index}
-                            key={service.id}
+                            key={service?.id}
                           >
                             <Table size="small">
                               <TableHead>
@@ -1487,30 +1487,30 @@ export const Bookings = () => {
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>
-                                    {details[index].map((detail) => {
-                                      const driver = state.employeesData.find(
+                                    {details[index]?.map((detail) => {
+                                      const driver = state.employeesData?.find(
                                         (employee) =>
-                                          employee.employee_id ===
-                                          detail.employee_id
+                                          employee?.employee_id ===
+                                          detail?.employee_id
                                       );
 
-                                      const vehicle = state.vehiclesData.find(
+                                      const vehicle = state.vehiclesData?.find(
                                         (vehicle) =>
-                                          vehicle.vehicle_id ===
-                                          detail.vehicle_id
+                                          vehicle?.vehicle_id ===
+                                          detail?.vehicle_id
                                       );
 
                                       const locationFrom =
-                                        state.locationsData.find(
+                                        state.locationsData?.find(
                                           (location) =>
-                                            location.location_id ===
-                                            detail.from_location_id
+                                            location?.location_id ===
+                                            detail?.from_location_id
                                         );
                                       const locationTo =
-                                        state.locationsData.find(
+                                        state.locationsData?.find(
                                           (location) =>
-                                            location.location_id ===
-                                            detail.to_location_id
+                                            location?.location_id ===
+                                            detail?.to_location_id
                                         );
 
                                       return (
@@ -1519,42 +1519,42 @@ export const Bookings = () => {
                                           onClick={(event) =>
                                             handleEditDetail(event, detail)
                                           }
-                                          key={detail.detail_id}
+                                          key={detail?.detail_id}
                                         >
                                           <TableCell>
-                                            {`${driver.firstname} ${driver.lastname}`}
+                                            {`${driver?.firstname} ${driver?.lastname}`}
                                           </TableCell>
                                           <TableCell>
-                                            {vehicle.vehicle_name}
+                                            {vehicle?.vehicle_name}
                                           </TableCell>
                                           <TableCell>
-                                            {locationFrom.location_name}
+                                            {locationFrom?.location_name}
                                           </TableCell>
                                           <TableCell>
-                                            {locationTo.location_name}
+                                            {locationTo?.location_name}
                                           </TableCell>
                                           <TableCell>
-                                            {dayjs(detail.spot_time).format(
+                                            {dayjs(detail?.spot_time).format(
                                               "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
-                                            {dayjs(detail.start_time).format(
+                                            {dayjs(detail?.start_time).format(
                                               "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
-                                            {dayjs(detail.end_time).format(
+                                            {dayjs(detail?.end_time).format(
                                               "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
-                                            {dayjs(detail.base_time).format(
+                                            {dayjs(detail?.base_time).format(
                                               "HH:mm a"
                                             )}
                                           </TableCell>
                                           <TableCell>
-                                            {detail.service_type}
+                                            {detail?.service_type}
                                           </TableCell>
                                         </TableRow>
                                       );
