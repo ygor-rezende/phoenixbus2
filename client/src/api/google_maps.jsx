@@ -47,7 +47,7 @@ const GoogleMaps = (props) => {
       const buttonControl = createButton();
       buttonDiv.appendChild(buttonControl);
       mapRef.current.controls[
-        window.google.maps.ControlPosition.TOP_CENTER
+        window.google.maps.ControlPosition.BOTTOM_CENTER
       ].push(buttonDiv);
     } //init map
 

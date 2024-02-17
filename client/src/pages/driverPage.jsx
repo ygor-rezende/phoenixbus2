@@ -110,7 +110,7 @@ export const ScheduledRoutes = () => {
 
   return (
     <>
-      {todaysTrip?.length > 0 ? (
+      {todaysTrip ? (
         <Box>
           <Typography component="h2" variant="h5" gutterBottom>
             {todaysTrip?.fromLocationName} to {todaysTrip?.toLocationName}
