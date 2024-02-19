@@ -15,10 +15,8 @@ import { Schedule } from "./pages/schedule";
 import { Quotes } from "./pages/quotes";
 import Register from "./pages/admin/RegisterUser.jsx";
 import ResetPassword from "./pages/resetPassword";
-import ResetUserPassword from "./pages/admin/ResetUserPassword";
 import ErrorPage from "./error-page";
 import Unauthorized from "./Unauthorized.jsx";
-import DeleteUser from "./pages/admin/deleteUser";
 import { ServiceLocation } from "./pages/servicelocation";
 import { FarmOut } from "./pages/admin/farmout";
 import { Employee } from "./pages/admin/employee";
@@ -79,13 +77,7 @@ const App = () => {
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.admin]} />}>
                 <Route path="/signup" element={<Register />} exact />
-                <Route
-                  path="/resetUserPass"
-                  element={<ResetUserPassword />}
-                  exact
-                />
                 <Route path="/driverpayroll" element={<DriverPayroll />} />
-                <Route path="/removeuser" element={<DeleteUser />} />
                 <Route path="/farmout" element={<FarmOut />} />
                 <Route path="/employee" element={<Employee />} />
               </Route>

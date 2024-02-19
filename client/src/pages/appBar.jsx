@@ -278,22 +278,9 @@ const APPBar = () => {
                 to="/signup"
                 onClick={handleCloseAdmin}
               >
-                Register user
+                Manage users
               </MenuItem>
-              <MenuItem
-                component={NavLink}
-                to="/resetUserPass"
-                onClick={handleCloseAdmin}
-              >
-                Reset user password
-              </MenuItem>
-              <MenuItem
-                component={NavLink}
-                to="/removeUser"
-                onClick={handleCloseAdmin}
-              >
-                Remove user
-              </MenuItem>
+
               <MenuItem
                 component={NavLink}
                 to="/farmout"
