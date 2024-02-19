@@ -9,6 +9,8 @@ import {
   Divider,
   Box,
   Typography,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { MuiColorInput } from "mui-color-input";
 import EnhancedTable from "../utils/table_generic";
@@ -32,6 +34,11 @@ const AddVehicle = () => {
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleName, setVehicleName] = useState("");
   const [vehicleYear, setVehicleYear] = useState(null);
+  const [vin, setVin] = useState("");
+  const [capacity, setCapacity] = useState(0);
+  const [tag, setTag] = useState("");
+  const [maintenance, setMaintenance] = useState(false);
+  const [ada, setAda] = useState(false);
   const [openSnakbar, setOpenSnakbar] = useState(false);
   const [isDataUpdated, setIsdataUpdated] = useState(false);
   const [vehiclesData, setVehiclesData] = useState([]);
@@ -73,6 +80,13 @@ const AddVehicle = () => {
             model: item.vehicle_model,
             year: item.vehicle_year,
             color: item.vehicle_color,
+            vin: item.vin,
+            capacity: item.capacity,
+            tag: item.tag,
+            maintenance: item.maintenance,
+            ada: item.ada,
+            maintenanceCheck: <Checkbox checked={item.maintenance} />,
+            adaCheck: <Checkbox checked={item.ada} />,
             icon: <BusIcon color={item.vehicle_color} />,
           };
           return vehicles;
@@ -117,6 +131,12 @@ const AddVehicle = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (vehicleYear === null) {
+      window.alert("Vehicle year can't be empty");
+      return;
+    }
+
+    if (capacity <= 0) {
+      window.alert("Pax must be greater than 0");
       return;
     }
 
@@ -127,6 +147,11 @@ const AddVehicle = () => {
         vehicleModel: vehicleModel,
         vehicleYear: vehicleYear,
         vehicleColor: vehicleColor,
+        vin: vin,
+        capacity: capacity,
+        tag: tag,
+        maintenance: maintenance,
+        ada: ada,
       });
 
       if (response?.data) {
@@ -149,6 +174,11 @@ const AddVehicle = () => {
           model: vehicleModel,
           year: vehicleYear,
           color: vehicleColor,
+          vin: vin,
+          capacity: capacity,
+          tag: tag,
+          maintenance: maintenance,
+          ada: ada,
         },
       });
 
@@ -175,6 +205,11 @@ const AddVehicle = () => {
     setVehicleModel("");
     setVehicleName("");
     setVehicleYear(null);
+    setVin("");
+    setCapacity(0);
+    setTag("");
+    setMaintenance(false);
+    setAda(false);
     setOnEditMode(false);
     setStatus("New Vehicle");
     setIsdataUpdated(!isDataUpdated);
@@ -185,8 +220,13 @@ const AddVehicle = () => {
     setVehicleColor("#ffffff");
     setVehicleModel("");
     setVehicleName("");
-    setStatus("New Vehicle");
     setVehicleYear(null);
+    setVin("");
+    setCapacity(0);
+    setTag("");
+    setMaintenance(false);
+    setAda(false);
+    setStatus("New Vehicle");
     setOnEditMode(false);
   };
 
@@ -216,6 +256,11 @@ const AddVehicle = () => {
     setVehicleModel(vehiclesData?.find((e) => e.id === id)?.model);
     setVehicleName(vehiclesData?.find((e) => e.id === id)?.name);
     setVehicleYear(vehiclesData?.find((e) => e.id === id)?.year);
+    setVin(vehiclesData?.find((e) => e.id === id)?.vin);
+    setCapacity(vehiclesData?.find((e) => e.id === id)?.capacity);
+    setTag(vehiclesData?.find((e) => e.id === id)?.tag);
+    setMaintenance(vehiclesData?.find((e) => e.id === id)?.maintenance);
+    setAda(vehiclesData?.find((e) => e.id === id)?.ada);
   };
 
   //cancel editing when a checkbox is selected
@@ -238,6 +283,24 @@ const AddVehicle = () => {
     },
     { id: "year", isNumeric: false, isPaddingDisabled: false, label: "Year" },
     { id: "icon", isNumeric: false, isPaddingDisabled: false, label: "Color" },
+    {
+      id: "capacity",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "PAX",
+    },
+    {
+      id: "maintenanceCheck",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "In Maintenance",
+    },
+    {
+      id: "adaCheck",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "ADA",
+    },
   ];
 
   return (
@@ -258,6 +321,7 @@ const AddVehicle = () => {
               value={vehicleName}
               onChange={(e) => setVehicleName(e.target.value)}
             />
+
             <TextField
               id="vehicleModel"
               className="textfield"
@@ -268,6 +332,7 @@ const AddVehicle = () => {
               value={vehicleModel}
               onChange={(e) => setVehicleModel(e.target.value)}
             />
+
             <div
               id="vehicle-year-box"
               className="textfield"
@@ -287,6 +352,7 @@ const AddVehicle = () => {
                 )}
               />
             </div>
+
             <MuiColorInput
               id="vehicleColor"
               className="textfield"
@@ -296,6 +362,64 @@ const AddVehicle = () => {
               onChange={(color) => setVehicleColor(color)}
               isAlphaHidden
             />
+
+            <TextField
+              id="vin"
+              className="textfield"
+              label="VIN"
+              type="text"
+              placeholder="VIN"
+              value={vin}
+              onChange={(e) => setVin(e.target.value)}
+            />
+
+            <TextField
+              id="pax"
+              required
+              className="textfield"
+              label="PAX"
+              type="text"
+              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+            />
+
+            <TextField
+              id="tag"
+              className="textfield"
+              label="TAG"
+              type="text"
+              placeholder="TAG"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+            />
+
+            <FormControlLabel
+              id="maitenance"
+              className="textfield"
+              style={{ alignSelf: "center" }}
+              control={
+                <Checkbox
+                  checked={maintenance}
+                  onChange={(e) => setMaintenance(e.target.checked)}
+                />
+              }
+              label="In Maintenance"
+            />
+
+            <FormControlLabel
+              id="ada"
+              className="textfield"
+              style={{ alignSelf: "center" }}
+              control={
+                <Checkbox
+                  checked={ada}
+                  onChange={(e) => setAda(e.target.checked)}
+                />
+              }
+              label="ADA"
+            />
+
             <p></p>
             <Button variant="contained" type="submit">
               Save

@@ -11,6 +11,11 @@ CREATE TABLE vehicles (
     vehicle_model VARCHAR(255) NOT NULL, 
     vehicle_year SMALLINT NOT NULL,
     vehicle_color VARCHAR(255) NOT NULL
+    vin VARCHAR(20),
+    capacity SMALLINT NOT NULL,
+    tag VARCHAR (20),
+    maintenance BOOLEAN,
+    ada BOOLEAN
 ),
 
 CREATE TABLE clients (

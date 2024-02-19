@@ -4,18 +4,28 @@ const pool = require("../db");
 class Vehicle {
   static async createVehicle(req, res) {
     try {
-      const { vehicleName, vehicleModel, vehicleYear, vehicleColor } = req.body;
+      const {
+        vehicleName,
+        vehicleModel,
+        vehicleYear,
+        vehicleColor,
+        vin,
+        capacity,
+        tag,
+        maintenance,
+        ada,
+      } = req.body;
 
       if (!vehicleColor || !vehicleModel || !vehicleName || !vehicleYear)
         return res
           .status(400)
-          .json({ message: "All vehicle information is required." });
+          .json({ message: "Missing required vehicle information." });
 
       //generate a new id
       const newId = uuid();
       //insert the new vehicle
       await pool.query(
-        `CALL create_vehicle(vehicle_id => '${newId}'::TEXT, vehicle_name => '${vehicleName}'::TEXT, vehicle_model => '${vehicleModel}'::TEXT, vehicle_year => ${vehicleYear}, vehicle_color => '${vehicleColor}'::TEXT)`
+        `CALL create_vehicle(vehicle_id => '${newId}'::TEXT, vehicle_name => '${vehicleName}'::TEXT, vehicle_model => '${vehicleModel}'::TEXT, vehicle_year => ${vehicleYear}, vehicle_color => '${vehicleColor}'::TEXT, vin => '${vin}'::TEXT, capacity => ${capacity}, tag => '${tag}'::TEXT, maintenance => ${maintenance}, ada => ${ada})`
       );
 
       //send the reponse to client
@@ -76,7 +86,7 @@ class Vehicle {
           .json({ message: "Bad request: No vehicle info provided" });
 
       await pool.query(
-        `CALL update_vehicle(vehicleId => '${vehicle.id}'::TEXT, vehicleName => '${vehicle.name}'::TEXT, vehicleModel => '${vehicle.model}'::TEXT, vehicleYear => ${vehicle.year}, vehicleColor => '${vehicle.color}'::TEXT)`
+        `CALL update_vehicle(vehicleId => '${vehicle.id}'::TEXT, vehicleName => '${vehicle.name}'::TEXT, vehicleModel => '${vehicle.model}'::TEXT, vehicleYear => ${vehicle.year}, vehicleColor => '${vehicle.color}'::TEXT, vin1 => '${vehicle.vin}'::TEXT, capacity1 => ${vehicle.capacity}, tag1 => '${vehicle.tag}'::TEXT, maintenance1 => ${vehicle.maintenance}, ada1 => ${vehicle.ada})`
       );
 
       return res.json(`Vehicle ${vehicle.name} updated`);
@@ -89,7 +99,7 @@ class Vehicle {
   static async getAllVehicleNames() {
     try {
       const result = await pool.query(
-        "Select vehicle_id, vehicle_name FROM vehicles"
+        "Select vehicle_id, vehicle_name FROM vehicles WHERE maintenance = false"
       );
       //console.log(result.rows);
       return result.rows;

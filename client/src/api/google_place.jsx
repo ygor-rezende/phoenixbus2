@@ -71,16 +71,16 @@ const GoogleAutoComplete = (props) => {
           )?.long_name ?? "";
 
         let address1 =
-          place.address_components.find((element) =>
+          place.address_components?.find((element) =>
             element.types.includes("street_number")
           )?.long_name ?? "";
 
-        address1 +=
-          " " +
-            place.address_components.find((element) =>
-              element.types.includes("route")
-            )?.short_name ?? "";
+        let route =
+          place.address_components?.find((element) =>
+            element.types.includes("route")
+          )?.short_name ?? "";
 
+        if (route) address1 += ` ${route}`;
         const fullAddress = place.formatted_address;
 
         updateFields(address1, city, state, zip, country, fullAddress);

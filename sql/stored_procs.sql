@@ -4,13 +4,18 @@ CREATE OR REPLACE PROCEDURE create_vehicle(
     IN vehicle_name TEXT,
     IN vehicle_model TEXT,
     IN vehicle_year INTEGER,
-    IN vehicle_color TEXT
+    IN vehicle_color TEXT,
+    IN vin TEXT,
+    IN capacity INTEGER,
+    IN tag TEXT,
+    IN maintenance BOOLEAN,
+    IN ada BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO vehicles (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color)
-  VALUES (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color);
+  INSERT INTO vehicles (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color, vin, capacity, tag, maintenance, ada)
+  VALUES (vehicle_id, vehicle_name, vehicle_model, vehicle_year, vehicle_color, vin, capacity, tag, maintenance, ada);
 END;
 $$;
 
@@ -31,12 +36,17 @@ CREATE OR REPLACE PROCEDURE update_vehicle(
     IN vehicleName TEXT,
     IN vehicleModel TEXT,
     IN vehicleYear INTEGER,
-    IN vehicleColor TEXT
+    IN vehicleColor TEXT,
+    IN vin1 TEXT,
+    IN capacity1 INTEGER,
+    IN tag1 TEXT,
+    IN maintenance1 BOOLEAN,
+    IN ada1 BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  UPDATE vehicles SET vehicle_name = vehicleName, vehicle_model = vehicleModel, vehicle_year = vehicleYear, vehicle_color = vehicleColor WHERE vehicle_id = vehicleId;
+  UPDATE vehicles SET vehicle_name = vehicleName, vehicle_model = vehicleModel, vehicle_year = vehicleYear, vehicle_color = vehicleColor, vin = vin1, capacity = capacity1, tag = tag1, maintenance = maintenance1, ada = ada1 WHERE vehicle_id = vehicleId;
 END;
 $$;
 

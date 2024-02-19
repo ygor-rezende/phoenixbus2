@@ -147,7 +147,7 @@ export const DetailModal = (props) => {
           const vehicle = response?.data?.at(0);
           setState({
             curVehicle: vehicle,
-            vehicleName: vehicle.vehicle_name,
+            vehicleName: vehicle?.vehicle_name,
           });
         })(data.vehicle_id);
 
@@ -476,10 +476,10 @@ export const DetailModal = (props) => {
                 isOptionEqualToValue={(option, value) =>
                   option.vehicleName === value
                 }
-                options={state.vehicles.map((element) => {
+                options={state.vehicles?.map((element) => {
                   const vehicle = {
-                    vehicleId: element.vehicle_id,
-                    vehicleName: element.vehicle_name,
+                    vehicleId: element?.vehicle_id,
+                    vehicleName: element?.vehicle_name,
                   };
                   return vehicle;
                 })}

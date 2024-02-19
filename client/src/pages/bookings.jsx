@@ -884,6 +884,7 @@ export const Bookings = () => {
 
     //set the state variables to open the service modal
     setState({
+      serviceId: detail?.service_id,
       currentDetail: detail,
       editingDetail: true,
       triggerDetailModal: state.triggerDetailModal + 1,
