@@ -38,7 +38,7 @@ const initialState = {
   detailId: 0,
   employeeId: "",
   driverName: null,
-  employees: [],
+  drivers: [],
   curEmployee: null,
   vehicleId: "",
   vehicleName: null,
@@ -54,12 +54,8 @@ const initialState = {
   spotTime: null,
   startTime: null,
   endTime: null,
-  baseTime: null,
-  releasedTime: null,
-  type: "",
   instructions: "",
   payment: 0.0,
-  perdiem: 0.0,
   gratuity: 0.0,
   openModal: false,
   invalidField: "",
@@ -92,9 +88,9 @@ export const DetailModal = (props) => {
     if (open > 0) {
       clearState();
 
-      //get all employees (firstname and lastname) to load the autocomplete
-      (async function getAllEmployees() {
-        const response = await getServer("/getallemployeenames");
+      //get all drivers to load the autocomplete
+      (async function getAllDrivers() {
+        const response = await getServer("/getdrivers");
 
         if (response.disconnect) {
           setAuth({});
@@ -110,7 +106,7 @@ export const DetailModal = (props) => {
         //no error
         else {
           setState({
-            employees: response?.data,
+            drivers: response?.data,
           });
         }
       })();
@@ -175,12 +171,8 @@ export const DetailModal = (props) => {
           spotTime: dayjs(data.spot_time),
           startTime: dayjs(data.start_time),
           endTime: dayjs(data.end_time),
-          baseTime: dayjs(data.base_time),
-          releasedTime: dayjs(data.released_time),
-          type: data.service_type,
           instructions: data.instructions,
           payment: data.payment,
-          perdiem: data.perdiem,
           gratuity: data.gratuity,
           openModal: true,
         });
@@ -206,9 +198,6 @@ export const DetailModal = (props) => {
     p: 4,
   };
 
-  //service types
-  const types = ["OW", "RT", "CH", "OT"];
-
   //handle form submit
   const handleSaveNewDetail = async () => {
     //validate form
@@ -229,12 +218,8 @@ export const DetailModal = (props) => {
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
-          baseTime: state.baseTime,
-          releasedTime: state.releasedTime,
-          type: state.type,
           instructions: state.instructions,
           payment: state.payment,
-          perdiem: state.perdiem,
           gratuity: state.gratuity,
         },
       });
@@ -262,12 +247,8 @@ export const DetailModal = (props) => {
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
-          baseTime: state.baseTime,
-          releasedTime: state.releasedTime,
-          type: state.type,
           instructions: state.instructions,
           payment: state.payment,
-          perdiem: state.perdiem,
           gratuity: state.gratuity,
         },
       });
@@ -349,7 +330,7 @@ export const DetailModal = (props) => {
       detailId: 0,
       employeeId: "",
       driverName: null,
-      employees: [],
+      drivers: [],
       vehicleId: "",
       vehicleName: null,
       vehicles: [],
@@ -361,12 +342,8 @@ export const DetailModal = (props) => {
       spotTime: null,
       startTime: null,
       endTime: null,
-      baseTime: null,
-      releasedTime: null,
-      type: "",
       instructions: "",
       payment: 0.0,
-      perdiem: 0.0,
       gratuity: 0.0,
       openModal: false,
       invalidField: "",
@@ -438,12 +415,12 @@ export const DetailModal = (props) => {
                 isOptionEqualToValue={(option, value) =>
                   option.driverName === value
                 }
-                options={state.employees.map((element) => {
-                  const employee = {
+                options={state.drivers?.map((element) => {
+                  const driver = {
                     employeeId: element.employee_id,
-                    driverName: `${element.firstname} ${element.lastname}`,
+                    driverName: element.fullname,
                   };
-                  return employee;
+                  return driver;
                 })}
                 sx={{ width: 200 }}
                 getOptionLabel={(option) => option.driverName ?? option}
@@ -575,25 +552,7 @@ export const DetailModal = (props) => {
                 )}
               />
             </div>
-            <FormControl>
-              <InputLabel>Pick a Type</InputLabel>
-              <Select
-                id="type"
-                className="modalField"
-                value={state.type}
-                onChange={(e) => setState({ type: e.target.value })}
-                label="Pick a Type"
-                placeholder="Pick a Type"
-              >
-                {types.map((code) => {
-                  return (
-                    <MenuItem key={code} value={code}>
-                      {code}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl>
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="Spot time"
@@ -602,6 +561,10 @@ export const DetailModal = (props) => {
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
               />
+            </LocalizationProvider>
+          </Box>
+          <Box className="modal2Columns">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="Start time"
                 className="modalField"
@@ -611,32 +574,12 @@ export const DetailModal = (props) => {
                   setState({ startTime: dayjs(newValue) })
                 }
               />
-            </LocalizationProvider>
-          </Box>
-          <Box className="modal2Columns">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="End time"
                 className="modalField"
                 id="endTime"
                 value={state.endTime}
                 onChange={(newValue) => setState({ endTime: dayjs(newValue) })}
-              />
-              <TimePicker
-                label="Base time"
-                className="modalField"
-                id="baseTime"
-                value={state.baseTime}
-                onChange={(newValue) => setState({ baseTime: dayjs(newValue) })}
-              />
-              <TimePicker
-                label="Released time"
-                className="modalField"
-                id="releasedTime"
-                value={state.releasedTime}
-                onChange={(newValue) =>
-                  setState({ releasedTime: dayjs(newValue) })
-                }
               />
             </LocalizationProvider>
             <TextField
@@ -659,16 +602,7 @@ export const DetailModal = (props) => {
               value={state.gratuity}
               onChange={(e) => setState({ gratuity: e.target.value })}
             />
-            <TextField
-              id="perdiem"
-              className="modalField"
-              label="Perdiem $"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Perdiem $"
-              value={state.perdiem}
-              onChange={(e) => setState({ perdiem: e.target.value })}
-            />
+
             <TextField
               id="instructions"
               className="modalField"

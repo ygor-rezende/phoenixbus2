@@ -11,7 +11,7 @@ class ServiceDetail {
     try {
       //insert new
       const newDetail = await pool.query(
-        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, spot_time, start_time, end_time, base_time, service_type, instructions, gratuity, released_time, payment, perdiem)
+        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, spot_time, start_time, end_time, instructions, gratuity, payment)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
         [
           detail.serviceId,
@@ -22,13 +22,9 @@ class ServiceDetail {
           detail.spotTime,
           detail.startTime,
           detail.endTime,
-          detail.baseTime,
-          detail.type,
           detail.instructions,
           detail.gratuity,
-          detail.releasedTime,
           detail.payment,
-          detail.perdiem,
         ]
       );
       console.log(newDetail.rowCount);
@@ -107,7 +103,7 @@ class ServiceDetail {
 
     try {
       const updatedDetail = await pool.query(
-        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, base_time = $9, service_type = $10, instructions = $11, gratuity = $12, released_time = $13, payment = $14, perdiem = $15 WHERE detail_id = $16",
+        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11 WHERE detail_id = $12",
         [
           detail.serviceId,
           detail.employeeId,
@@ -117,13 +113,9 @@ class ServiceDetail {
           detail.spotTime,
           detail.startTime,
           detail.endTime,
-          detail.baseTime,
-          detail.type,
           detail.instructions,
           detail.gratuity,
-          detail.releasedTime,
           detail.payment,
-          detail.perdiem,
           detail.detailId,
         ]
       );

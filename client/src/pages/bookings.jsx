@@ -98,6 +98,8 @@ const initialState = {
   bookingsData: [],
   clientsData: [],
   employeesData: [],
+  salesPeople: [],
+  drivers: [],
   vehiclesData: [],
   locationsData: [],
   onEditMode: false,
@@ -143,6 +145,12 @@ export const Bookings = () => {
 
       response = await getServer("/getallemployees", controller.signal);
       const employeesRespData = response?.data;
+
+      response = await getServer("/getsalespeople", controller.signal);
+      const salesPeopleRespData = response?.data;
+
+      response = await getServer("/getdrivers", controller.signal);
+      const driversRespData = response?.data;
 
       response = await getServer("/getallvehiclenames", controller.signal);
       const vehiclesRespData = response?.data;
@@ -260,6 +268,8 @@ export const Bookings = () => {
             locationsData: locationsRespData,
             quotesData: quotesRespData,
             bookingsData: bookingsRespData,
+            salesPeople: salesPeopleRespData,
+            drivers: driversRespData,
           });
       }
     }; //getAllData
@@ -593,13 +603,9 @@ export const Bookings = () => {
 
     //load fields
     //get client id and employee id from bookings data
-    const clientId = state.bookingsData.filter((e) => e.id === id)[0].clientId;
-    const employeeId = state.bookingsData.filter((e) => e.id === id)[0]
-      .employeeId;
-    const employeeObject = state.employeesData.filter(
-      (employee) => employee.employee_id === employeeId
-    )[0];
-    const quoteId = state.bookingsData.filter((e) => e.id === id)[0].quoteid;
+    const clientId = state.bookingsData?.find((e) => e.id === id)?.clientId;
+    const employeeId = state.bookingsData?.find((e) => e.id === id)?.employeeId;
+    const quoteId = state.bookingsData?.find((e) => e.id === id)?.quoteid;
     setState({
       onEditMode: true,
       expandPanel: true,
@@ -607,49 +613,50 @@ export const Bookings = () => {
       invoice: id,
       quoteId: quoteId,
       clientId: clientId,
-      agencyName: state.clientsData.filter(
+      agencyName: state.clientsData?.find(
         (client) => client.client_id === clientId
-      )[0].agency,
-      agencyEmail: state.clientsData.filter(
+      )?.agency,
+      agencyEmail: state.clientsData?.find(
         (client) => client.client_id === clientId
-      )[0].email,
-      agencyContact: state.clientsData.filter(
+      )?.email,
+      agencyContact: state.clientsData?.find(
         (client) => client.client_id === clientId
-      )[0].contact,
+      )?.contact,
       employeeId: employeeId,
-      salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
-      responsibleName: state.bookingsData.find((e) => e.id === id)
-        .responsibleName,
-      responsibleEmail: state.bookingsData.find((e) => e.id === id)
-        .responsibleEmail,
-      responsiblePhone: state.bookingsData.find((e) => e.id === id)
-        .responsiblePhone,
+      salesPerson: state.salesPeople?.find((e) => e.employee_id === employeeId)
+        ?.fullname,
+      responsibleName: state.bookingsData?.find((e) => e.id === id)
+        ?.responsibleName,
+      responsibleEmail: state.bookingsData?.find((e) => e.id === id)
+        ?.responsibleEmail,
+      responsiblePhone: state.bookingsData?.find((e) => e.id === id)
+        ?.responsiblePhone,
       bookingDate: dayjs(
-        state.bookingsData.filter((e) => e.id === id)[0].bookingDate
+        state.bookingsData?.find((e) => e.id === id)?.bookingDate
       ),
       quoteDate:
-        dayjs(state.bookingsData.filter((e) => e.id === id)[0].quoteDate) ?? "",
-      category: state.bookingsData.filter((e) => e.id === id)[0].category,
-      paxGroup: state.bookingsData.filter((e) => e.id === id)[0].paxGroup,
-      numPeople: state.bookingsData.filter((e) => e.id === id)[0].numPeople,
+        dayjs(state.bookingsData?.find((e) => e.id === id)?.quoteDate) ?? "",
+      category: state.bookingsData?.find((e) => e.id === id)?.category,
+      paxGroup: state.bookingsData?.find((e) => e.id === id)?.paxGroup,
+      numPeople: state.bookingsData?.find((e) => e.id === id)?.numPeople,
       tripStartDate: dayjs(
-        state.bookingsData.filter((e) => e.id === id)[0].tripStartDate
+        state.bookingsData?.find((e) => e.id === id)?.tripStartDate
       ),
       tripEndDate: dayjs(
-        state.bookingsData.filter((e) => e.id === id)[0].tripEndDate
+        state.bookingsData?.find((e) => e.id === id)?.tripEndDate
       ),
-      deposit: state.bookingsData.filter((e) => e.id === id)[0].deposit,
-      quotedCost: state.bookingsData.filter((e) => e.id === id)[0].cost,
-      arrivalProcMCOMCA: state.bookingsData.filter((e) => e.id === id)[0]
-        .arrivalProcMCOMCA,
-      numHoursQuoteValid: state.bookingsData.filter((e) => e.id === id)[0]
-        .numHoursQuoteValid,
-      clientComments: state.bookingsData.filter((e) => e.id === id)[0]
-        .clientComments,
-      intineraryDetails: state.bookingsData.filter((e) => e.id === id)[0]
-        .intineraryDetails,
-      internalComments: state.bookingsData.filter((e) => e.id === id)[0]
-        .internalComents,
+      deposit: state.bookingsData?.find((e) => e.id === id)?.deposit,
+      quotedCost: state.bookingsData?.find((e) => e.id === id)?.cost,
+      arrivalProcMCOMCA: state.bookingsData?.find((e) => e.id === id)
+        ?.arrivalProcMCOMCA,
+      numHoursQuoteValid: state.bookingsData?.find((e) => e.id === id)
+        ?.numHoursQuoteValid,
+      clientComments: state.bookingsData?.find((e) => e.id === id)
+        ?.clientComments,
+      intineraryDetails: state.bookingsData?.find((e) => e.id === id)
+        ?.intineraryDetails,
+      internalComments: state.bookingsData?.find((e) => e.id === id)
+        ?.internalComents,
       servicesData: services,
       tabService: 0,
       detailsData: details,
@@ -1067,10 +1074,10 @@ export const Bookings = () => {
                     isOptionEqualToValue={(option, value) =>
                       option.salesPerson === value
                     }
-                    options={state.employeesData.map((element) => {
+                    options={state.salesPeople?.map((element) => {
                       const employee = {
                         employeeId: element.employee_id,
-                        salesPerson: `${element.firstname} ${element.lastname}`,
+                        salesPerson: element.fullname,
                       };
                       return employee;
                     })}
@@ -1479,9 +1486,7 @@ export const Bookings = () => {
                                       <TableCell style={{ fontWeight: "bold" }}>
                                         End Time
                                       </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Base Time
-                                      </TableCell>
+
                                       <TableCell style={{ fontWeight: "bold" }}>
                                         Type
                                       </TableCell>
@@ -1489,7 +1494,7 @@ export const Bookings = () => {
                                   </TableHead>
                                   <TableBody>
                                     {details[index]?.map((detail) => {
-                                      const driver = state.employeesData?.find(
+                                      const driver = state.drivers?.find(
                                         (employee) =>
                                           employee?.employee_id ===
                                           detail?.employee_id
@@ -1523,7 +1528,7 @@ export const Bookings = () => {
                                           key={detail?.detail_id}
                                         >
                                           <TableCell>
-                                            {`${driver?.firstname} ${driver?.lastname}`}
+                                            {driver?.fullname}
                                           </TableCell>
                                           <TableCell>
                                             {vehicle?.vehicle_name}
@@ -1546,11 +1551,6 @@ export const Bookings = () => {
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail?.end_time).format(
-                                              "HH:mm a"
-                                            )}
-                                          </TableCell>
-                                          <TableCell>
-                                            {dayjs(detail?.base_time).format(
                                               "HH:mm a"
                                             )}
                                           </TableCell>

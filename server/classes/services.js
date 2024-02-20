@@ -35,7 +35,9 @@ class Service {
 
   static async getAllServices() {
     try {
-      const result = await pool.query("Select * FROM services");
+      const result = await pool.query(
+        "Select * FROM services ORDER BY service_id"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
@@ -52,7 +54,7 @@ class Service {
         .json({ message: "Bad request: Missing invoice information" });
     try {
       const result = await pool.query(
-        "Select * FROM services WHERE booking_id = $1",
+        "Select * FROM services WHERE booking_id = $1 ORDER BY service_id",
         [invoice]
       );
       //console.log(result.rows);

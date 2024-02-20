@@ -202,7 +202,7 @@ export const ScheduleTable = (props) => {
                   </Box>
                 </TableCell>
 
-                <TableCell>{row?.service_type}</TableCell>
+                <TableCell>{row?.service_code}</TableCell>
 
                 <TableCell align="right">${row?.charge}</TableCell>
                 <TableCell padding="none">

@@ -60,6 +60,12 @@ app.get("/getusernames", async (req, res) => {
   res.json(response);
 });
 
+//get usernames not associated with employees
+app.get("/getavailableusers", async (req, res) => {
+  let response = await User.getAvailableUsers();
+  res.json(response);
+});
+
 //sign a new user up
 app.post(
   "/signup",
@@ -341,6 +347,18 @@ app.delete(
 //Get all employee names (first and last name)
 app.get("/getallemployeenames", async (req, res) => {
   let response = await Employee.getAllEmployeeNames();
+  res.json(response);
+});
+
+//Get Sales people fullname and id
+app.get("/getsalespeople", async (req, res) => {
+  let response = await Employee.getSalesPeople();
+  res.json(response);
+});
+
+//Get driver fullname and id
+app.get("/getdrivers", async (req, res) => {
+  let response = await Employee.getDrivers();
   res.json(response);
 });
 

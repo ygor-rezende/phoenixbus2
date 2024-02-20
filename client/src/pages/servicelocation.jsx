@@ -208,11 +208,6 @@ export const ServiceLocation = () => {
       return;
     }
 
-    if (!phone) {
-      setInvalidField("phone");
-      return;
-    }
-
     setInvalidField("");
     return true;
   }; //isFormValid
@@ -539,14 +534,9 @@ export const ServiceLocation = () => {
                 />
 
                 <MuiTelInput
-                  error={invalidField === "phone"}
-                  helperText={
-                    invalidField === "phone" ? "Information required" : ""
-                  }
                   className="textfield"
                   id="phone"
                   defaultCountry="US"
-                  required
                   label="Phone"
                   placeholder="Phone"
                   value={phone}

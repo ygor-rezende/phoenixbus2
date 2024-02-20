@@ -17,11 +17,11 @@ class Schedule {
         s.service_id,
         s.charge,
         s.service_date,
+        s.service_code,
         d.detail_id,
         d.spot_time,
         d.start_time,
         d.end_time,
-        d.service_type,
         d.instructions,
         d.payment,
         d.use_farmout,
@@ -69,12 +69,11 @@ class Schedule {
       );
 
       const updatedDetail = await pool.query(
-        "UPDATE service_details SET spot_time = $1, start_time = $2, end_time = $3, service_type = $4, instructions = $5, payment = $6, employee_id = $7, vehicle_id = $8, from_location_id = $9, to_location_id = $10, use_farmout = $11, company_id = $12 WHERE detail_id = $13",
+        "UPDATE service_details SET spot_time = $1, start_time = $2, end_time = $3, instructions = $4, payment = $5, employee_id = $6, vehicle_id = $7, from_location_id = $8, to_location_id = $9, use_farmout = $10, company_id = $11 WHERE detail_id = $12",
         [
           detail.spotTime,
           detail.startTime,
           detail.endTime,
-          detail.type,
           detail.instructions,
           detail.payment,
           detail.employeeId,

@@ -42,7 +42,7 @@ CREATE TABLE locations (
     city VARCHAR(100) NOT NULL, 
     location_state VARCHAR(255) NOT NULL, 
     zip VARCHAR(6) NOT NULL, 
-    phone VARCHAR(16) NOT NULL,
+    phone VARCHAR(16),
     fax VARCHAR(16)
 )
 
@@ -179,12 +179,8 @@ CREATE TABLE service_details (
     spot_time VARCHAR(30),
     start_time VARCHAR(30), 
     end_time VARCHAR(30),
-    base_time VARCHAR(30),
-    released_time VARCHAR(30), 
-    service_type VARCHAR(10),
     instructions VARCHAR(255),
     payment DECIMAL(10,2), 
-    perdiem DECIMAL(10,2), 
     gratuity DECIMAL(10,2), 
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )

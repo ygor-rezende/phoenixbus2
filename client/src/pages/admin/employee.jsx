@@ -14,6 +14,11 @@ import {
   AccordionDetails,
   FormControlLabel,
   Checkbox,
+  Radio,
+  RadioGroup,
+  FormControl,
+  FormLabel,
+  FormHelperText,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -99,6 +104,7 @@ const listOfStates = [
 
 const initialState = {
   employeeId: "",
+  username: null,
   firstname: "",
   lastname: "",
   birth: null,
@@ -131,6 +137,7 @@ const initialState = {
   error: null,
   success: false,
   employeesData: [],
+  usersData: [],
   onEditMode: false,
   expandPanel: false,
   isDataUpdated: false,
@@ -156,7 +163,11 @@ export const Employee = () => {
 
     //Get all employee data
     const getEmployeeData = async () => {
-      const response = await getServer("/getallemployees", controller.signal);
+      //get available users to display on dropdown
+      let response = await getServer("/getavailableusers", controller.signal);
+      const usersRespData = response?.data;
+
+      response = await getServer("/getallemployees", controller.signal);
       if (response.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
@@ -166,8 +177,8 @@ export const Employee = () => {
       }
       //no error
       else {
-        let responseData = response.data;
-        responseData = responseData.map((item) => {
+        let responseData = response?.data;
+        responseData = responseData?.map((item) => {
           const employee = {
             id: item.employee_id,
             firstname: item.firstname,
@@ -196,10 +207,12 @@ export const Employee = () => {
             emergencyContact: item.emergency_contact,
             maritalStatus: item.marital_status,
             notes: item.notes,
+            username: item.user_id,
           };
           return employee;
         });
-        isMounted && setState({ employeesData: responseData });
+        isMounted &&
+          setState({ employeesData: responseData, usersData: usersRespData });
       }
     }; //getEmployeeData
 
@@ -238,6 +251,16 @@ export const Employee = () => {
 
     if (!state.lastname) {
       setState({ invalidField: "lastname" });
+      return;
+    }
+
+    if (!state.username) {
+      setState({ invalidField: "username" });
+      return;
+    }
+
+    if (!state.title) {
+      setState({ invalidField: "title" });
       return;
     }
 
@@ -310,6 +333,7 @@ export const Employee = () => {
         emergencyContact: state.emergencyContact,
         maritalStatus: state.maritalStatus,
         notes: state.notes,
+        username: state.username,
       },
     });
 
@@ -331,6 +355,7 @@ export const Employee = () => {
       success: true,
       openSnakbar: true,
       employeeId: "",
+      username: null,
       firstname: "",
       lastname: "",
       birth: null,
@@ -373,6 +398,7 @@ export const Employee = () => {
       invalidField: "",
       employeeId: "",
       firstname: "",
+      username: null,
       lastname: "",
       birth: null,
       title: "",
@@ -445,6 +471,7 @@ export const Employee = () => {
       emergencyContact: state.emergencyContact,
       maritalStatus: state.maritalStatus,
       notes: state.notes,
+      username: state.username,
     };
 
     const response = await putServer("/updateemployee", {
@@ -488,6 +515,7 @@ export const Employee = () => {
       searchAddress: "",
       firstname: state.employeesData.filter((e) => e.id === id)[0].firstname,
       lastname: state.employeesData.filter((e) => e.id === id)[0].lastname,
+      username: state.employeesData.filter((e) => e.id === id)[0].username,
       address: state.employeesData.filter((e) => e.id === id)[0].address,
       city: state.employeesData.filter((e) => e.id === id)[0].city,
       state: state.employeesData.filter((e) => e.id === id)[0].state,
@@ -634,6 +662,88 @@ export const Employee = () => {
                   onChange={handleOnChange}
                 />
 
+                <div
+                  id="username-box"
+                  className="textfield"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="username"
+                    required
+                    className="autocomplete"
+                    value={state.username}
+                    onChange={(e, newValue) => setState({ username: newValue })}
+                    options={state.usersData?.map((e) => e.username)}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option ?? ""}
+                    isOptionEqualToValue={(option, value) => option === value}
+                    renderInput={(params) => (
+                      <TextField
+                        required
+                        {...params}
+                        label="Username"
+                        error={state.invalidField === "username"}
+                        helperText={
+                          state.invalidField === "username"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
+                    )}
+                  />
+                </div>
+
+                <FormControl
+                  className="textfield"
+                  style={{ alignItems: "center" }}
+                >
+                  <FormLabel
+                    id="titleLabel"
+                    error={state.invalidField === "title"}
+                  >
+                    Title *
+                  </FormLabel>
+                  <RadioGroup
+                    row
+                    aria-labelledby="titleLabel"
+                    name="title-buttons-group"
+                    value={state.title}
+                    onChange={(e) => setState({ title: e.target.value })}
+                    erro
+                  >
+                    <FormControlLabel
+                      value="Driver"
+                      control={<Radio />}
+                      label="Driver"
+                    />
+                    <FormControlLabel
+                      value="Sales"
+                      control={<Radio />}
+                      label="Sales"
+                    />
+                  </RadioGroup>
+                  <FormHelperText style={{ color: "red" }}>
+                    {state.invalidField === "title"
+                      ? "Information required"
+                      : ""}
+                  </FormHelperText>
+                </FormControl>
+
+                <TextField
+                  error={state.invalidField === "email"}
+                  helperText={
+                    state.invalidField === "email" ? "Information required" : ""
+                  }
+                  className="textfield"
+                  id="email"
+                  required
+                  label="E-Mail"
+                  type="email"
+                  placeholder="E-Mail"
+                  value={state.email}
+                  onChange={handleOnChange}
+                />
+
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     error={state.invalidField === "birth"}
@@ -651,54 +761,6 @@ export const Employee = () => {
                     onChange={(newValue) => setState({ birth: newValue })}
                   />
                 </LocalizationProvider>
-
-                <TextField
-                  error={state.invalidField === "title"}
-                  helperText={
-                    state.invalidField === "title" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="title"
-                  required
-                  label="Title"
-                  type="text"
-                  placeholder="Title"
-                  value={state.title}
-                  onChange={handleOnChange}
-                />
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    error={state.invalidField === "hireDate"}
-                    helperText={
-                      state.invalidField === "hireDate"
-                        ? "Information required"
-                        : ""
-                    }
-                    className="textfield"
-                    id="hireDate"
-                    required
-                    label="Hire Date"
-                    placeholder="Hire Date"
-                    value={state.hireDate}
-                    onChange={(newValue) => setState({ hireDate: newValue })}
-                  />
-                </LocalizationProvider>
-
-                <TextField
-                  error={state.invalidField === "email"}
-                  helperText={
-                    state.invalidField === "email" ? "Information required" : ""
-                  }
-                  className="textfield"
-                  id="email"
-                  required
-                  label="E-Mail"
-                  type="email"
-                  placeholder="E-Mail"
-                  value={state.email}
-                  onChange={handleOnChange}
-                />
 
                 <GoogleAutoComplete
                   updateFields={updateAddress}
@@ -849,6 +911,22 @@ export const Employee = () => {
                 </Box>
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    error={state.invalidField === "hireDate"}
+                    helperText={
+                      state.invalidField === "hireDate"
+                        ? "Information required"
+                        : ""
+                    }
+                    className="textfield"
+                    id="hireDate"
+                    required
+                    label="Hire Date"
+                    placeholder="Hire Date"
+                    value={state.hireDate}
+                    onChange={(newValue) => setState({ hireDate: newValue })}
+                  />
+
                   <DatePicker
                     className="textfield"
                     id="driverLicenceExpDate"

@@ -28,6 +28,18 @@ class User {
     }
   } //getUsernames
 
+  static async getAvailableUsers() {
+    try {
+      const result = await pool.query(
+        "SELECT username FROM users WHERE username NOT IN (SELECT user_id from employees WHERE user_id IS NOT NULL)"
+      );
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getUsernames
+
   static async signUp(req, res) {
     try {
       const { userName, password, userType } = req.body;

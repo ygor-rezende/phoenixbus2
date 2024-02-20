@@ -54,7 +54,9 @@ class Booking {
 
   static async getAllBookings() {
     try {
-      const result = await pool.query("Select * FROM bookings");
+      const result = await pool.query(
+        "Select * FROM bookings ORDER BY invoice"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {

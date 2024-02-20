@@ -5,13 +5,10 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Select,
-  MenuItem,
   Autocomplete,
   Button,
   FormControl,
   FormHelperText,
-  InputLabel,
   FormControlLabel,
   Switch,
 } from "@mui/material";
@@ -42,7 +39,6 @@ const initialState = {
   vehicle: null,
   company: null,
   payment: 0.0,
-  type: "",
   from: null,
   to: null,
   instructions: "",
@@ -97,7 +93,6 @@ export const ScheduleModal = (props) => {
         vehicle: rowData?.vehicle_name,
         company: rowData?.company_name,
         payment: rowData?.payment,
-        type: rowData?.service_type,
         from: rowData?.from_location,
         to: rowData?.to_location,
         instructions: rowData?.instructions,
@@ -122,9 +117,6 @@ export const ScheduleModal = (props) => {
     p: 4,
   };
 
-  //service types
-  const types = ["OW", "RT", "CH", "OT"];
-
   const handleUpdate = async () => {
     if (!isFormValid()) {
       return;
@@ -136,7 +128,6 @@ export const ScheduleModal = (props) => {
         spotTime: state.spotTime,
         startTime: state.startTime,
         endTime: state.endTime,
-        type: state.type,
         instructions: state.instructions,
         payment: state.payment,
         employeeId: state.employeeId,
@@ -179,7 +170,6 @@ export const ScheduleModal = (props) => {
       vehicle: null,
       company: null,
       payment: 0.0,
-      type: "",
       from: null,
       to: null,
       instructions: "",
@@ -204,11 +194,6 @@ export const ScheduleModal = (props) => {
 
     if (!state.endTime) {
       setState({ invalidField: "endTime" });
-      return;
-    }
-
-    if (!state.type) {
-      setState({ invalidField: "type" });
       return;
     }
 
@@ -353,30 +338,7 @@ export const ScheduleModal = (props) => {
               onChange={(e) => setState({ invoice: e.target.value })}
               disabled
             />
-            <FormControl
-              error={state.invalidField === "type"}
-              className="modalField"
-            >
-              <InputLabel>Type</InputLabel>
-              <Select
-                id="type"
-                value={state.type}
-                onChange={(e) => setState({ type: e.target.value })}
-                label="Type"
-                placeholder="Type"
-              >
-                {types.map((code) => {
-                  return (
-                    <MenuItem key={code} value={code}>
-                      {code}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-              <FormHelperText>
-                {state.invalidField === "type" ? "Information required" : ""}
-              </FormHelperText>
-            </FormControl>
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="Spot time"
@@ -426,6 +388,17 @@ export const ScheduleModal = (props) => {
                 </FormHelperText>
               </FormControl>
             </LocalizationProvider>
+
+            <TextField
+              id="charge"
+              className="modalField"
+              label="Charge $"
+              type="text"
+              inputProps={{ inputMode: "decimal", step: "0.01" }}
+              placeholder="Charge $"
+              value={state.charge}
+              onChange={(e) => setState({ charge: e.target.value })}
+            />
           </Box>
           <Box className="modal2Columns">
             {state.useFarmout && (
@@ -620,17 +593,6 @@ export const ScheduleModal = (props) => {
                 )}
               />
             </div>
-
-            <TextField
-              id="charge"
-              className="modalField"
-              label="Charge $"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Charge $"
-              value={state.charge}
-              onChange={(e) => setState({ charge: e.target.value })}
-            />
 
             <TextField
               id="instructions"
