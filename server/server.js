@@ -575,6 +575,26 @@ app.delete(
     return response;
   }
 );
+
+//Check if driver has a trip for an specific date
+app.get(
+  "/checkdriverhastrip/:detailId/:driverId/:serviceDate",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await ServiceDetail.checkDriverHasTrip(req, res);
+    return response;
+  }
+);
+
+//Check if vehicle has a trip for an specific date
+app.get(
+  "/checkvehiclehastrip/:detailId/:vehicleId/:serviceDate",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await ServiceDetail.checkVehicleHasTrip(req, res);
+    return response;
+  }
+);
 //#endregion
 
 //#region schedule
@@ -607,5 +627,7 @@ app.get(
     return response;
   }
 );
+
+//#endregion
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

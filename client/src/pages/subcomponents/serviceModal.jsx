@@ -420,7 +420,7 @@ export const ServiceModal = (props) => {
         <CustomDialog
           openDialog={openDialog}
           onCancel={() => setOpenDialog(false)}
-          onDelete={handleDeleteService}
+          onConfirm={handleDeleteService}
           title={"Confirm deleting service?"}
           description={
             "Are you sure you want to delete this service and all details associated with it?"

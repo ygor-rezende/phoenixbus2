@@ -102,6 +102,7 @@ const initialState = {
   drivers: [],
   vehiclesData: [],
   locationsData: [],
+  companiesData: [],
   onEditMode: false,
   expandPanel: false,
   expandBookings: false,
@@ -157,6 +158,9 @@ export const Bookings = () => {
 
       response = await getServer("/getalllocationnames", controller.signal);
       const locationsRespData = response?.data;
+
+      response = await getServer("/getallcompanynames", controller.signal);
+      const companiesRespData = response?.data;
 
       response = await getServer("/getallquotes", controller.signal);
       let quotesRespData = response?.data;
@@ -270,6 +274,7 @@ export const Bookings = () => {
             bookingsData: bookingsRespData,
             salesPeople: salesPeopleRespData,
             drivers: driversRespData,
+            companiesData: companiesRespData,
           });
       }
     }; //getAllData
@@ -899,11 +904,12 @@ export const Bookings = () => {
     });
   };
 
-  //open the modal to create or edit a service detail
+  //open the modal to create a service detail
   const handleDetailModal = (serviceId) => {
     //open the modal
     setState({
       serviceId: serviceId,
+      currentDetail: [],
       editingDetail: false,
       triggerDetailModal: state.triggerDetailModal + 1,
       detailTitle: "New Service Detail",
@@ -1528,10 +1534,18 @@ export const Bookings = () => {
                                           key={detail?.detail_id}
                                         >
                                           <TableCell>
-                                            {driver?.fullname}
+                                            {!detail.use_farmout
+                                              ? driver?.fullname
+                                              : state.companiesData?.find(
+                                                  (company) =>
+                                                    company.company_id ===
+                                                    detail?.company_id
+                                                )?.company_name}
                                           </TableCell>
                                           <TableCell>
-                                            {vehicle?.vehicle_name}
+                                            {!detail.use_farmout
+                                              ? vehicle?.vehicle_name
+                                              : "Farm-out"}
                                           </TableCell>
                                           <TableCell>
                                             {locationFrom?.location_name}
@@ -1657,6 +1671,7 @@ export const Bookings = () => {
             onSuccess={handleOnSuccess}
             open={state.triggerDetailModal}
             serviceId={state.serviceId}
+            serviceData={state.servicesData}
             invoice={state.invoice}
             data={state.currentDetail}
             onEditMode={state.editingDetail}

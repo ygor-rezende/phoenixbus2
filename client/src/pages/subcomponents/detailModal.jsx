@@ -7,11 +7,9 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Select,
-  MenuItem,
   Button,
-  FormControl,
-  InputLabel,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
@@ -36,11 +34,11 @@ const reducer = (prevState, upadatedProp) => ({
 
 const initialState = {
   detailId: 0,
-  employeeId: "",
+  employeeId: null,
   driverName: null,
   drivers: [],
   curEmployee: null,
-  vehicleId: "",
+  vehicleId: null,
   vehicleName: null,
   vehicles: [],
   curVehicle: null,
@@ -57,9 +55,16 @@ const initialState = {
   instructions: "",
   payment: 0.0,
   gratuity: 0.0,
+  useFarmout: false,
+  companies: [],
+  companyId: null,
+  company: null,
   openModal: false,
   invalidField: "",
   openDialog: false,
+  openValidationDialog: false,
+  validationDialogType: "",
+  vehicleValidationData: [],
 };
 
 export const DetailModal = (props) => {
@@ -69,6 +74,7 @@ export const DetailModal = (props) => {
     onSuccess,
     open,
     serviceId,
+    serviceData,
     invoice,
     data,
     onEditMode,
@@ -105,8 +111,14 @@ export const DetailModal = (props) => {
         }
         //no error
         else {
+          const curDriver =
+            response?.data?.find(
+              (driver) => driver.employee_id === data?.employee_id
+            ) ?? null;
+
           setState({
             drivers: response?.data,
+            driverName: curDriver?.fullname,
           });
         }
       })();
@@ -114,54 +126,51 @@ export const DetailModal = (props) => {
       //get all vehicle names to load the autocomplete
       (async function getAllVehicles() {
         const response = await getServer("/getallvehiclenames");
+        const curVehicle =
+          response?.data?.find(
+            (vehicle) => vehicle.vehicle_id === data?.vehicle_id
+          ) ?? null;
         setState({
           vehicles: response?.data,
+          vehicleName: curVehicle?.vehicle_name,
         });
       })();
 
       //get all location names to load the autocomplete
       (async function getAllLocations() {
         const response = await getServer("/getalllocationnames");
+
+        const fromLocation =
+          response?.data?.find(
+            (location) => location.location_id === data?.from_location_id
+          ) ?? null;
+        const toLocation =
+          response?.data?.find(
+            (location) => location.location_id === data?.to_location_id
+          ) ?? null;
         setState({
           serviceLocations: response?.data,
+          from: fromLocation?.location_name,
+          to: toLocation?.location_name,
+        });
+      })();
+
+      //get all company names to load the autocomplete
+      (async function getAllCompanies() {
+        const response = await getServer("/getallcompanynames");
+        const curCompany =
+          response?.data?.find(
+            (company) => company.company_id === data?.company_id
+          ) ?? null;
+        setState({
+          companies: response?.data,
+          companyId: curCompany?.company_id,
+          company: curCompany?.company_name,
         });
       })();
 
       //if on edit mode set the fields values
       if (onEditMode) {
-        (async function getEmployeeById(employeeId) {
-          const response = await getServer(`/getemployee/${employeeId}`);
-          const employee = response?.data?.at(0);
-          setState({
-            curEmployee: employee,
-            driverName: `${employee?.firstname} ${employee?.lastname}`,
-          });
-        })(data.employee_id);
-
-        (async function getVehicleById(vehicleId) {
-          const response = await getServer(`/getvehicle/${vehicleId}`);
-          const vehicle = response?.data?.at(0);
-          setState({
-            curVehicle: vehicle,
-            vehicleName: vehicle?.vehicle_name,
-          });
-        })(data.vehicle_id);
-
-        (async function getLocationById(fromLocationId, toLocationId) {
-          let response = await getServer(`/getlocation/${fromLocationId}`);
-          const fromLocation = response?.data?.at(0);
-
-          response = await getServer(`/getlocation/${toLocationId}`);
-          const toLocation = response?.data?.at(0);
-
-          setState({
-            curFromLocation: fromLocation,
-            curToLocation: toLocation,
-            from: fromLocation?.location_name,
-            to: toLocation?.location_name,
-          });
-        })(data.from_location_id, data.to_location_id);
-
         setState({
           detailId: data.detail_id,
           employeeId: data.employee_id,
@@ -174,6 +183,7 @@ export const DetailModal = (props) => {
           instructions: data.instructions,
           payment: data.payment,
           gratuity: data.gratuity,
+          useFarmout: data.use_farmout,
           openModal: true,
         });
       } else {
@@ -198,16 +208,73 @@ export const DetailModal = (props) => {
     p: 4,
   };
 
-  //handle form submit
-  const handleSaveNewDetail = async () => {
+  const validateSave = async () => {
     //validate form
     if (!isFormValid()) {
       return;
     }
 
+    //find the service date
+    const serviceDate = serviceData?.find(
+      (service) => service.id === serviceId
+    )?.serviceDate;
+
+    //check if driver has another booking for the same day
+    const driverResponse = await getServer(
+      `/checkdriverhastrip/${state.detailId}/${state.employeeId}/${serviceDate}`
+    );
+
+    //check if vehicle has another booking for the same day
+    const vehicleResponse = await getServer(
+      `/checkvehiclehastrip/${state.detailId}/${state.vehicleId}/${serviceDate}`
+    );
+
+    //if server responded
+    if (driverResponse?.data && vehicleResponse?.data) {
+      if (driverResponse?.data?.length > 0) {
+        //Display alert saying driver is booked to another trip in the same day
+        setState({
+          vehicleValidationData: vehicleResponse?.data,
+          openValidationDialog: true,
+          validationDialogType: "driver",
+        });
+        return;
+      } else if (vehicleResponse?.data?.length > 0) {
+        //Display alert saying driver is booked to another trip in the same day
+        setState({
+          openValidationDialog: true,
+          validationDialogType: "vehicle",
+        });
+        return;
+      } else {
+        handleSaveNewDetail();
+      }
+    } else if (driverResponse?.disconnect || vehicleResponse?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (driverResponse?.error || vehicleResponse?.error) {
+      setState({
+        error: driverResponse?.error ?? vehicleResponse?.error,
+        success: false,
+        openSnakbar: true,
+      });
+    }
+  }; //validateSave
+
+  const validateVehicle = async () => {
+    if (state.vehicleValidationData?.length > 0) {
+      //Display alert saying driver is booked to another trip in the same day
+      setState({ openValidationDialog: true, validationDialogType: "vehicle" });
+      return;
+    } else {
+      handleSaveNewDetail();
+    }
+  };
+
+  //handle form submit
+  const handleSaveNewDetail = async () => {
     if (!onEditMode) {
       //New detail api call
-
       const response = await postServer("/createdetail", {
         detail: {
           serviceId: serviceId,
@@ -221,6 +288,8 @@ export const DetailModal = (props) => {
           instructions: state.instructions,
           payment: state.payment,
           gratuity: state.gratuity,
+          useFarmout: state.useFarmout,
+          companyId: state.companyId,
         },
       });
 
@@ -250,6 +319,8 @@ export const DetailModal = (props) => {
           instructions: state.instructions,
           payment: state.payment,
           gratuity: state.gratuity,
+          useFarmout: state.useFarmout,
+          companyId: state.companyId,
         },
       });
 
@@ -267,6 +338,15 @@ export const DetailModal = (props) => {
     //call onSave to re-render the details table in the bookings component
     onSave(invoice);
   }; //handleSaveNewDetail
+
+  const handleConfirmDialog = async () => {
+    if (state.validationDialogType === "driver") validateVehicle();
+    else handleSaveNewDetail();
+  };
+
+  const handleCancelDialog = () => {
+    setState({ openValidationDialog: false });
+  };
 
   const handleDeleteDetail = async () => {
     const response = await deleteServer(`/deletedetail/${state.detailId}`);
@@ -324,14 +404,39 @@ export const DetailModal = (props) => {
     }
   };
 
+  const handleCheckFarmout = (e) => {
+    const isChecked = e.target.checked;
+    if (isChecked)
+      setState({
+        driverName: null,
+        vehicleId: null,
+        vehicleName: null,
+        employeeId: null,
+        useFarmout: isChecked,
+      });
+    else setState({ company: null, companyId: null, useFarmout: isChecked });
+  };
+
+  //handle changes on company autocomplete
+  const handleCompanyChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        companyId: newValue.companyId,
+        company: newValue.company,
+      });
+    }
+  };
+
   //clear state fields utility
   const clearState = () => {
     setState({
       detailId: 0,
-      employeeId: "",
+      employeeId: null,
       driverName: null,
+      companyId: null,
+      company: null,
       drivers: [],
-      vehicleId: "",
+      vehicleId: null,
       vehicleName: null,
       vehicles: [],
       fromServiceLocationId: "",
@@ -345,24 +450,18 @@ export const DetailModal = (props) => {
       instructions: "",
       payment: 0.0,
       gratuity: 0.0,
+      useFarmout: false,
       openModal: false,
       invalidField: "",
       openDialog: false,
+      openValidationDialog: false,
+      validationDialogType: "",
+      vehicleValidationData: [],
     });
   };
 
   //validate the form fields
   const isFormValid = () => {
-    if (!state.driverName) {
-      setState({ invalidField: "driverName" });
-      return;
-    }
-
-    if (!state.vehicleName) {
-      setState({ invalidField: "vehicleName" });
-      return;
-    }
-
     if (!state.from) {
       setState({ invalidField: "from" });
       return;
@@ -370,6 +469,21 @@ export const DetailModal = (props) => {
 
     if (!state.to) {
       setState({ invalidField: "to" });
+      return;
+    }
+
+    if (!state.driverName && !state.useFarmout) {
+      setState({ invalidField: "driverName" });
+      return;
+    }
+
+    if (!state.vehicleName && !state.useFarmout) {
+      setState({ invalidField: "vehicleName" });
+      return;
+    }
+
+    if (!state.company && state.useFarmout) {
+      setState({ invalidField: "company" });
       return;
     }
 
@@ -399,84 +513,137 @@ export const DetailModal = (props) => {
         >
           {modalTitle}
         </Typography>
+
+        <FormControlLabel
+          style={{ alignSelf: "center" }}
+          label="Use Farm-out"
+          control={
+            <Switch checked={state.useFarmout} onChange={handleCheckFarmout} />
+          }
+        />
+
         <Box sx={{ display: "flex" }}>
           <Box className="modal2Columns">
-            <div
-              id="driver-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="driver"
-                required
-                className="autocomplete"
-                value={state.driverName}
-                onChange={handleDriverChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.driverName === value
-                }
-                options={state.drivers?.map((element) => {
-                  const driver = {
-                    employeeId: element.employee_id,
-                    driverName: element.fullname,
-                  };
-                  return driver;
-                })}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.driverName ?? option}
-                renderInput={(params) => (
-                  <TextField
+            {state.useFarmout && (
+              <div
+                id="company-box"
+                className="modalField"
+                style={{ display: "inline-block" }}
+              >
+                <Autocomplete
+                  id="company"
+                  className="autocomplete"
+                  value={state.company}
+                  onChange={handleCompanyChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.company === value
+                  }
+                  options={state.companies?.map((element) => {
+                    const company = {
+                      companyId: element.company_id,
+                      company: element.company_name,
+                    };
+                    return company;
+                  })}
+                  sx={{ width: 200 }}
+                  getOptionLabel={(option) => option.company ?? option}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="Company"
+                      error={state.invalidField === "company"}
+                      helperText={
+                        state.invalidField === "company"
+                          ? "Information required"
+                          : ""
+                      }
+                    />
+                  )}
+                />
+              </div>
+            )}
+
+            {!state.useFarmout && (
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  id="driver-box"
+                  className="modalField"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="driver"
                     required
-                    {...params}
-                    label="Driver"
-                    error={state.invalidField === "driverName"}
-                    helperText={
-                      state.invalidField === "driverName"
-                        ? "Information required"
-                        : ""
+                    className="autocomplete"
+                    value={state.driverName}
+                    onChange={handleDriverChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.driverName === value
                     }
+                    options={state.drivers?.map((element) => {
+                      const driver = {
+                        employeeId: element.employee_id,
+                        driverName: element.fullname,
+                      };
+                      return driver;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.driverName ?? option}
+                    renderInput={(params) => (
+                      <TextField
+                        required
+                        {...params}
+                        label="Driver"
+                        error={state.invalidField === "driverName"}
+                        helperText={
+                          state.invalidField === "driverName"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
+                    )}
                   />
-                )}
-              />
-            </div>
-            <div
-              id="vehicle-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="vehicle"
-                className="autocomplete"
-                required
-                value={state.vehicleName}
-                onChange={handleVehicleChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.vehicleName === value
-                }
-                options={state.vehicles?.map((element) => {
-                  const vehicle = {
-                    vehicleId: element?.vehicle_id,
-                    vehicleName: element?.vehicle_name,
-                  };
-                  return vehicle;
-                })}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.vehicleName ?? option}
-                renderInput={(params) => (
-                  <TextField
+                </div>
+                <div
+                  id="vehicle-box"
+                  className="modalField"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="vehicle"
+                    className="autocomplete"
                     required
-                    {...params}
-                    label="Vehicle"
-                    error={state.invalidField === "vehicleName"}
-                    helperText={
-                      state.invalidField === "vehicleName"
-                        ? "Information required"
-                        : ""
+                    value={state.vehicleName}
+                    onChange={handleVehicleChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.vehicleName === value
                     }
+                    options={state.vehicles?.map((element) => {
+                      const vehicle = {
+                        vehicleId: element?.vehicle_id,
+                        vehicleName: element?.vehicle_name,
+                      };
+                      return vehicle;
+                    })}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.vehicleName ?? option}
+                    renderInput={(params) => (
+                      <TextField
+                        required
+                        {...params}
+                        label="Vehicle"
+                        error={state.invalidField === "vehicleName"}
+                        helperText={
+                          state.invalidField === "vehicleName"
+                            ? "Information required"
+                            : ""
+                        }
+                      />
+                    )}
                   />
-                )}
-              />
-            </div>
+                </div>
+              </Box>
+            )}
             <div
               id="from-box"
               className="modalField"
@@ -585,10 +752,10 @@ export const DetailModal = (props) => {
             <TextField
               id="payment"
               className="modalField"
-              label="Payment $"
+              label="Driver Payment $"
               type="text"
               inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Payment $"
+              placeholder="Driver Payment $"
               value={state.payment}
               onChange={(e) => setState({ payment: e.target.value })}
             />
@@ -617,7 +784,7 @@ export const DetailModal = (props) => {
           </Box>
         </Box>
         <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button variant="contained" onClick={handleSaveNewDetail}>
+          <Button variant="contained" onClick={validateSave}>
             Save
           </Button>
           {onEditMode && (
@@ -634,9 +801,24 @@ export const DetailModal = (props) => {
         <CustomDialog
           openDialog={state.openDialog}
           onCancel={() => setState({ openDialog: false })}
-          onDelete={handleDeleteDetail}
+          onConfirm={handleDeleteDetail}
           title={"Confirm deleting detail?"}
           description={"Are you sure you want to delete this detail?"}
+        />
+        <CustomDialog
+          openDialog={state.openValidationDialog}
+          onConfirm={handleConfirmDialog}
+          onCancel={handleCancelDialog}
+          title={
+            state.validationDialogType === "driver"
+              ? "Driver already booked"
+              : "Vehicle already booked"
+          }
+          description={`The ${state.validationDialogType} ${
+            state.validationDialogType === "driver"
+              ? state.driverName
+              : state.vehicleName
+          } is already booked for a trip in this same day. Do you want to proceed?`}
         />
       </Box>
     </Modal>
