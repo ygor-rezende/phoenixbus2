@@ -7,8 +7,6 @@ import {
   Typography,
   Select,
   MenuItem,
-  Checkbox,
-  FormControlLabel,
   Button,
   FormControl,
   FormHelperText,
@@ -18,6 +16,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
+
 import { useEffect, useState } from "react";
 import CustomDialog from "../../utils/customDialog";
 
@@ -30,6 +32,9 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const ServiceModal = (props) => {
   const {
@@ -317,7 +322,7 @@ export const ServiceModal = (props) => {
                 {invalidField === "serviceCode" ? "Information required" : ""}
               </FormHelperText>
             </FormControl>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <FormControl
                 error={invalidField === "serviceDate"}
                 className="modalField"
@@ -325,7 +330,7 @@ export const ServiceModal = (props) => {
                 <DatePicker
                   label="Service Date"
                   id="serviceDate"
-                  format="YYYY-MM-DD"
+                  timezone="America/New_York"
                   value={serviceDate}
                   onChange={(newValue) => setServiceDate(dayjs(newValue))}
                 />

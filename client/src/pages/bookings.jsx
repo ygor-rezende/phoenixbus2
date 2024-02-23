@@ -19,7 +19,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Checkbox,
   Tabs,
   Tab,
 } from "@mui/material";
@@ -30,6 +29,9 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
 
 import EnhancedTable from "../utils/table_generic";
 import { QuotesView } from "./subcomponents/quotesView";
@@ -49,6 +51,9 @@ import useAuth from "../hooks/useAuth";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import Invoice from "./pdfReports/invoice";
 import * as FileSaver from "file-saver";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -190,7 +195,7 @@ export const Bookings = () => {
           responsibleName: item.responsible_name,
           responsibleEmail: item.responsible_email,
           responsiblePhone: item.responsible_phone,
-          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"),
+          quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
           category: item.category,
           paxGroup: item.pax_group,
           numPeople: item.num_people,
@@ -247,12 +252,12 @@ export const Bookings = () => {
             responsibleEmail: item.responsible_email,
             responsiblePhone: item.responsible_phone,
             quoteDate: item.quote_date,
-            bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"),
+            bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
             category: item.category,
             paxGroup: item.pax_group,
             numPeople: item.num_people,
-            tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"),
-            tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"),
+            tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
+            tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
             deposit: item.deposit,
             cost: item.cost,
             arrivalProcMCOMCA: item.mco_mca,
@@ -919,7 +924,7 @@ export const Bookings = () => {
     try {
       const blob = await pdf(
         <Invoice
-          date={dayjs(state.tripStartDate).format("YYYY-MM-DD")}
+          date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           invoiceNum={state.invoice}
           responsible={state.responsibleName}
           destination={"Universal"}
@@ -931,7 +936,7 @@ export const Bookings = () => {
           email={state.responsibleEmail}
           group={state.paxGroup}
           passengers={state.numPeople}
-          bookingDate={dayjs(state.bookingDate).format("YYYY-MM-DD")}
+          bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
           arrival={"10:30 am"}
           departure={"11:00 am"}
           reference={""}
@@ -1133,15 +1138,20 @@ export const Bookings = () => {
                   inputProps={{ maxLength: 15 }}
                 />
 
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
                   <DatePicker
                     label="Quote Date"
                     className="textfield"
-                    format="YYYY-MM-DD"
+                    timezone="America/New_York"
                     id="quoteDate"
                     disabled
-                    value={state.quoteDate}
-                    onChange={(newValue) => setState({ quoteDate: newValue })}
+                    value={dayjs(state.quoteDate)}
+                    onChange={(newValue) =>
+                      setState({ quoteDate: dayjs(newValue) })
+                    }
                   />
 
                   <DatePicker
@@ -1154,11 +1164,13 @@ export const Bookings = () => {
                     label="Booking Date"
                     className="textfield"
                     id="bookingDate"
-                    format="YYYY-MM-DD"
+                    timezone="America/New_York"
                     required
                     placeholder="Booking Date"
                     value={dayjs(state.bookingDate)}
-                    onChange={(newValue) => setState({ bookingDate: newValue })}
+                    onChange={(newValue) =>
+                      setState({ bookingDate: dayjs(newValue) })
+                    }
                   />
                 </LocalizationProvider>
 
@@ -1221,7 +1233,10 @@ export const Bookings = () => {
                   onChange={handleOnChange}
                 />
 
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
                   <DatePicker
                     error={state.invalidField === "tripStartDate"}
                     helperText={
@@ -1232,12 +1247,12 @@ export const Bookings = () => {
                     label="Trip Start Date"
                     className="textfield"
                     id="tripStartDate"
-                    format="YYYY-MM-DD"
+                    timezone="America/New_York"
                     required
                     placeholder="Trip Start Date"
                     value={state.tripStartDate}
                     onChange={(newValue) =>
-                      setState({ tripStartDate: newValue })
+                      setState({ tripStartDate: dayjs(newValue) })
                     }
                   />
 
@@ -1251,11 +1266,13 @@ export const Bookings = () => {
                     label="Trip End Date"
                     className="textfield"
                     id="tripEndDate"
-                    format="YYYY-MM-DD"
+                    timezone="America/New_York"
                     required
                     placeholder="Trip End Date"
                     value={state.tripEndDate}
-                    onChange={(newValue) => setState({ tripEndDate: newValue })}
+                    onChange={(newValue) =>
+                      setState({ tripEndDate: dayjs(newValue) })
+                    }
                   />
                 </LocalizationProvider>
 
@@ -1437,7 +1454,7 @@ export const Bookings = () => {
                                   <TableCell>{service.serviceCode}</TableCell>
                                   <TableCell>
                                     {dayjs(service.serviceDate).format(
-                                      "YYYY-MM-DD"
+                                      "MM/DD/YYYY"
                                     )}
                                   </TableCell>
                                   <TableCell>{service.qty}</TableCell>
@@ -1540,17 +1557,17 @@ export const Bookings = () => {
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail?.spot_time).format(
-                                              "HH:mm a"
+                                              "HH:mm"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail?.start_time).format(
-                                              "HH:mm a"
+                                              "HH:mm"
                                             )}
                                           </TableCell>
                                           <TableCell>
                                             {dayjs(detail?.end_time).format(
-                                              "HH:mm a"
+                                              "HH:mm"
                                             )}
                                           </TableCell>
                                           <TableCell>

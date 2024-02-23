@@ -46,7 +46,8 @@ class Schedule {
         join locations lf on lf.location_id = d.from_location_id
         join locations lt on lt.location_id = d.to_location_id
         full outer join companies c on c.company_id = d.company_id
-        WHERE s.service_date >= $1 AND s.service_date < $2`,
+        WHERE s.service_date >= $1 AND s.service_date < $2
+        ORDER BY s.service_date, d.start_time`,
         [newDates.startDate, newEndDate]
       );
       console.log(result.rowCount);

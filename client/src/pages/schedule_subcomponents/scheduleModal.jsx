@@ -15,13 +15,20 @@ import {
 
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useReducer } from "react";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
 
-import { UsePrivatePut } from "../../hooks/useFetchServer";
+import { UsePrivatePut, UsePrivateGet } from "../../hooks/useFetchServer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import CustomDialog from "../../utils/customDialog";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const initialState = {
   invoice: "",
@@ -32,6 +39,7 @@ const initialState = {
   companyId: null,
   fromLocationId: "",
   toLocationId: "",
+  serviceDate: "",
   spotTime: null,
   startTime: null,
   endTime: null,
@@ -46,6 +54,9 @@ const initialState = {
   openModal: false,
   invalidField: "",
   useFarmout: false,
+  openValidationDialog: false,
+  validationDialogType: "",
+  vehicleValidationData: [],
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -71,6 +82,7 @@ export const ScheduleModal = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const putServer = UsePrivatePut();
+  const getServer = UsePrivateGet();
 
   useEffect(() => {
     if (open > 0) {
@@ -84,6 +96,7 @@ export const ScheduleModal = (props) => {
         companyId: rowData?.company_id,
         fromLocationId: rowData?.from_location_id,
         toLocationId: rowData?.to_location_id,
+        serviceDate: rowData?.service_date,
         spotTime: dayjs(rowData?.spot_time),
         startTime: dayjs(rowData?.start_time),
         endTime: dayjs(rowData?.end_time),
@@ -117,10 +130,61 @@ export const ScheduleModal = (props) => {
     p: 4,
   };
 
-  const handleUpdate = async () => {
+  const validateSave = async () => {
+    //validate form
     if (!isFormValid()) {
       return;
     }
+
+    //check if driver has another booking for the same day
+    const driverResponse = await getServer(
+      `/checkdriverhastrip/${state.detailId}/${state.employeeId}/${state.serviceDate}`
+    );
+
+    //check if vehicle has another booking for the same day
+    const vehicleResponse = await getServer(
+      `/checkvehiclehastrip/${state.detailId}/${state.vehicleId}/${state.serviceDate}`
+    );
+
+    //if server responded
+    if (driverResponse?.data && vehicleResponse?.data) {
+      if (driverResponse?.data?.length > 0) {
+        //Display alert saying driver is booked to another trip in the same day
+        setState({
+          vehicleValidationData: vehicleResponse?.data,
+          openValidationDialog: true,
+          validationDialogType: "driver",
+        });
+        return;
+      } else if (vehicleResponse?.data?.length > 0) {
+        //Display alert saying driver is booked to another trip in the same day
+        setState({
+          openValidationDialog: true,
+          validationDialogType: "vehicle",
+        });
+        return;
+      } else {
+        handleUpdate();
+      }
+    } else if (driverResponse?.disconnect || vehicleResponse?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (driverResponse?.error || vehicleResponse?.error) {
+      onError(driverResponse?.error ?? vehicleResponse?.error);
+    }
+  }; //validateSave
+
+  const validateVehicle = async () => {
+    if (state.vehicleValidationData?.length > 0) {
+      //Display alert saying driver is booked to another trip in the same day
+      setState({ openValidationDialog: true, validationDialogType: "vehicle" });
+      return;
+    } else {
+      handleUpdate();
+    }
+  };
+
+  const handleUpdate = async () => {
     const response = await putServer("/updateSchedule", {
       service: { serviceId: state.serviceId, charge: state.charge },
       detail: {
@@ -152,6 +216,15 @@ export const ScheduleModal = (props) => {
     onSave(startDate, endDate);
   }; //handleUpdate
 
+  const handleConfirmDialog = async () => {
+    if (state.validationDialogType === "driver") validateVehicle();
+    else handleUpdate();
+  };
+
+  const handleCancelDialog = () => {
+    setState({ openValidationDialog: false });
+  };
+
   //clear state fields utility
   const clearState = () => {
     setState({
@@ -177,6 +250,9 @@ export const ScheduleModal = (props) => {
       openModal: false,
       invalidField: "",
       useFarmout: false,
+      openValidationDialog: false,
+      validationDialogType: "",
+      vehicleValidationData: [],
     });
   }; //clearState
 
@@ -339,11 +415,13 @@ export const ScheduleModal = (props) => {
               disabled
             />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
+              <DateTimePicker
                 label="Spot time"
                 className="modalField"
                 id="spotTime"
+                ampm={false}
+                timezone="America/New_York"
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
               />
@@ -352,16 +430,17 @@ export const ScheduleModal = (props) => {
                 error={state.invalidField === "startTime"}
                 className="modalField"
               >
-                <TimePicker
+                <DateTimePicker
                   label="Service time"
-                  className="modalField"
                   id="startTime"
+                  ampm={false}
                   value={state.startTime}
+                  timezone="America/New_York"
                   onChange={(newValue) =>
                     setState({ startTime: dayjs(newValue) })
                   }
                 />
-                <FormHelperText>
+                <FormHelperText style={{}}>
                   {state.invalidField === "startTime"
                     ? "Information required"
                     : ""}
@@ -372,13 +451,16 @@ export const ScheduleModal = (props) => {
                 error={state.invalidField === "endTime"}
                 className="modalField"
               >
-                <TimePicker
+                <DateTimePicker
                   label="End time"
-                  className="modalField"
                   id="endTime"
+                  ampm={false}
                   value={state.endTime}
+                  timezone="America/New_York"
                   onChange={(newValue) =>
-                    setState({ endTime: dayjs(newValue) })
+                    setState({
+                      endTime: dayjs(newValue),
+                    })
                   }
                 />
                 <FormHelperText>
@@ -398,6 +480,17 @@ export const ScheduleModal = (props) => {
               placeholder="Charge $"
               value={state.charge}
               onChange={(e) => setState({ charge: e.target.value })}
+            />
+
+            <TextField
+              id="payment"
+              className="modalField"
+              label="Driver Payment $"
+              type="text"
+              inputProps={{ inputMode: "decimal", step: "0.01" }}
+              placeholder="Driver Payment $"
+              value={state.payment}
+              onChange={(e) => setState({ payment: e.target.value })}
             />
           </Box>
           <Box className="modal2Columns">
@@ -608,10 +701,25 @@ export const ScheduleModal = (props) => {
           </Box>
         </Box>
         <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button variant="contained" onClick={handleUpdate}>
+          <Button variant="contained" onClick={validateSave}>
             Save
           </Button>
         </Box>
+        <CustomDialog
+          openDialog={state.openValidationDialog}
+          onConfirm={handleConfirmDialog}
+          onCancel={handleCancelDialog}
+          title={
+            state.validationDialogType === "driver"
+              ? "Driver already booked"
+              : "Vehicle already booked"
+          }
+          description={`The ${state.validationDialogType} ${
+            state.validationDialogType === "driver"
+              ? state.driver
+              : state.vehicle
+          } is already booked for a trip in this same day. Do you want to proceed?`}
+        />
       </Box>
     </Modal>
   );

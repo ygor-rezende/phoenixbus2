@@ -12,9 +12,12 @@ import {
   Switch,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
 import CustomDialog from "../../utils/customDialog";
 
 import {
@@ -26,6 +29,9 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -720,30 +726,36 @@ export const DetailModal = (props) => {
               />
             </div>
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
+              <DateTimePicker
                 label="Spot time"
                 className="modalField"
+                ampm={false}
                 id="spotTime"
+                timezone="America/New_York"
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
               />
             </LocalizationProvider>
           </Box>
           <Box className="modal2Columns">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
+              <DateTimePicker
                 label="Start time"
                 className="modalField"
+                ampm={false}
                 id="startTime"
                 value={state.startTime}
+                timezone="America/New_York"
                 onChange={(newValue) =>
                   setState({ startTime: dayjs(newValue) })
                 }
               />
-              <TimePicker
+              <DateTimePicker
                 label="End time"
                 className="modalField"
+                ampm={false}
+                timezone="America/New_York"
                 id="endTime"
                 value={state.endTime}
                 onChange={(newValue) => setState({ endTime: dayjs(newValue) })}
