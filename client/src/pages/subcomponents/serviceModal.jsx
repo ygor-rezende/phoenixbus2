@@ -48,9 +48,7 @@ export const ServiceModal = (props) => {
   const [serviceDate, setServiceDate] = useState(null);
   const [qty, setQty] = useState(0);
   const [charge, setCharge] = useState(0.0);
-  const [tips, setTips] = useState(0.0);
   const [salesTax, setSalesTax] = useState(0.0);
-  const [optional, setOptional] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [invalidField, setInvalidField] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
@@ -74,9 +72,7 @@ export const ServiceModal = (props) => {
         setServiceDate(dayjs(data[0].serviceDate));
         setQty(data[0].qty);
         setCharge(data[0].charge);
-        setTips(data[0].tips);
         setSalesTax(data[0].salesTax);
-        setOptional(data[0].optional);
       }
       setOpenModal(true);
     }
@@ -130,9 +126,7 @@ export const ServiceModal = (props) => {
           serviceDate: serviceDate,
           qty: qty,
           charge: charge,
-          tips: tips,
           salesTax: salesTax,
-          optional: optional,
         },
       });
 
@@ -157,9 +151,7 @@ export const ServiceModal = (props) => {
           serviceDate: serviceDate,
           qty: qty,
           charge: charge,
-          tips: tips,
           salesTax: salesTax,
-          optional: optional,
         },
       });
 
@@ -228,9 +220,7 @@ export const ServiceModal = (props) => {
     setServiceDate(null);
     setQty(0);
     setCharge(0.0);
-    setTips(0.0);
     setSalesTax(0.0);
-    setOptional(false);
     setOpenModal(false);
     setOpenDialog(false);
     setInvalidField("");
@@ -345,7 +335,8 @@ export const ServiceModal = (props) => {
                 </FormHelperText>
               </FormControl>
             </LocalizationProvider>
-
+          </Box>
+          <Box className="modal2Columns">
             <TextField
               id="qty"
               label="Qty"
@@ -358,8 +349,7 @@ export const ServiceModal = (props) => {
               error={invalidField === "qty"}
               helperText={invalidField === "qty" ? "Information required" : ""}
             />
-          </Box>
-          <Box className="modal2Columns">
+
             <TextField
               id="charge"
               className="modalField"
@@ -370,16 +360,7 @@ export const ServiceModal = (props) => {
               value={charge}
               onChange={(e) => setCharge(e.target.value)}
             />
-            <TextField
-              id="tips"
-              className="modalField"
-              label="Tips $"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Tips $"
-              value={tips}
-              onChange={(e) => setTips(e.target.value)}
-            />
+
             <TextField
               id="salesTax"
               className="modalField"
@@ -389,16 +370,6 @@ export const ServiceModal = (props) => {
               placeholder="Sales Tax %"
               value={salesTax}
               onChange={(e) => setSalesTax(e.target.value)}
-            />
-            <FormControlLabel
-              style={{ alignSelf: "center" }}
-              control={
-                <Checkbox
-                  checked={optional}
-                  onChange={(e) => setOptional(e.target.checked)}
-                />
-              }
-              label="Optional"
             />
           </Box>
         </Box>

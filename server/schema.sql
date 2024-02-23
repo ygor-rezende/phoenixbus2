@@ -161,9 +161,7 @@ CREATE TABLE services (
     service_date VARCHAR(30),  
     qty INT NOT NULL,
     charge DECIMAL(10,2), 
-    tips DECIMAL(10,2), 
     sales_tax DECIMAL(10,2), 
-    optional BOOLEAN,
     CONSTRAINT servicesPK PRIMARY KEY (service_id)
 )
 

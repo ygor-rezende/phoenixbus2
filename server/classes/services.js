@@ -10,8 +10,8 @@ class Service {
     try {
       //insert the new Service
       const newService = await pool.query(
-        `INSERT INTO services (booking_id, service_name, service_code, service_date, qty, charge, tips, sales_tax, optional)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO services (booking_id, service_name, service_code, service_date, qty, charge, sales_tax)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
           service.bookingId,
           service.serviceName,
@@ -19,9 +19,7 @@ class Service {
           service.serviceDate,
           service.qty,
           service.charge,
-          service.tips,
           service.salesTax,
-          service.optional,
         ]
       );
       console.log(newService.rowCount);
@@ -74,7 +72,7 @@ class Service {
 
     try {
       const updatedService = await pool.query(
-        "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, tips = $7, sales_tax = $8, optional = $9 WHERE service_id = $10",
+        "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, sales_tax = $7 WHERE service_id = $8",
         [
           service.bookingId,
           service.serviceName,
@@ -82,9 +80,7 @@ class Service {
           service.serviceDate,
           service.qty,
           service.charge,
-          service.tips,
           service.salesTax,
-          service.optional,
           service.serviceId,
         ]
       );

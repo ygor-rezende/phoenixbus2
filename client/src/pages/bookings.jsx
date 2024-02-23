@@ -696,9 +696,7 @@ export const Bookings = () => {
           serviceDate: item.service_date,
           qty: item.qty,
           charge: item.charge,
-          tips: item.tips,
           salesTax: item.sales_tax,
-          optional: item.optional,
         };
         return service;
       });
@@ -1425,13 +1423,7 @@ export const Bookings = () => {
                                     Charge
                                   </TableCell>
                                   <TableCell style={{ fontWeight: "bold" }}>
-                                    Tips
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
                                     Sales Tax
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    Optional
                                   </TableCell>
                                 </TableRow>
                               </TableHead>
@@ -1450,14 +1442,7 @@ export const Bookings = () => {
                                   </TableCell>
                                   <TableCell>{service.qty}</TableCell>
                                   <TableCell>{service.charge}</TableCell>
-                                  <TableCell>{service.tips}</TableCell>
                                   <TableCell>{service.salesTax}</TableCell>
-                                  <TableCell>
-                                    <Checkbox
-                                      checked={service.optional}
-                                      disabled
-                                    />
-                                  </TableCell>
                                 </TableRow>
                               </TableBody>
                             </Table>
