@@ -26,6 +26,10 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
+
 import {
   UsePrivateGet,
   UsePrivatePost,
@@ -38,6 +42,9 @@ import useAuth from "../../hooks/useAuth";
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
 import GoogleAutoComplete from "../../api/google_place";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -744,7 +751,10 @@ export const Employee = () => {
                   onChange={handleOnChange}
                 />
 
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
                   <DatePicker
                     error={state.invalidField === "birth"}
                     helperText={
@@ -755,6 +765,7 @@ export const Employee = () => {
                     label="Birth Date"
                     className="textfield"
                     id="birth"
+                    timezone="America/New_York"
                     required
                     placeholder="Birth Date"
                     value={state.birth}
@@ -910,7 +921,10 @@ export const Employee = () => {
                   />
                 </Box>
 
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
                   <DatePicker
                     error={state.invalidField === "hireDate"}
                     helperText={
@@ -920,6 +934,7 @@ export const Employee = () => {
                     }
                     className="textfield"
                     id="hireDate"
+                    timezone="America/New_York"
                     required
                     label="Hire Date"
                     placeholder="Hire Date"
@@ -930,6 +945,7 @@ export const Employee = () => {
                   <DatePicker
                     className="textfield"
                     id="driverLicenceExpDate"
+                    timezone="America/New_York"
                     label="Driver Licence Expire Date"
                     placeholder="Driver Licence Expire Date"
                     value={state.driverLicenceExpDate}
@@ -979,10 +995,14 @@ export const Employee = () => {
                   onChange={handleOnChange}
                 />
 
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
                   <DatePicker
                     className="textfield"
                     id="insuranceExpDate"
+                    timezone="America/New_York"
                     label="Insurance Expire Date"
                     placeholder="Insurance Expire Date"
                     value={state.insuranceExpDate}

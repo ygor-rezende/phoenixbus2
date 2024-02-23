@@ -14,6 +14,10 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/en";
+
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
@@ -23,6 +27,9 @@ import { BusIcon } from "../../utils/busIcon";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const BoldTableCell = (props) => {
   return (
@@ -60,8 +67,8 @@ export const ScheduleTable = (props) => {
         endDate.$d.toString() !== "Invalid Date"
       ) {
         onDatePick(
-          dayjs(startDate).toISOString(),
-          dayjs(endDate).toISOString()
+          dayjs(startDate).toDate().toLocaleDateString(),
+          dayjs(endDate).toDate().toLocaleDateString()
         );
       }
     }
@@ -80,11 +87,11 @@ export const ScheduleTable = (props) => {
       </Typography>
       <Divider />
       <Box sx={{ display: "flex", justifyContent: "center", margin: "1em" }}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
           <DatePicker
             label="Start Date"
-            format="YYYY-MM-DD"
             id="startDate"
+            timezone="America/New_York"
             value={startDate}
             minDate={dayjs(endDate).subtract(30, "day")}
             maxDate={endDate}
@@ -99,8 +106,8 @@ export const ScheduleTable = (props) => {
           <DatePicker
             label="End Date"
             sx={{ ml: "1em" }}
-            format="YYYY-MM-DD"
             id="endDate"
+            timezone="America/New_York"
             value={endDate}
             minDate={startDate}
             maxDate={dayjs(startDate).add(30, "day")}
@@ -155,9 +162,11 @@ export const ScheduleTable = (props) => {
                       gutterBottom
                     >
                       <AccessAlarmIcon color="primary" />
-                      {dayjs(row?.start_time).format("hh:mm a")}
+                      {dayjs(row?.start_time).format("HH:mm")}
                       {" | "}
-                      {row?.service_date?.slice(0, 10)}
+                      {new Date(row?.service_date)
+                        ?.toLocaleDateString()
+                        .slice(0, 10)}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -178,9 +187,11 @@ export const ScheduleTable = (props) => {
                       gutterBottom
                     >
                       <AccessAlarmIcon color="success" />{" "}
-                      {dayjs(row?.end_time).format("hh:mm a")}
+                      {dayjs(row?.end_time).format("HH:mm")}
                       {" | "}
-                      {row?.service_date?.slice(0, 10)}
+                      {new Date(row?.service_date)
+                        ?.toLocaleDateString()
+                        .slice(0, 10)}
                     </Typography>
                     <Typography
                       variant="body2"

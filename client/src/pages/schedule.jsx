@@ -13,7 +13,7 @@ import {
   Alert,
   AlertTitle,
 } from "@mui/material";
-import { styled, createTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
@@ -23,7 +23,7 @@ import {
 
 import { ScheduleModal } from "./schedule_subcomponents/scheduleModal";
 
-import { UsePrivateGet, UsePrivatePut } from "../hooks/useFetchServer";
+import { UsePrivateGet } from "../hooks/useFetchServer";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
@@ -110,14 +110,14 @@ export const Schedule = () => {
 
     async function getTodaySchedule() {
       try {
-        const startDate = new Date().toISOString();
-        const endDate = new Date().toISOString();
+        const startDate = new Date().toLocaleDateString();
+        const endDate = new Date().toLocaleDateString();
         setStartDate(startDate);
         setEndDate(endDate);
 
         const dates = JSON.stringify({
-          startDate: startDate.slice(0, 10),
-          endDate: endDate.slice(0, 10),
+          startDate: new Date(startDate).toISOString().slice(0, 10),
+          endDate: new Date(endDate).toISOString().slice(0, 10),
         });
 
         const response = await getServer(
@@ -162,8 +162,8 @@ export const Schedule = () => {
       const sDate = startDate.slice(0, 10);
       const eDate = endDate.slice(0, 10);
       const dates = JSON.stringify({
-        startDate: sDate,
-        endDate: eDate,
+        startDate: new Date(startDate).toISOString().slice(0, 10),
+        endDate: new Date(endDate).toISOString().slice(0, 10),
       });
 
       const response = await getServer(`/getschedule/${dates}`);
@@ -176,7 +176,10 @@ export const Schedule = () => {
       else {
         const responseData = await response.data;
         setData(responseData);
-        if (sDate === eDate && sDate === new Date().toISOString().slice(0, 10))
+        if (
+          sDate === eDate &&
+          sDate === new Date().toLocaleDateString().slice(0, 10)
+        )
           setDateString(`for Today (${sDate})`);
         else if (sDate === eDate) setDateString(`for ${sDate}`);
         else setDateString(`from ${sDate} to ${eDate}`);

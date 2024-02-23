@@ -57,8 +57,8 @@ export const TimeListItems = (props) => {
   const thisMonthStart = new Date(thisYear, thisMonth, 1);
   const thisMonthEnd = new Date(thisYear, thisMonth + 1, 0);
   const curentMonth = {
-    start: thisMonthStart.toISOString(),
-    end: thisMonthEnd.toISOString(),
+    start: thisMonthStart.toLocaleDateString(),
+    end: thisMonthEnd.toLocaleDateString(),
   };
 
   //get current week
@@ -67,14 +67,14 @@ export const TimeListItems = (props) => {
   const thisWeekStart = new Date(thisYear, thisMonth, firstDayOfWeek);
   const thisWeekEnd = new Date(thisYear, thisMonth, lastDayOfWeek);
   const currentWeek = {
-    start: thisWeekStart.toISOString(),
-    end: thisWeekEnd.toISOString(),
+    start: thisWeekStart.toLocaleDateString(),
+    end: thisWeekEnd.toLocaleDateString(),
   };
 
   //today's trips
   const todayDates = {
-    start: today.toISOString(),
-    end: today.toISOString(),
+    start: today.toLocaleDateString(),
+    end: today.toLocaleDateString(),
   };
 
   return (
