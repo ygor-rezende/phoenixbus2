@@ -63,7 +63,7 @@ export const QuotesView = (props) => {
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
-          USE QUOTE TO CREATE A BOOKING
+          VIEW QUOTES
         </Typography>
       </AccordionSummary>
       <AccordionDetails>

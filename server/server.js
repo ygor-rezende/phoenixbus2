@@ -371,45 +371,45 @@ app.get("/getemployee/:employeeId", async (req, res) => {
 
 //#region Quote
 //create quote
-app.post(
-  "/createquote",
-  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
-  bodyParser.json(),
-  async (req, res) => {
-    let response = await Quote.newQuote(req, res);
-    //console.log(response);
-    return response;
-  }
-);
+// app.post(
+//   "/createquote",
+//   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+//   bodyParser.json(),
+//   async (req, res) => {
+//     let response = await Quote.newQuote(req, res);
+//     //console.log(response);
+//     return response;
+//   }
+// );
 
-//Get all quotes
-app.get("/getallquotes", async (req, res) => {
-  let response = await Quote.getAllQuotes();
-  //console.log(response);
-  res.json(response);
-});
+// //Get all quotes
+// app.get("/getallquotes", async (req, res) => {
+//   let response = await Quote.getAllQuotes();
+//   //console.log(response);
+//   res.json(response);
+// });
 
-//Update a Quote
-app.put(
-  "/updatequote",
-  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
-  bodyParser.json(),
-  async (req, res) => {
-    let response = await Quote.updateQuote(req, res);
-    //console.log(response);
-    return response;
-  }
-);
+// //Update a Quote
+// app.put(
+//   "/updatequote",
+//   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+//   bodyParser.json(),
+//   async (req, res) => {
+//     let response = await Quote.updateQuote(req, res);
+//     //console.log(response);
+//     return response;
+//   }
+// );
 
-//Delete companies
-app.delete(
-  "/deletequote/:quoteIds",
-  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
-  async (req, res) => {
-    let response = await Quote.deleteQuote(req, res);
-    return response;
-  }
-);
+// //Delete quote
+// app.delete(
+//   "/deletequote/:quoteIds",
+//   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+//   async (req, res) => {
+//     let response = await Quote.deleteQuote(req, res);
+//     return response;
+//   }
+// );
 //#endregion
 
 //#region Booking
@@ -428,6 +428,13 @@ app.post(
 //Get all bookings
 app.get("/getallbookings", async (req, res) => {
   let response = await Booking.getAllBookings();
+  //console.log(response);
+  res.json(response);
+});
+
+//Get all quotes
+app.get("/getallquotes", async (req, res) => {
+  let response = await Booking.getAllQuotes();
   //console.log(response);
   res.json(response);
 });

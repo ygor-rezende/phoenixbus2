@@ -17,11 +17,11 @@ class Booking {
 
       //insert the new Booking
       const newBooking = await pool.query(
-        `INSERT INTO bookings (invoice, quote_id, client_id, employee_id, responsible_name, responsible_email, responsible_phone, quote_date, booking_date, category, pax_group, num_people, trip_start_date, trip_end_date, deposit, cost, mco_mca, hours_quote_valid, client_comments, intinerary_details, internal_coments)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+        `INSERT INTO bookings (invoice, is_quote, client_id, employee_id, responsible_name, responsible_email, responsible_phone, quote_date, booking_date, category, num_people, trip_start_date, trip_end_date, deposit, cost, hours_quote_valid, client_comments, intinerary_details, internal_coments)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
           newId,
-          booking.quoteId,
+          booking.isQuote,
           booking.clientId,
           booking.employeeId,
           booking.responsibleName,
@@ -30,13 +30,11 @@ class Booking {
           booking.quoteDate,
           booking.bookingDate,
           booking.category,
-          booking.paxGroup,
           booking.numPeople,
           booking.tripStartDate,
           booking.tripEndDate,
           booking.deposit,
           booking.quotedCost,
-          booking.arrivalProcMCOMCA,
           booking.numHoursQuoteValid,
           booking.clientComments,
           booking.intineraryDetails,
@@ -55,7 +53,7 @@ class Booking {
   static async getAllBookings() {
     try {
       const result = await pool.query(
-        "Select * FROM bookings ORDER BY invoice"
+        "Select * FROM bookings WHERE is_quote IS false ORDER BY invoice"
       );
       //console.log(result.rows);
       return result.rows;
@@ -65,6 +63,19 @@ class Booking {
     }
   } //getAllBookings
 
+  static async getAllQuotes() {
+    try {
+      const result = await pool.query(
+        "Select * FROM bookings WHERE is_quote IS true ORDER BY invoice"
+      );
+      //console.log(result.rows);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getAllQuotes
+
   static async updateBooking(req, res) {
     const { booking } = req.body;
     if (!booking)
@@ -73,24 +84,22 @@ class Booking {
         .json({ message: "Bad request: Booking information is required" });
     try {
       const updatedBooking = await pool.query(
-        "UPDATE bookings SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, pax_group = $5, num_people = $6, trip_start_date = $7, trip_end_date = $8, deposit = $9, cost = $10, mco_mca = $11, hours_quote_valid = $12, client_comments = $13, intinerary_details = $14, internal_coments = $15, quote_id = $16, booking_date = $17, responsible_name = $18, responsible_email = $19, responsible_phone = $20 WHERE invoice = $21",
+        "UPDATE bookings SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, num_people = $5, trip_start_date = $6, trip_end_date = $7, deposit = $8, cost = $9, hours_quote_valid = $10, client_comments = $11, intinerary_details = $12, internal_coments = $13, is_quote = $14, booking_date = $15, responsible_name = $16, responsible_email = $17, responsible_phone = $18 WHERE invoice = $19",
         [
           booking.clientId,
           booking.employeeId,
           booking.quoteDate,
           booking.category,
-          booking.paxGroup,
           booking.numPeople,
           booking.tripStartDate,
           booking.tripEndDate,
           booking.deposit,
           booking.quotedCost,
-          booking.arrivalProcMCOMCA,
           booking.numHoursQuoteValid,
           booking.clientComments,
           booking.intineraryDetails,
           booking.internalComments,
-          booking.quoteId,
+          booking.isQuote,
           booking.bookingDate,
           booking.responsibleName,
           booking.responsibleEmail,

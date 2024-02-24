@@ -12,8 +12,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Switch,
-  FormControlLabel,
   Table,
   TableHead,
   TableRow,
@@ -21,6 +19,7 @@ import {
   TableBody,
   Tabs,
   Tab,
+  Stack,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -67,11 +66,12 @@ const categories = [
   "School",
   "Church",
   "Transportation Co.",
+  "Particular",
   "Others",
 ];
 
 const initialState = {
-  quoteId: "",
+  isQuote: false,
   invoice: "",
   clientId: "",
   agencyName: null,
@@ -82,16 +82,14 @@ const initialState = {
   responsibleName: "",
   responsibleEmail: "",
   responsiblePhone: "",
-  quoteDate: null,
+  quoteDate: dayjs(Date(Date.now())),
   bookingDate: dayjs(Date(Date.now())),
   category: null,
-  paxGroup: "",
   numPeople: 0,
   tripStartDate: dayjs(Date(Date.now())),
   tripEndDate: dayjs(Date(Date.now())),
   deposit: 0.0,
   quotedCost: 0.0,
-  arrivalProcMCOMCA: false,
   numHoursQuoteValid: 0,
   clientComments: "",
   intineraryDetails: "",
@@ -125,6 +123,8 @@ const initialState = {
   detailTitle: "New Service Detail",
   detailsData: [],
   currentDetail: [],
+  showAccordion: false,
+  accordionTitle: "",
 };
 
 export const Bookings = () => {
@@ -171,7 +171,8 @@ export const Bookings = () => {
       let quotesRespData = response?.data;
       quotesRespData = quotesRespData?.map((item) => {
         const quote = {
-          id: item.quote_id,
+          id: item.invoice,
+          isQuote: item.is_quote,
           clientId: item.client_id,
           agencyName: clientsRespData.find(
             (client) => client.client_id === item.client_id
@@ -196,14 +197,13 @@ export const Bookings = () => {
           responsibleEmail: item.responsible_email,
           responsiblePhone: item.responsible_phone,
           quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
+          bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
           category: item.category,
-          paxGroup: item.pax_group,
           numPeople: item.num_people,
-          tripStartDate: item.trip_start_date,
-          tripEndDate: item.trip_end_date,
+          tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
+          tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
           deposit: item.deposit,
           cost: item.cost,
-          arrivalProcMCOMCA: item.mco_mca,
           numHoursQuoteValid: item.hours_quote_valid,
           clientComments: item.client_comments,
           intineraryDetails: item.intinerary_details,
@@ -227,7 +227,7 @@ export const Bookings = () => {
         bookingsRespData = bookingsRespData?.map((item) => {
           const booking = {
             id: item.invoice,
-            quoteid: item.quote_id,
+            isQuote: item.is_quote,
             clientId: item.client_id,
             agencyName: clientsRespData.find(
               (client) => client.client_id === item.client_id
@@ -251,16 +251,14 @@ export const Bookings = () => {
             responsibleName: item.responsible_name,
             responsibleEmail: item.responsible_email,
             responsiblePhone: item.responsible_phone,
-            quoteDate: item.quote_date,
+            quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
             bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
             category: item.category,
-            paxGroup: item.pax_group,
             numPeople: item.num_people,
             tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
             tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
             deposit: item.deposit,
             cost: item.cost,
-            arrivalProcMCOMCA: item.mco_mca,
             numHoursQuoteValid: item.hours_quote_valid,
             clientComments: item.client_comments,
             intineraryDetails: item.intinerary_details,
@@ -322,8 +320,13 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.bookingDate) {
+    if (!state.bookingDate && !state.isQuote) {
       setState({ invalidField: "bookingDate" });
+      return;
+    }
+
+    if (!state.quoteDate && state.isQuote) {
+      setState({ invalidField: "quoteDate" });
       return;
     }
 
@@ -347,11 +350,6 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.quotedCost) {
-      setState({ invalidField: "quotedCost" });
-      return;
-    }
-
     setState({ invalidField: "" });
     return true;
   }; //isFormValid
@@ -370,17 +368,15 @@ export const Bookings = () => {
         responsibleName: state.responsibleName,
         responsibleEmail: state.responsibleEmail,
         responsiblePhone: state.responsiblePhone,
-        quoteId: state.quoteId,
+        isQuote: state.isQuote,
         quoteDate: state.quoteDate,
         bookingDate: state.bookingDate,
         category: state.category,
-        paxGroup: state.paxGroup,
         numPeople: state.numPeople,
         tripStartDate: state.tripStartDate,
         tripEndDate: state.tripEndDate,
         deposit: state.deposit,
         quotedCost: state.quotedCost,
-        arrivalProcMCOMCA: state.arrivalProcMCOMCA,
         numHoursQuoteValid: state.numHoursQuoteValid,
         clientComments: state.clientComments,
         intineraryDetails: state.intineraryDetails,
@@ -406,7 +402,7 @@ export const Bookings = () => {
       success: true,
       openSnakbar: true,
       invoice: "",
-      quoteId: "",
+      isQuote: false,
       clientId: "",
       agencyName: null,
       agencyEmail: "",
@@ -416,16 +412,14 @@ export const Bookings = () => {
       responsibleName: "",
       responsibleEmail: "",
       responsiblePhone: "",
-      quoteDate: "",
+      quoteDate: dayjs(Date(Date.now())),
       bookingDate: dayjs(Date(Date.now())),
       category: null,
-      paxGroup: "",
       numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
       quotedCost: 0.0,
-      arrivalProcMCOMCA: false,
       numHoursQuoteValid: 0,
       clientComments: "",
       intineraryDetails: "",
@@ -434,6 +428,8 @@ export const Bookings = () => {
       expandBookings: false,
       onEditMode: false,
       isDataUpdated: !state.isDataUpdated,
+      showAccordion: false,
+      accordionTitle: "",
     });
   }; //clearState
 
@@ -444,7 +440,7 @@ export const Bookings = () => {
       onEditMode: false,
       invalidField: "",
       invoice: "",
-      quoteId: "",
+      isQuote: false,
       clientId: "",
       agencyName: null,
       agencyEmail: "",
@@ -454,20 +450,20 @@ export const Bookings = () => {
       responsibleName: "",
       responsibleEmail: "",
       responsiblePhone: "",
-      quoteDate: "",
+      quoteDate: dayjs(Date(Date.now())),
       bookingDate: dayjs(Date(Date.now())),
       category: null,
-      paxGroup: "",
       numPeople: 0,
       tripStartDate: dayjs(Date(Date.now())),
       tripEndDate: dayjs(Date(Date.now())),
       deposit: 0.0,
       quotedCost: 0.0,
-      arrivalProcMCOMCA: false,
       numHoursQuoteValid: 0,
       clientComments: "",
       intineraryDetails: "",
       internalComments: "",
+      showAccordion: false,
+      accordionTitle: "",
     });
   }; //cancelEditing
 
@@ -480,14 +476,14 @@ export const Bookings = () => {
   };
 
   //save data being edited
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (isQuote) => {
     if (!isFormValid()) {
       return;
     }
 
     const bookingToUpdate = {
       invoice: state.invoice,
-      quoteId: state.quoteId,
+      isQuote: isQuote,
       clientId: state.clientId,
       employeeId: state.employeeId,
       responsibleName: state.responsibleName,
@@ -496,13 +492,11 @@ export const Bookings = () => {
       bookingDate: state.bookingDate,
       quoteDate: state.quoteDate,
       category: state.category,
-      paxGroup: state.paxGroup,
       numPeople: state.numPeople,
       tripStartDate: state.tripStartDate,
       tripEndDate: state.tripEndDate,
       deposit: state.deposit,
       quotedCost: state.quotedCost,
-      arrivalProcMCOMCA: state.arrivalProcMCOMCA,
       numHoursQuoteValid: state.numHoursQuoteValid,
       clientComments: state.clientComments,
       intineraryDetails: state.intineraryDetails,
@@ -615,13 +609,15 @@ export const Bookings = () => {
     //get client id and employee id from bookings data
     const clientId = state.bookingsData?.find((e) => e.id === id)?.clientId;
     const employeeId = state.bookingsData?.find((e) => e.id === id)?.employeeId;
-    const quoteId = state.bookingsData?.find((e) => e.id === id)?.quoteid;
+    const isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
     setState({
       onEditMode: true,
       expandPanel: true,
       invalidField: "",
+      showAccordion: true,
+      accordionTitle: "Booking",
       invoice: id,
-      quoteId: quoteId,
+      isQuote: isQuote,
       clientId: clientId,
       agencyName: state.clientsData?.find(
         (client) => client.client_id === clientId
@@ -645,9 +641,8 @@ export const Bookings = () => {
         state.bookingsData?.find((e) => e.id === id)?.bookingDate
       ),
       quoteDate:
-        dayjs(state.bookingsData?.find((e) => e.id === id)?.quoteDate) ?? "",
+        dayjs(state.bookingsData?.find((e) => e.id === id)?.quoteDate) ?? null,
       category: state.bookingsData?.find((e) => e.id === id)?.category,
-      paxGroup: state.bookingsData?.find((e) => e.id === id)?.paxGroup,
       numPeople: state.bookingsData?.find((e) => e.id === id)?.numPeople,
       tripStartDate: dayjs(
         state.bookingsData?.find((e) => e.id === id)?.tripStartDate
@@ -657,8 +652,6 @@ export const Bookings = () => {
       ),
       deposit: state.bookingsData?.find((e) => e.id === id)?.deposit,
       quotedCost: state.bookingsData?.find((e) => e.id === id)?.cost,
-      arrivalProcMCOMCA: state.bookingsData?.find((e) => e.id === id)
-        ?.arrivalProcMCOMCA,
       numHoursQuoteValid: state.bookingsData?.find((e) => e.id === id)
         ?.numHoursQuoteValid,
       clientComments: state.bookingsData?.find((e) => e.id === id)
@@ -673,7 +666,7 @@ export const Bookings = () => {
     });
 
     //scroll to the invoice field
-    document.getElementById("invoice").scrollIntoView();
+    //document.getElementById("invoice").scrollIntoView();
   }; //handleItemClick
 
   //get services Data
@@ -727,7 +720,12 @@ export const Bookings = () => {
   }; //getDetailsData
 
   //Show information when clicking on quotes table row
-  const handleQuoteClick = (id) => {
+  const handleQuoteClick = async (id) => {
+    const services = await getServicesData(id);
+
+    //load service details for this booking
+    const details = await getDetailsData(services);
+
     //load fields
     console.log(state.quotesData.filter((e) => e.id === id));
     //get client id and employee id from bookings data
@@ -739,11 +737,13 @@ export const Bookings = () => {
     )[0];
 
     setState({
-      onEditMode: false,
+      onEditMode: true,
       expandPanel: true,
       invalidField: "",
-      invoice: "",
-      quoteId: id,
+      showAccordion: true,
+      accordionTitle: "Quote",
+      invoice: id,
+      isQuote: state.quotesData?.find((e) => e.id === id)?.isQuote,
       clientId: clientId,
       agencyName: state.clientsData.filter(
         (client) => client.client_id === clientId
@@ -762,12 +762,11 @@ export const Bookings = () => {
         .responsibleEmail,
       responsiblePhone: state.quotesData.find((e) => e.id === id)
         .responsiblePhone,
-      bookingDate: dayjs(Date(Date.now())),
+      bookingDate: null,
       quoteDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].quoteDate
+        state.quotesData?.filter((e) => e.id === id)[0]?.quoteDate
       ),
       category: state.quotesData.filter((e) => e.id === id)[0].category,
-      paxGroup: state.quotesData.filter((e) => e.id === id)[0].paxGroup,
       numPeople: state.quotesData.filter((e) => e.id === id)[0].numPeople,
       tripStartDate: dayjs(
         state.quotesData.filter((e) => e.id === id)[0].tripStartDate
@@ -777,8 +776,6 @@ export const Bookings = () => {
       ),
       deposit: state.quotesData.filter((e) => e.id === id)[0].deposit,
       quotedCost: state.quotesData.filter((e) => e.id === id)[0].cost,
-      arrivalProcMCOMCA: state.quotesData.filter((e) => e.id === id)[0]
-        .arrivalProcMCOMCA,
       numHoursQuoteValid: state.quotesData.filter((e) => e.id === id)[0]
         .numHoursQuoteValid,
       clientComments: state.quotesData.filter((e) => e.id === id)[0]
@@ -787,6 +784,9 @@ export const Bookings = () => {
         .intineraryDetails,
       internalComments: state.quotesData.filter((e) => e.id === id)[0]
         .internalComents,
+      servicesData: services,
+      tabService: 0,
+      detailsData: details,
     });
   }; //handleQuoteClick
 
@@ -934,7 +934,6 @@ export const Bookings = () => {
           state={"FL"}
           phone={state.responsiblePhone}
           email={state.responsibleEmail}
-          group={state.paxGroup}
           passengers={state.numPeople}
           bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
           arrival={"10:30 am"}
@@ -959,647 +958,722 @@ export const Bookings = () => {
     generatePdfDoc(`invoice${state.invoice}.pdf`);
   };
 
+  //When the create quote button is clicked
+  const handleNewQuote = () => {
+    cancelEditing();
+    setState({
+      showAccordion: true,
+      accordionTitle: "Quote",
+      expandPanel: true,
+      isQuote: true,
+      bookingDate: null,
+    });
+  };
+
+  const handleNewBooking = () => {
+    cancelEditing();
+    setState({
+      showAccordion: true,
+      accordionTitle: "Booking",
+      expandPanel: true,
+      isQuote: false,
+      quoteDate: null,
+    });
+  };
+
+  const handleSaveAsBooking = () => {
+    handleSaveChanges(false);
+  };
+
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
         <form>
-          <Accordion
-            expanded={state.expandPanel}
-            onChange={() => setState({ expandPanel: !state.expandPanel })}
+          <Stack
+            direction="row"
+            spacing={2}
+            marginBottom={2}
+            justifyContent="center"
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              {state.onEditMode ? (
-                <Box sx={{ display: "inline-flex" }}>
-                  <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
-                    EDITING BOOKING
-                  </Typography>
-                  <EditIcon style={{ color: "#1976d2", marginLeft: "10px" }} />
-                </Box>
-              ) : (
-                <Box sx={{ display: "inline-flex" }}>
-                  <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
-                    NEW BOOKING
-                  </Typography>
-                  <RequestQuoteIcon
-                    style={{ color: "#1976d2", marginLeft: "10px" }}
-                  />
-                </Box>
-              )}
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box className="fieldsbox1">
-                <TextField
-                  className="textfield"
-                  id="invoice"
-                  label="Invoice #"
-                  type="text"
-                  disabled
-                  value={state.invoice}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  className="textfield"
-                  id="quoteId"
-                  label="Quote #"
-                  type="text"
-                  disabled
-                  value={state.quoteId}
-                  onChange={handleOnChange}
-                />
-
-                <div
-                  id="agency-box"
-                  className="textfield"
-                  style={{ display: "inline-block" }}
-                >
-                  <Autocomplete
-                    id="agency"
-                    required
-                    className="autocomplete"
-                    value={state.agencyName}
-                    onChange={handleAgencyChange}
-                    isOptionEqualToValue={(option, value) =>
-                      option.agency === value
-                    }
-                    options={state.clientsData.map((element) => {
-                      const client = {
-                        clientId: element.client_id,
-                        agency: element.agency,
-                        contact: element.contact,
-                        email: element.email,
-                      };
-                      return client;
-                    })}
-                    sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.agency ?? option}
-                    renderInput={(params) => (
-                      <TextField
-                        required
-                        {...params}
-                        label="Agency"
-                        error={state.invalidField === "agencyName"}
-                        helperText={
-                          state.invalidField === "agencyName"
-                            ? "Information required"
-                            : ""
-                        }
-                      />
-                    )}
-                  />
-                </div>
-                <TextField
-                  className="textfield"
-                  id="email"
-                  label="Email"
-                  type="text"
-                  disabled
-                  placeholder="Email"
-                  value={state.agencyEmail}
-                  onChange={handleOnChange}
-                />
-                <TextField
-                  className="textfield"
-                  id="contact"
-                  label="Contact"
-                  disabled
-                  type="text"
-                  placeholder="Contact"
-                  value={state.agencyContact}
-                  onChange={handleOnChange}
-                />
-
-                <div
-                  id="salesperson-box"
-                  className="textfield"
-                  style={{ display: "inline-block" }}
-                >
-                  <Autocomplete
-                    id="salesPerson"
-                    required
-                    className="autocomplete"
-                    value={state.salesPerson}
-                    onChange={handleSalesPersonChange}
-                    isOptionEqualToValue={(option, value) =>
-                      option.salesPerson === value
-                    }
-                    options={state.salesPeople?.map((element) => {
-                      const employee = {
-                        employeeId: element.employee_id,
-                        salesPerson: element.fullname,
-                      };
-                      return employee;
-                    })}
-                    sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.salesPerson ?? option}
-                    renderInput={(params) => (
-                      <TextField
-                        required
-                        {...params}
-                        label="Sales person"
-                        error={state.invalidField === "salesPerson"}
-                        helperText={
-                          state.invalidField === "salesPerson"
-                            ? "Information required"
-                            : ""
-                        }
-                      />
-                    )}
-                  />
-                </div>
-
-                <TextField
-                  className="textfield"
-                  id="responsibleName"
-                  label="Responsible"
-                  type="text"
-                  placeholder="Responsible"
-                  value={state.responsibleName}
-                  onChange={handleOnChange}
-                />
-                <TextField
-                  className="textfield"
-                  id="responsibleEmail"
-                  label="Resp. Email"
-                  type="text"
-                  placeholder="Resp. Email"
-                  value={state.responsibleEmail}
-                  onChange={handleOnChange}
-                />
-                <MuiTelInput
-                  className="textfield"
-                  id="responsiblePhone"
-                  defaultCountry="US"
-                  label="Resp. Phone"
-                  placeholder="Resp. Phone"
-                  value={state.responsiblePhone}
-                  onChange={handlePhoneChange}
-                  onlyCountries={["US", "CA"]}
-                  inputProps={{ maxLength: 15 }}
-                />
-
-                <LocalizationProvider
-                  dateAdapter={AdapterDayjs}
-                  adapterLocale="en"
-                >
-                  <DatePicker
-                    label="Quote Date"
+            <Button variant="contained" onClick={handleNewQuote}>
+              Create Quote
+            </Button>
+            <Button variant="outlined" onClick={handleNewBooking}>
+              Create Booking
+            </Button>
+          </Stack>
+          {state.showAccordion && (
+            <Accordion
+              expanded={state.expandPanel}
+              onChange={() => setState({ expandPanel: !state.expandPanel })}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                {state.onEditMode ? (
+                  <Box sx={{ display: "inline-flex" }}>
+                    <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                      Editing {state.accordionTitle}
+                    </Typography>
+                    <EditIcon
+                      style={{ color: "#1976d2", marginLeft: "10px" }}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "inline-flex" }}>
+                    <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                      New {state.accordionTitle}
+                    </Typography>
+                    <RequestQuoteIcon
+                      style={{ color: "#1976d2", marginLeft: "10px" }}
+                    />
+                  </Box>
+                )}
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box className="fieldsbox1">
+                  <TextField
                     className="textfield"
-                    timezone="America/New_York"
-                    id="quoteDate"
+                    id="invoice"
+                    label="Invoice #"
+                    type="text"
                     disabled
-                    value={dayjs(state.quoteDate)}
-                    onChange={(newValue) =>
-                      setState({ quoteDate: dayjs(newValue) })
-                    }
+                    value={state.invoice}
+                    onChange={handleOnChange}
                   />
 
-                  <DatePicker
-                    error={state.invalidField === "bookingDate"}
-                    helperText={
-                      state.invalidField === "bookingDate"
-                        ? "Information required"
-                        : ""
-                    }
-                    label="Booking Date"
+                  <div
+                    id="agency-box"
                     className="textfield"
-                    id="bookingDate"
-                    timezone="America/New_York"
-                    required
-                    placeholder="Booking Date"
-                    value={dayjs(state.bookingDate)}
-                    onChange={(newValue) =>
-                      setState({ bookingDate: dayjs(newValue) })
-                    }
-                  />
-                </LocalizationProvider>
-
-                <div
-                  id="category-box"
-                  className="textfield"
-                  style={{ display: "inline-block" }}
-                >
-                  <Autocomplete
-                    id="category"
-                    className="autocomplete"
-                    required
-                    value={state.category}
-                    onChange={(_, newValue) => setState({ category: newValue })}
-                    options={categories}
-                    sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.toString()}
-                    renderInput={(params) => (
-                      <TextField
-                        required
-                        {...params}
-                        label="Category"
-                        error={state.invalidField === "category"}
-                        helperText={
-                          state.invalidField === "category"
-                            ? "Information required"
-                            : ""
-                        }
-                      />
-                    )}
-                  />
-                </div>
-
-                <TextField
-                  className="textfield"
-                  id="paxGroup"
-                  required
-                  label="Pax/Group"
-                  type="text"
-                  placeholder="Pax/Group"
-                  value={state.paxGroup}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  error={state.invalidField === "numPeople"}
-                  helperText={
-                    state.invalidField === "numPeople"
-                      ? "Information required"
-                      : ""
-                  }
-                  className="textfield"
-                  id="numPeople"
-                  required
-                  label="People #"
-                  type="text"
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="People #"
-                  value={state.numPeople}
-                  onChange={handleOnChange}
-                />
-
-                <LocalizationProvider
-                  dateAdapter={AdapterDayjs}
-                  adapterLocale="en"
-                >
-                  <DatePicker
-                    error={state.invalidField === "tripStartDate"}
-                    helperText={
-                      state.invalidField === "tripStartDate"
-                        ? "Information required"
-                        : ""
-                    }
-                    label="Trip Start Date"
+                    style={{ display: "inline-block" }}
+                  >
+                    <Autocomplete
+                      id="agency"
+                      required
+                      className="autocomplete"
+                      value={state.agencyName}
+                      onChange={handleAgencyChange}
+                      isOptionEqualToValue={(option, value) =>
+                        option.agency === value
+                      }
+                      options={state.clientsData.map((element) => {
+                        const client = {
+                          clientId: element.client_id,
+                          agency: element.agency,
+                          contact: element.contact,
+                          email: element.email,
+                        };
+                        return client;
+                      })}
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.agency ?? option}
+                      renderInput={(params) => (
+                        <TextField
+                          required
+                          {...params}
+                          label="Agency"
+                          error={state.invalidField === "agencyName"}
+                          helperText={
+                            state.invalidField === "agencyName"
+                              ? "Information required"
+                              : ""
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                  <TextField
                     className="textfield"
-                    id="tripStartDate"
-                    timezone="America/New_York"
-                    required
-                    placeholder="Trip Start Date"
-                    value={state.tripStartDate}
-                    onChange={(newValue) =>
-                      setState({ tripStartDate: dayjs(newValue) })
-                    }
+                    id="email"
+                    label="Email"
+                    type="text"
+                    disabled
+                    placeholder="Email"
+                    value={state.agencyEmail}
+                    onChange={handleOnChange}
                   />
-
-                  <DatePicker
-                    error={state.invalidField === "tripEndDate"}
-                    helperText={
-                      state.invalidField === "tripEndDate"
-                        ? "Information required"
-                        : ""
-                    }
-                    label="Trip End Date"
+                  <TextField
                     className="textfield"
-                    id="tripEndDate"
-                    timezone="America/New_York"
-                    required
-                    placeholder="Trip End Date"
-                    value={state.tripEndDate}
-                    onChange={(newValue) =>
-                      setState({ tripEndDate: dayjs(newValue) })
-                    }
+                    id="contact"
+                    label="Contact"
+                    disabled
+                    type="text"
+                    placeholder="Contact"
+                    value={state.agencyContact}
+                    onChange={handleOnChange}
                   />
-                </LocalizationProvider>
 
-                <TextField
-                  className="textfield"
-                  id="deposit"
-                  label="Deposit %"
-                  type="text"
-                  inputProps={{ inputMode: "decimal", step: "0.01" }}
-                  placeholder="Deposit %"
-                  value={state.deposit}
-                  onChange={handleOnChange}
-                />
+                  <div
+                    id="salesperson-box"
+                    className="textfield"
+                    style={{ display: "inline-block" }}
+                  >
+                    <Autocomplete
+                      id="salesPerson"
+                      required
+                      className="autocomplete"
+                      value={state.salesPerson}
+                      onChange={handleSalesPersonChange}
+                      isOptionEqualToValue={(option, value) =>
+                        option.salesPerson === value
+                      }
+                      options={state.salesPeople?.map((element) => {
+                        const employee = {
+                          employeeId: element.employee_id,
+                          salesPerson: element.fullname,
+                        };
+                        return employee;
+                      })}
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.salesPerson ?? option}
+                      renderInput={(params) => (
+                        <TextField
+                          required
+                          {...params}
+                          label="Sales person"
+                          error={state.invalidField === "salesPerson"}
+                          helperText={
+                            state.invalidField === "salesPerson"
+                              ? "Information required"
+                              : ""
+                          }
+                        />
+                      )}
+                    />
+                  </div>
 
-                <TextField
-                  className="textfield"
-                  id="quotedCost"
-                  label="Quoted Cost $"
-                  type="text"
-                  inputProps={{ inputMode: "decimal", step: "0.01" }}
-                  placeholder="Quoted Cost $"
-                  value={state.quotedCost}
-                  onChange={handleOnChange}
-                />
+                  <TextField
+                    className="textfield"
+                    id="responsibleName"
+                    label="Responsible"
+                    type="text"
+                    placeholder="Responsible"
+                    value={state.responsibleName}
+                    onChange={handleOnChange}
+                  />
+                  <TextField
+                    className="textfield"
+                    id="responsibleEmail"
+                    label="Resp. Email"
+                    type="text"
+                    placeholder="Resp. Email"
+                    value={state.responsibleEmail}
+                    onChange={handleOnChange}
+                  />
+                  <MuiTelInput
+                    className="textfield"
+                    id="responsiblePhone"
+                    defaultCountry="US"
+                    label="Resp. Phone"
+                    placeholder="Resp. Phone"
+                    value={state.responsiblePhone}
+                    onChange={handlePhoneChange}
+                    onlyCountries={["US", "CA"]}
+                    inputProps={{ maxLength: 15 }}
+                  />
 
-                <TextField
-                  className="textfield"
-                  id="numHoursQuoteValid"
-                  label="Quote valid for (Hr #)"
-                  type="text"
-                  disabled
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                  placeholder="Quote valid for (Hr #)"
-                  value={state.numHoursQuoteValid}
-                  onChange={handleOnChange}
-                />
+                  <LocalizationProvider
+                    dateAdapter={AdapterDayjs}
+                    adapterLocale="en"
+                  >
+                    <DatePicker
+                      slotProps={{
+                        textField: {
+                          error: state.invalidField === "quoteDate",
+                          helperText:
+                            state.invalidField === "quoteDate"
+                              ? "Information required"
+                              : "",
+                          required: state.isQuote,
+                        },
+                      }}
+                      label="Quote Date"
+                      className="textfield"
+                      timezone="America/New_York"
+                      id="quoteDate"
+                      disabled={!state.isQuote}
+                      required={state.isQuote}
+                      value={dayjs(state.quoteDate)}
+                      onChange={(newValue) => setState({ quoteDate: newValue })}
+                    />
 
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={state.arrivalProcMCOMCA}
-                      onChange={(e) =>
-                        setState({ arrivalProcMCOMCA: e.target.checked })
+                    <DatePicker
+                      slotProps={{
+                        textField: {
+                          error: state.invalidField === "bookingDate",
+                          helperText:
+                            state.invalidField === "bookingDate"
+                              ? "Information required"
+                              : "",
+                          required: !state.isQuote,
+                        },
+                      }}
+                      label="Booking Date"
+                      className="textfield"
+                      id="bookingDate"
+                      timezone="America/New_York"
+                      disabled={state.isQuote}
+                      placeholder="Booking Date"
+                      value={dayjs(state.bookingDate)}
+                      onChange={(newValue) =>
+                        setState({ bookingDate: newValue })
                       }
                     />
-                  }
-                  label="Arrival Procedure MCO/MCA"
-                  labelPlacement="start"
-                  className="textfield"
-                />
+                  </LocalizationProvider>
 
-                <TextField
-                  className="textfield"
-                  id="clientComments"
-                  label="Client Comments"
-                  type="text"
-                  multiline
-                  rows={4}
-                  placeholder="Client Comments"
-                  value={state.clientComments}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  className="textfield"
-                  id="intineraryDetails"
-                  label="Intinerary Details"
-                  type="text"
-                  multiline
-                  rows={4}
-                  placeholder="Intinerary Details"
-                  value={state.intineraryDetails}
-                  onChange={handleOnChange}
-                />
-
-                <TextField
-                  className="textfield"
-                  id="internalComments"
-                  label="Internal Comments"
-                  type="text"
-                  multiline
-                  rows={4}
-                  placeholder="Internal Comments"
-                  value={state.internalComments}
-                  onChange={handleOnChange}
-                />
-              </Box>
-              {state.onEditMode ? (
-                <Box>
-                  <Button variant="contained" onClick={handleSaveChanges}>
-                    Save Changes
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    style={{ marginLeft: "10px" }}
-                    onClick={cancelEditing}
+                  <div
+                    id="category-box"
+                    className="textfield"
+                    style={{ display: "inline-block" }}
                   >
-                    Cancel
-                  </Button>
-                  <Button
-                    style={{ marginLeft: "10px" }}
-                    variant="contained"
-                    onClick={handleServiceModal}
-                  >
-                    New Service Order
-                  </Button>
+                    <Autocomplete
+                      id="category"
+                      className="autocomplete"
+                      required
+                      value={state.category}
+                      onChange={(_, newValue) =>
+                        setState({ category: newValue })
+                      }
+                      options={categories}
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.toString()}
+                      renderInput={(params) => (
+                        <TextField
+                          required
+                          {...params}
+                          label="Category"
+                          error={state.invalidField === "category"}
+                          helperText={
+                            state.invalidField === "category"
+                              ? "Information required"
+                              : ""
+                          }
+                        />
+                      )}
+                    />
+                  </div>
 
-                  <Button
-                    style={{ marginLeft: "10px" }}
-                    variant="contained"
-                    onClick={handleDownloadInvoice}
-                  >
-                    Download Invoice
-                  </Button>
+                  <TextField
+                    error={state.invalidField === "numPeople"}
+                    helperText={
+                      state.invalidField === "numPeople"
+                        ? "Information required"
+                        : ""
+                    }
+                    className="textfield"
+                    id="numPeople"
+                    required
+                    label="People #"
+                    type="text"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                    placeholder="People #"
+                    value={state.numPeople}
+                    onChange={handleOnChange}
+                  />
 
-                  <p></p>
-                  <Divider />
-                  <Typography variant="h5" color="primary">
-                    Services
-                  </Typography>
-                  <Divider />
+                  <LocalizationProvider
+                    dateAdapter={AdapterDayjs}
+                    adapterLocale="en"
+                  >
+                    <DatePicker
+                      error={state.invalidField === "tripStartDate"}
+                      helperText={
+                        state.invalidField === "tripStartDate"
+                          ? "Information required"
+                          : ""
+                      }
+                      label="Trip Start Date"
+                      className="textfield"
+                      id="tripStartDate"
+                      timezone="America/New_York"
+                      required
+                      placeholder="Trip Start Date"
+                      value={state.tripStartDate}
+                      onChange={(newValue) =>
+                        setState({ tripStartDate: dayjs(newValue) })
+                      }
+                    />
+
+                    <DatePicker
+                      error={state.invalidField === "tripEndDate"}
+                      helperText={
+                        state.invalidField === "tripEndDate"
+                          ? "Information required"
+                          : ""
+                      }
+                      label="Trip End Date"
+                      className="textfield"
+                      id="tripEndDate"
+                      timezone="America/New_York"
+                      required
+                      placeholder="Trip End Date"
+                      value={state.tripEndDate}
+                      onChange={(newValue) =>
+                        setState({ tripEndDate: dayjs(newValue) })
+                      }
+                    />
+                  </LocalizationProvider>
+
+                  <TextField
+                    className="textfield"
+                    id="deposit"
+                    label="Deposit %"
+                    type="text"
+                    inputProps={{ inputMode: "decimal", step: "0.01" }}
+                    placeholder="Deposit %"
+                    value={state.deposit}
+                    onChange={handleOnChange}
+                  />
+
+                  <TextField
+                    className="textfield"
+                    id="quotedCost"
+                    label="Quoted Cost $"
+                    type="text"
+                    inputProps={{ inputMode: "decimal", step: "0.01" }}
+                    placeholder="Quoted Cost $"
+                    value={state.quotedCost}
+                    onChange={handleOnChange}
+                  />
+
+                  <TextField
+                    className="textfield"
+                    id="numHoursQuoteValid"
+                    label="Quote valid for (Hr #)"
+                    type="text"
+                    disabled={!state.isQuote}
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                    placeholder="Quote valid for (Hr #)"
+                    value={state.numHoursQuoteValid}
+                    onChange={handleOnChange}
+                  />
+
+                  <TextField
+                    className="textfield"
+                    id="clientComments"
+                    label="Client Comments"
+                    type="text"
+                    multiline
+                    rows={4}
+                    placeholder="Client Comments"
+                    value={state.clientComments}
+                    onChange={handleOnChange}
+                  />
+
+                  <TextField
+                    className="textfield"
+                    id="intineraryDetails"
+                    label="Intinerary Details"
+                    type="text"
+                    multiline
+                    rows={4}
+                    placeholder="Intinerary Details"
+                    value={state.intineraryDetails}
+                    onChange={handleOnChange}
+                  />
+
+                  <TextField
+                    className="textfield"
+                    id="internalComments"
+                    label="Internal Comments"
+                    type="text"
+                    multiline
+                    rows={4}
+                    placeholder="Internal Comments"
+                    value={state.internalComments}
+                    onChange={handleOnChange}
+                  />
+                </Box>
+                {state.onEditMode ? (
                   <Box>
-                    <Tabs
-                      value={state.tabService}
-                      onChange={handleServiceClick}
+                    <Button
+                      variant="contained"
+                      onClick={() => handleSaveChanges(state.isQuote)}
+                      size="small"
                     >
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      style={{ marginLeft: "10px" }}
+                      onClick={cancelEditing}
+                      size="small"
+                    >
+                      Cancel
+                    </Button>
+
+                    {state.isQuote && (
+                      <Button
+                        style={{ marginLeft: "10px" }}
+                        variant="contained"
+                        onClick={handleSaveAsBooking}
+                        color="success"
+                        size="small"
+                      >
+                        Transform Quote to Booking
+                      </Button>
+                    )}
+
+                    <Button
+                      style={{ marginLeft: "10px" }}
+                      variant="contained"
+                      onClick={handleDownloadInvoice}
+                      size="small"
+                    >
+                      Download Invoice
+                    </Button>
+
+                    <p></p>
+
+                    <Button
+                      variant="contained"
+                      onClick={handleServiceModal}
+                      size="small"
+                    >
+                      Create new Service
+                    </Button>
+                    <p></p>
+                    {state.servicesData?.length > 0 && (
+                      <Box>
+                        <Divider />
+                        <Typography variant="h5" color="primary">
+                          Services
+                        </Typography>
+                        <Divider />{" "}
+                      </Box>
+                    )}
+                    <Box>
+                      <Tabs
+                        value={state.tabService}
+                        onChange={handleServiceClick}
+                      >
+                        {state.servicesData?.length > 0 &&
+                          state.servicesData?.map((service) => {
+                            return (
+                              <Tab
+                                label={service?.serviceName}
+                                key={service?.id}
+                              ></Tab>
+                            );
+                          })}
+                      </Tabs>
                       {state.servicesData?.length > 0 &&
-                        state.servicesData?.map((service) => {
+                        state.servicesData?.map((service, index) => {
+                          let details = state.detailsData?.map((detailsArr) =>
+                            detailsArr?.filter(
+                              (detail) => detail.service_id === service.id
+                            )
+                          );
                           return (
-                            <Tab
-                              label={service?.serviceName}
+                            //service data info
+                            <CustomTabPanel
+                              value={state.tabService}
+                              index={index}
                               key={service?.id}
-                            ></Tab>
+                            >
+                              <Table size="small">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell style={{ fontWeight: "bold" }}>
+                                      SVC
+                                    </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>
+                                      Date
+                                    </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>
+                                      Qty
+                                    </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>
+                                      Charge
+                                    </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>
+                                      Sales Tax
+                                    </TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  <TableRow
+                                    hover
+                                    onClick={(event) =>
+                                      handleEditService(event, service.id)
+                                    }
+                                  >
+                                    <TableCell>{service.serviceCode}</TableCell>
+                                    <TableCell>
+                                      {dayjs(service.serviceDate).format(
+                                        "MM/DD/YYYY"
+                                      )}
+                                    </TableCell>
+                                    <TableCell>{service.qty}</TableCell>
+                                    <TableCell>{service.charge}</TableCell>
+                                    <TableCell>{service.salesTax}</TableCell>
+                                  </TableRow>
+                                </TableBody>
+                              </Table>
+                              <p></p>
+                              {details[index].length > 0 && (
+                                <Box>
+                                  <Typography variant="h6" color="secondary">
+                                    Details
+                                  </Typography>
+                                  <p></p>
+                                  <Table size="small">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          Driver
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          Vehicle
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          From
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          To
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          Spot Time
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          Start Time
+                                        </TableCell>
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          End Time
+                                        </TableCell>
+
+                                        <TableCell
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          Type
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {details[index]?.map((detail) => {
+                                        const driver = state.drivers?.find(
+                                          (employee) =>
+                                            employee?.employee_id ===
+                                            detail?.employee_id
+                                        );
+
+                                        const vehicle =
+                                          state.vehiclesData?.find(
+                                            (vehicle) =>
+                                              vehicle?.vehicle_id ===
+                                              detail?.vehicle_id
+                                          );
+
+                                        const locationFrom =
+                                          state.locationsData?.find(
+                                            (location) =>
+                                              location?.location_id ===
+                                              detail?.from_location_id
+                                          );
+                                        const locationTo =
+                                          state.locationsData?.find(
+                                            (location) =>
+                                              location?.location_id ===
+                                              detail?.to_location_id
+                                          );
+
+                                        return (
+                                          <TableRow
+                                            hover
+                                            onClick={(event) =>
+                                              handleEditDetail(event, detail)
+                                            }
+                                            key={detail?.detail_id}
+                                          >
+                                            <TableCell>
+                                              {!detail.use_farmout
+                                                ? driver?.fullname
+                                                : state.companiesData?.find(
+                                                    (company) =>
+                                                      company.company_id ===
+                                                      detail?.company_id
+                                                  )?.company_name}
+                                            </TableCell>
+                                            <TableCell>
+                                              {!detail.use_farmout
+                                                ? vehicle?.vehicle_name
+                                                : "Farm-out"}
+                                            </TableCell>
+                                            <TableCell>
+                                              {locationFrom?.location_name}
+                                            </TableCell>
+                                            <TableCell>
+                                              {locationTo?.location_name}
+                                            </TableCell>
+                                            <TableCell>
+                                              {dayjs(detail?.spot_time).format(
+                                                "HH:mm"
+                                              )}
+                                            </TableCell>
+                                            <TableCell>
+                                              {dayjs(detail?.start_time).format(
+                                                "HH:mm"
+                                              )}
+                                            </TableCell>
+                                            <TableCell>
+                                              {dayjs(detail?.end_time).format(
+                                                "HH:mm"
+                                              )}
+                                            </TableCell>
+                                            <TableCell>
+                                              {detail?.service_type}
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </Box>
+                              )}
+                              <p></p>
+                              <Button
+                                variant="outlined"
+                                onClick={() => handleDetailModal(service.id)}
+                              >
+                                Add details
+                              </Button>
+                            </CustomTabPanel>
                           );
                         })}
-                    </Tabs>
-                    {state.servicesData?.length > 0 &&
-                      state.servicesData?.map((service, index) => {
-                        let details = state.detailsData?.map((detailsArr) =>
-                          detailsArr?.filter(
-                            (detail) => detail.service_id === service.id
-                          )
-                        );
-                        return (
-                          //service data info
-                          <CustomTabPanel
-                            value={state.tabService}
-                            index={index}
-                            key={service?.id}
-                          >
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    SVC
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    Date
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    Qty
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    Charge
-                                  </TableCell>
-                                  <TableCell style={{ fontWeight: "bold" }}>
-                                    Sales Tax
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                <TableRow
-                                  hover
-                                  onClick={(event) =>
-                                    handleEditService(event, service.id)
-                                  }
-                                >
-                                  <TableCell>{service.serviceCode}</TableCell>
-                                  <TableCell>
-                                    {dayjs(service.serviceDate).format(
-                                      "MM/DD/YYYY"
-                                    )}
-                                  </TableCell>
-                                  <TableCell>{service.qty}</TableCell>
-                                  <TableCell>{service.charge}</TableCell>
-                                  <TableCell>{service.salesTax}</TableCell>
-                                </TableRow>
-                              </TableBody>
-                            </Table>
-                            <p></p>
-                            {details[index].length > 0 && (
-                              <Box>
-                                <Typography variant="h6" color="secondary">
-                                  Details
-                                </Typography>
-                                <p></p>
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Driver
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Vehicle
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        From
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        To
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Spot Time
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Start Time
-                                      </TableCell>
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        End Time
-                                      </TableCell>
-
-                                      <TableCell style={{ fontWeight: "bold" }}>
-                                        Type
-                                      </TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {details[index]?.map((detail) => {
-                                      const driver = state.drivers?.find(
-                                        (employee) =>
-                                          employee?.employee_id ===
-                                          detail?.employee_id
-                                      );
-
-                                      const vehicle = state.vehiclesData?.find(
-                                        (vehicle) =>
-                                          vehicle?.vehicle_id ===
-                                          detail?.vehicle_id
-                                      );
-
-                                      const locationFrom =
-                                        state.locationsData?.find(
-                                          (location) =>
-                                            location?.location_id ===
-                                            detail?.from_location_id
-                                        );
-                                      const locationTo =
-                                        state.locationsData?.find(
-                                          (location) =>
-                                            location?.location_id ===
-                                            detail?.to_location_id
-                                        );
-
-                                      return (
-                                        <TableRow
-                                          hover
-                                          onClick={(event) =>
-                                            handleEditDetail(event, detail)
-                                          }
-                                          key={detail?.detail_id}
-                                        >
-                                          <TableCell>
-                                            {!detail.use_farmout
-                                              ? driver?.fullname
-                                              : state.companiesData?.find(
-                                                  (company) =>
-                                                    company.company_id ===
-                                                    detail?.company_id
-                                                )?.company_name}
-                                          </TableCell>
-                                          <TableCell>
-                                            {!detail.use_farmout
-                                              ? vehicle?.vehicle_name
-                                              : "Farm-out"}
-                                          </TableCell>
-                                          <TableCell>
-                                            {locationFrom?.location_name}
-                                          </TableCell>
-                                          <TableCell>
-                                            {locationTo?.location_name}
-                                          </TableCell>
-                                          <TableCell>
-                                            {dayjs(detail?.spot_time).format(
-                                              "HH:mm"
-                                            )}
-                                          </TableCell>
-                                          <TableCell>
-                                            {dayjs(detail?.start_time).format(
-                                              "HH:mm"
-                                            )}
-                                          </TableCell>
-                                          <TableCell>
-                                            {dayjs(detail?.end_time).format(
-                                              "HH:mm"
-                                            )}
-                                          </TableCell>
-                                          <TableCell>
-                                            {detail?.service_type}
-                                          </TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                  </TableBody>
-                                </Table>
-                              </Box>
-                            )}
-                            <p></p>
-                            <Button
-                              variant="outlined"
-                              onClick={() => handleDetailModal(service.id)}
-                            >
-                              Add details
-                            </Button>
-                          </CustomTabPanel>
-                        );
-                      })}
+                    </Box>
                   </Box>
-                </Box>
-              ) : (
-                <Button variant="contained" onClick={handleSubmit}>
-                  Save New Booking
-                </Button>
-              )}
-              <p></p>
-            </AccordionDetails>
-          </Accordion>
+                ) : (
+                  <Box>
+                    <Button variant="contained" onClick={handleSubmit}>
+                      Save New {state.accordionTitle}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      style={{ marginLeft: "10px" }}
+                      onClick={cancelEditing}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                )}
+                <p></p>
+              </AccordionDetails>
+            </Accordion>
+          )}
 
           <Snackbar
             open={state.error && state.openSnakbar}

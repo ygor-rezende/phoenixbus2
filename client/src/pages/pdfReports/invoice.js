@@ -107,7 +107,6 @@ const Invoice = (props) => {
     state,
     phone,
     email,
-    group,
     passengers,
     bookingDate,
     arrival,
@@ -143,7 +142,6 @@ const Invoice = (props) => {
           </View>
           <View style={styles.tripBoard}>
             <View style={[styles.textBold, styles.innerBoard]}>
-              <Text>Group:</Text>
               <Text>Passengers:</Text>
               <Text>Booking date:</Text>
               <Text>Arrival:</Text>
@@ -151,7 +149,6 @@ const Invoice = (props) => {
               <Text>Reference:</Text>
             </View>
             <View style={[styles.text, styles.innerBoard]}>
-              <Text>{group}</Text>
               <Text>{passengers}</Text>
               <Text>{bookingDate}</Text>
               <Text>{arrival}</Text>
