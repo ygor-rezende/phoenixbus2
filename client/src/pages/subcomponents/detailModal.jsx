@@ -10,6 +10,9 @@ import {
   Button,
   FormControlLabel,
   Switch,
+  Checkbox,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
@@ -50,10 +53,10 @@ const initialState = {
   curVehicle: null,
   fromServiceLocationId: "",
   from: null,
-  curFromLocation: null,
   toServiceLocationId: "",
   to: null,
-  curToLocation: null,
+  returnServiceLocationId: null,
+  return: null,
   serviceLocations: [],
   spotTime: null,
   startTime: null,
@@ -71,6 +74,10 @@ const initialState = {
   openValidationDialog: false,
   validationDialogType: "",
   vehicleValidationData: [],
+  addStop: false,
+  addStopDetail: "",
+  addStopInfo: "",
+  tripLength: 0.0,
 };
 
 export const DetailModal = (props) => {
@@ -150,14 +157,22 @@ export const DetailModal = (props) => {
           response?.data?.find(
             (location) => location.location_id === data?.from_location_id
           ) ?? null;
+
         const toLocation =
           response?.data?.find(
             (location) => location.location_id === data?.to_location_id
           ) ?? null;
+
+        const returnLocation =
+          response?.data?.find(
+            (location) => location.location_id === data?.return_location_id
+          ) ?? null;
+
         setState({
           serviceLocations: response?.data,
           from: fromLocation?.location_name,
           to: toLocation?.location_name,
+          return: returnLocation?.location_name,
         });
       })();
 
@@ -183,6 +198,7 @@ export const DetailModal = (props) => {
           vehicleId: data.vehicle_id,
           fromServiceLocationId: data.from_location_id,
           toServiceLocationId: data.to_location_id,
+          returnServiceLocationId: data.return_location_id,
           spotTime: dayjs(data.spot_time),
           startTime: dayjs(data.start_time),
           endTime: dayjs(data.end_time),
@@ -190,6 +206,10 @@ export const DetailModal = (props) => {
           payment: data.payment,
           gratuity: data.gratuity,
           useFarmout: data.use_farmout,
+          addStop: data.additional_stop,
+          addStopInfo: data.additional_stop_info,
+          addStopDetail: data.additional_stop_detail,
+          tripLength: data.trip_length,
           openModal: true,
         });
       } else {
@@ -221,9 +241,7 @@ export const DetailModal = (props) => {
     }
 
     //find the service date
-    const serviceDate = serviceData?.find(
-      (service) => service.id === serviceId
-    )?.serviceDate;
+    const serviceDate = serviceData?.serviceDate;
 
     //check if driver has another booking for the same day
     const driverResponse = await getServer(
@@ -288,6 +306,7 @@ export const DetailModal = (props) => {
           vehicleId: state.vehicleId,
           fromServiceLocationId: state.fromServiceLocationId,
           toServiceLocationId: state.toServiceLocationId,
+          returnServiceLocationId: state.returnServiceLocationId,
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
@@ -296,6 +315,10 @@ export const DetailModal = (props) => {
           gratuity: state.gratuity,
           useFarmout: state.useFarmout,
           companyId: state.companyId,
+          additionalStop: state.addStop,
+          additionalStopInfo: state.addStopInfo,
+          additionalStopDetail: state.addStopDetail,
+          tripLength: state.tripLength,
         },
       });
 
@@ -310,6 +333,15 @@ export const DetailModal = (props) => {
       }
     } //if !onEditMode
     else {
+      //check if service code is != RT to set null to service location
+      const returnLocation =
+        serviceData?.service_code !== "RT"
+          ? null
+          : state.returnServiceLocationId;
+
+      const tripLength =
+        serviceData?.service_code !== "CH" ? 0 : state.tripLength;
+
       //update call
       const response = await putServer("/updatedetail", {
         detail: {
@@ -319,6 +351,7 @@ export const DetailModal = (props) => {
           vehicleId: state.vehicleId,
           fromServiceLocationId: state.fromServiceLocationId,
           toServiceLocationId: state.toServiceLocationId,
+          returnServiceLocationId: returnLocation,
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
@@ -327,6 +360,10 @@ export const DetailModal = (props) => {
           gratuity: state.gratuity,
           useFarmout: state.useFarmout,
           companyId: state.companyId,
+          additionalStop: state.addStop,
+          additionalStopInfo: state.addStopInfo,
+          additionalStopDetail: state.addStopDetail,
+          tripLength: tripLength,
         },
       });
 
@@ -410,6 +447,16 @@ export const DetailModal = (props) => {
     }
   };
 
+  //handle changes on To Location autocomplete
+  const handleReturnLocationChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        returnServiceLocationId: newValue.locationId,
+        return: newValue.locationName,
+      });
+    }
+  };
+
   const handleCheckFarmout = (e) => {
     const isChecked = e.target.checked;
     if (isChecked)
@@ -433,6 +480,9 @@ export const DetailModal = (props) => {
     }
   };
 
+  //handle updates in the fields
+  const handleOnChange = (e) => setState({ [e.target.id]: e.target.value });
+
   //clear state fields utility
   const clearState = () => {
     setState({
@@ -449,6 +499,8 @@ export const DetailModal = (props) => {
       from: null,
       toServiceLocationId: "",
       to: null,
+      returnServiceLocationId: null,
+      return: null,
       serviceLocations: [],
       spotTime: null,
       startTime: null,
@@ -463,6 +515,10 @@ export const DetailModal = (props) => {
       openValidationDialog: false,
       validationDialogType: "",
       vehicleValidationData: [],
+      addStop: false,
+      addStopDetail: "",
+      addStopInfo: "",
+      tripLength: 0.0,
     });
   };
 
@@ -726,6 +782,98 @@ export const DetailModal = (props) => {
               />
             </div>
 
+            {serviceData?.service_code === "RT" && (
+              <div
+                id="return-box"
+                className="modalField"
+                style={{ display: "inline-block" }}
+              >
+                <Autocomplete
+                  id="return"
+                  className="autocomplete"
+                  value={state.return}
+                  onChange={handleReturnLocationChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.locationName === value
+                  }
+                  options={state.serviceLocations.map((element) => {
+                    const location = {
+                      locationId: element.location_id,
+                      locationName: element.location_name,
+                    };
+                    return location;
+                  })}
+                  sx={{ width: 200 }}
+                  getOptionLabel={(option) => option.locationName ?? option}
+                  renderInput={(params) => (
+                    <TextField required {...params} label="Return location" />
+                  )}
+                />
+              </div>
+            )}
+
+            {serviceData?.service_code === "CH" && (
+              <TextField
+                className="modalField"
+                id="tripLength"
+                label="Trip Length (Hr #)"
+                type="text"
+                inputProps={{ inputMode: "decimal", step: "0.1" }}
+                placeholder="Trip Length (Hr #)"
+                value={state.tripLength}
+                onChange={handleOnChange}
+              />
+            )}
+
+            <FormControlLabel
+              className="modalField"
+              style={{ alignSelf: "center" }}
+              control={
+                <Checkbox
+                  checked={state.addStop}
+                  onChange={(e) =>
+                    setState({
+                      addStop: e.target.checked,
+                      addStopDetail: "",
+                      addStopInfo: "",
+                    })
+                  }
+                />
+              }
+              label="Additional Stop"
+            />
+
+            {state.addStop && (
+              <TextField
+                className="modalField"
+                id="addStopInfo"
+                label="Stop Info"
+                type="text"
+                placeholder="Stop Info"
+                value={state.addStopInfo}
+                onChange={handleOnChange}
+              />
+            )}
+
+            {state.addStop && (
+              <ToggleButtonGroup
+                className="modalField"
+                color="primary"
+                value={state.addStopDetail}
+                exclusive
+                onChange={(_, newValue) =>
+                  setState({ addStopDetail: newValue })
+                }
+                aria-label="Stop detail"
+                style={{ alignSelf: "center" }}
+              >
+                <ToggleButton value="OutWard">OutWard</ToggleButton>
+                <ToggleButton value="Return">Return</ToggleButton>
+                <ToggleButton value="Both">Both</ToggleButton>
+              </ToggleButtonGroup>
+            )}
+          </Box>
+          <Box className="modal2Columns">
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
                 label="Spot time"
@@ -736,10 +884,7 @@ export const DetailModal = (props) => {
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
               />
-            </LocalizationProvider>
-          </Box>
-          <Box className="modal2Columns">
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
+
               <DateTimePicker
                 label="Start time"
                 className="modalField"

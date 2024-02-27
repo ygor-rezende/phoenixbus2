@@ -12,7 +12,6 @@ import { ScheduledRoutes } from "./pages/driverPage";
 import { AddClient } from "./pages/addclient";
 import AddVehicle from "./pages/addvehicle";
 import { Schedule } from "./pages/schedule";
-import { Quotes } from "./pages/quotes";
 import Register from "./pages/admin/RegisterUser.jsx";
 import ResetPassword from "./pages/resetPassword";
 import ErrorPage from "./error-page";
@@ -57,7 +56,6 @@ const App = () => {
               >
                 <Route path="/addclient" element={<AddClient />} />
                 <Route path="/servicelocations" element={<ServiceLocation />} />
-                <Route path="/quotes" element={<Quotes />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/schedule" element={<Schedule />} />
               </Route>

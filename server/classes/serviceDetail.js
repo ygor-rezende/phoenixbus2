@@ -11,14 +11,15 @@ class ServiceDetail {
     try {
       //insert new
       const newDetail = await pool.query(
-        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, spot_time, start_time, end_time, instructions, gratuity, payment, company_id, use_farmout)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, return_location_id, spot_time, start_time, end_time, instructions, gratuity, payment, company_id, use_farmout, additional_stop, additional_stop_info, additional_stop_detail, trip_length)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
         [
           detail.serviceId,
           detail.employeeId,
           detail.vehicleId,
           detail.fromServiceLocationId,
           detail.toServiceLocationId,
+          detail.returnServiceLocationId,
           detail.spotTime,
           detail.startTime,
           detail.endTime,
@@ -27,6 +28,10 @@ class ServiceDetail {
           detail.payment,
           detail.companyId,
           detail.useFarmout,
+          detail.additionalStop,
+          detail.additionalStopInfo,
+          detail.additionalStopDetail,
+          detail.tripLength,
         ]
       );
       console.log(newDetail.rowCount);
@@ -105,7 +110,7 @@ class ServiceDetail {
 
     try {
       const updatedDetail = await pool.query(
-        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11, company_id = $12, use_farmout = $13 WHERE detail_id = $14",
+        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11, company_id = $12, use_farmout = $13, return_location_id = $14, additional_stop = $15, additional_stop_info = $16, additional_stop_detail = $17, trip_length = $18 WHERE detail_id = $19",
         [
           detail.serviceId,
           detail.employeeId,
@@ -120,6 +125,11 @@ class ServiceDetail {
           detail.payment,
           detail.companyId,
           detail.useFarmout,
+          detail.returnServiceLocationId,
+          detail.additionalStop,
+          detail.additionalStopInfo,
+          detail.additionalStopDetail,
+          detail.tripLength,
           detail.detailId,
         ]
       );

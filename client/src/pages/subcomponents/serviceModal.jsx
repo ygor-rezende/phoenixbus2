@@ -71,13 +71,13 @@ export const ServiceModal = (props) => {
       clearState();
       //if on edit mode set the fields values
       if (onEditMode) {
-        setServiceId(data[0].id);
-        setServiceName(data[0].serviceName);
-        setServiceCode(data[0].serviceCode);
-        setServiceDate(dayjs(data[0].serviceDate));
-        setQty(data[0].qty);
-        setCharge(data[0].charge);
-        setSalesTax(data[0].salesTax);
+        setServiceId(data?.service_id);
+        setServiceName(data?.service_name);
+        setServiceCode(data?.service_code);
+        setServiceDate(dayjs(data?.service_date));
+        setQty(data?.qty);
+        setCharge(data?.charge);
+        setSalesTax(data?.sales_tax);
       }
       setOpenModal(true);
     }
@@ -179,11 +179,11 @@ export const ServiceModal = (props) => {
     //Before deleting a service it must delete the details first
     //Get the details for the current service
     const details = await getServer(`/getdetails/${serviceId}`);
-    const detailsData = await details.data;
+    const detailsData = await details?.data;
 
     //Get the ids
-    const detailIdsToDelete = detailsData.map((detail) => {
-      return detail.detail_id;
+    const detailIdsToDelete = detailsData?.map((detail) => {
+      return detail?.detail_id;
     });
 
     //delete details

@@ -8,9 +8,20 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EnhancedTable from "../../utils/table_generic";
 import { useState } from "react";
 
+import { UsePrivateDelete } from "../../hooks/useFetchServer";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+
 export const QuotesView = (props) => {
   const [expandPanel, setExpandPanel] = useState(false);
-  const { getQuotesData, handleRowClick } = props;
+  const { getQuotesData, handleRowClick, onSuccess, onError, cancelEditing } =
+    props;
+
+  const deleteServer = UsePrivateDelete();
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   //table headings
   const headings = [
@@ -47,14 +58,23 @@ export const QuotesView = (props) => {
   ];
 
   const handleBoxChecked = (isItemChecked) => {
-    //do nothing
-    return;
+    if (isItemChecked) cancelEditing();
   };
 
-  const handleDelete = (item) => {
-    //do nothing
-    return;
-  };
+  //Delete one or more records from the database
+  const handleDelete = async (itemsSelected) => {
+    const quoteIds = JSON.stringify(itemsSelected);
+    const response = await deleteServer(`/deletebooking/${quoteIds}`);
+
+    if (response?.data) {
+      onSuccess(response.data);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      onError(response.error);
+    }
+  }; //handleDelete
 
   return (
     <Accordion

@@ -171,6 +171,7 @@ CREATE TABLE service_details (
     vehicle_id VARCHAR(50) NOT NULL,
     from_location_id VARCHAR(50) NOT NULL,
     to_location_id VARCHAR(50) NOT NULL,
+    return_location_id VARCHAR(255) REFERENCES locations(location_id),
     use_farmout BOOLEAN,
     spot_time VARCHAR(30),
     start_time VARCHAR(30), 
@@ -178,6 +179,10 @@ CREATE TABLE service_details (
     instructions VARCHAR(255),
     payment DECIMAL(10,2), 
     gratuity DECIMAL(10,2), 
+    additional_stop BOOLEAN,
+    additional_stop_info VARCHAR(50),
+    additional_stop_detail VARCHAR(10),
+    trip_length DECIMAL (10,2),
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )
 

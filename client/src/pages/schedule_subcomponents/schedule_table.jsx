@@ -249,6 +249,15 @@ export const ScheduleTable = (props) => {
                           <SmallBoldCell>Driver</SmallBoldCell>
                           <SmallBoldCell>Instructions</SmallBoldCell>
                           <SmallBoldCell>Driver Payment</SmallBoldCell>
+                          {row?.service_code === "RT" && (
+                            <SmallBoldCell>Return Location</SmallBoldCell>
+                          )}
+                          {row?.additional_stop && (
+                            <SmallBoldCell>Additional Stop</SmallBoldCell>
+                          )}
+                          {row?.service_code === "CH" && (
+                            <SmallBoldCell>Trip Length (Hr)</SmallBoldCell>
+                          )}
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -270,6 +279,28 @@ export const ScheduleTable = (props) => {
                           >
                             ${row?.payment}
                           </SmallBoldCell>
+                          {row?.service_code === "RT" && (
+                            <SmallBoldCell
+                              style={{ color: "black", fontWeight: "normal" }}
+                            >
+                              {row?.return_location} / {row?.return_city}
+                            </SmallBoldCell>
+                          )}
+                          {row?.additional_stop && (
+                            <SmallBoldCell
+                              style={{ color: "black", fontWeight: "normal" }}
+                            >
+                              {row?.additional_stop_info} /{" "}
+                              {row?.additional_stop_detail} {"trip(s)"}
+                            </SmallBoldCell>
+                          )}
+                          {row?.service_code === "CH" && (
+                            <SmallBoldCell
+                              style={{ color: "black", fontWeight: "normal" }}
+                            >
+                              {row?.trip_length}
+                            </SmallBoldCell>
+                          )}
                         </TableRow>
                       </TableBody>
                     </Table>

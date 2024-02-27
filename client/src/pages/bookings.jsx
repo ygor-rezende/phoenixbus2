@@ -524,7 +524,7 @@ export const Bookings = () => {
     if (state.servicesData?.length > 0) {
       let serviceIdsToDelete = itemsSelected?.map((id) => {
         const services = state.servicesData?.filter(
-          (service) => service.bookingId === id
+          (service) => service.booking_id === id
         );
         return services?.map((e) => e.id);
       });
@@ -685,26 +685,13 @@ export const Bookings = () => {
     //no error
     else {
       let servicesRespData = response.data;
-      servicesRespData = servicesRespData.map((item) => {
-        const service = {
-          id: item.service_id,
-          bookingId: item.booking_id,
-          serviceName: item.service_name,
-          serviceCode: item.service_code,
-          serviceDate: item.service_date,
-          qty: item.qty,
-          charge: item.charge,
-          salesTax: item.sales_tax,
-        };
-        return service;
-      });
       return servicesRespData;
     }
   }; //getServicesData
 
   //fech details for the services in a booking
   const getDetailsData = async (services) => {
-    let serviceIds = services.map((service) => service.id);
+    let serviceIds = services.map((service) => service.service_id);
     serviceIds = JSON.stringify(serviceIds);
     const response = await getServer(`/getdetailsforservices/${serviceIds}`);
     if (response?.data) {
@@ -879,10 +866,23 @@ export const Bookings = () => {
     setState({ success: true, error: null, openSnakbar: true, msg: msg });
   };
 
+  //display error from Service modal child
+  const handleQuoteDeleteSuccess = (msg) => {
+    setState({
+      success: true,
+      error: null,
+      openSnakbar: true,
+      msg: msg,
+      isDataUpdated: !state.isDataUpdated,
+    });
+  };
+
   //when a service row is clicked to edit a service
   const handleEditService = (event, serviceId) => {
     //find the service
-    const service = state.servicesData.filter((item) => item.id === serviceId);
+    const service = state.servicesData?.find(
+      (item) => item.service_id === serviceId
+    );
 
     //set the state variables to open the service modal
     setState({
@@ -896,10 +896,14 @@ export const Bookings = () => {
   //when a service row is clicked to edit a detail
   const handleEditDetail = (event, detail) => {
     //find the service
+    const service = state.servicesData?.find(
+      (item) => item.service_id === detail?.service_id
+    );
 
     //set the state variables to open the service modal
     setState({
-      serviceId: detail?.service_id,
+      serviceId: detail.service_id,
+      currentService: service,
       currentDetail: detail,
       editingDetail: true,
       triggerDetailModal: state.triggerDetailModal + 1,
@@ -909,9 +913,14 @@ export const Bookings = () => {
 
   //open the modal to create a service detail
   const handleDetailModal = (serviceId) => {
+    const service = state.servicesData?.find(
+      (item) => item.service_id === serviceId
+    );
+
     //open the modal
     setState({
       serviceId: serviceId,
+      currentService: service,
       currentDetail: [],
       editingDetail: false,
       triggerDetailModal: state.triggerDetailModal + 1,
@@ -1438,7 +1447,7 @@ export const Bookings = () => {
                         <Typography variant="h5" color="primary">
                           Services
                         </Typography>
-                        <Divider />{" "}
+                        <Divider />
                       </Box>
                     )}
                     <Box>
@@ -1450,8 +1459,8 @@ export const Bookings = () => {
                           state.servicesData?.map((service) => {
                             return (
                               <Tab
-                                label={service?.serviceName}
-                                key={service?.id}
+                                label={service.service_name}
+                                key={`tab${service.service_id}`}
                               ></Tab>
                             );
                           })}
@@ -1459,8 +1468,9 @@ export const Bookings = () => {
                       {state.servicesData?.length > 0 &&
                         state.servicesData?.map((service, index) => {
                           let details = state.detailsData?.map((detailsArr) =>
-                            detailsArr?.filter(
-                              (detail) => detail.service_id === service.id
+                            detailsArr.filter(
+                              (detail) =>
+                                detail.service_id === service.service_id
                             )
                           );
                           return (
@@ -1468,7 +1478,7 @@ export const Bookings = () => {
                             <CustomTabPanel
                               value={state.tabService}
                               index={index}
-                              key={service?.id}
+                              key={service.service_id}
                             >
                               <Table size="small">
                                 <TableHead>
@@ -1494,18 +1504,23 @@ export const Bookings = () => {
                                   <TableRow
                                     hover
                                     onClick={(event) =>
-                                      handleEditService(event, service.id)
+                                      handleEditService(
+                                        event,
+                                        service.service_id
+                                      )
                                     }
                                   >
-                                    <TableCell>{service.serviceCode}</TableCell>
                                     <TableCell>
-                                      {dayjs(service.serviceDate).format(
+                                      {service.service_code}
+                                    </TableCell>
+                                    <TableCell>
+                                      {dayjs(service.service_date).format(
                                         "MM/DD/YYYY"
                                       )}
                                     </TableCell>
                                     <TableCell>{service.qty}</TableCell>
                                     <TableCell>{service.charge}</TableCell>
-                                    <TableCell>{service.salesTax}</TableCell>
+                                    <TableCell>{service.sales_tax}</TableCell>
                                   </TableRow>
                                 </TableBody>
                               </Table>
@@ -1553,12 +1568,6 @@ export const Bookings = () => {
                                           style={{ fontWeight: "bold" }}
                                         >
                                           End Time
-                                        </TableCell>
-
-                                        <TableCell
-                                          style={{ fontWeight: "bold" }}
-                                        >
-                                          Type
                                         </TableCell>
                                       </TableRow>
                                     </TableHead>
@@ -1646,7 +1655,9 @@ export const Bookings = () => {
                               <p></p>
                               <Button
                                 variant="outlined"
-                                onClick={() => handleDetailModal(service.id)}
+                                onClick={() =>
+                                  handleDetailModal(service.service_id)
+                                }
                               >
                                 Add details
                               </Button>
@@ -1730,6 +1741,9 @@ export const Bookings = () => {
           <QuotesView
             getQuotesData={getQuotesData}
             handleRowClick={handleQuoteClick}
+            onError={handleOnError}
+            onSuccess={handleQuoteDeleteSuccess}
+            cancelEditing={cancelEditing}
           />
           <ServiceModal
             modalTitle={state.serviceTitle}
@@ -1747,7 +1761,7 @@ export const Bookings = () => {
             onSuccess={handleOnSuccess}
             open={state.triggerDetailModal}
             serviceId={state.serviceId}
-            serviceData={state.servicesData}
+            serviceData={state.currentService}
             invoice={state.invoice}
             data={state.currentDetail}
             onEditMode={state.editingDetail}

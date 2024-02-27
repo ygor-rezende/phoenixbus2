@@ -66,7 +66,6 @@ const APPBar = () => {
 
   const pages = [
     { name: "View Schedule", link: "/schedule" },
-    { name: "Quotes", link: "/quotes" },
     { name: "Bookings", link: "/bookings" },
     { name: "My Trips", link: "/driverpage" },
     { name: "Payroll", link: "/driverpayroll" },
@@ -179,17 +178,7 @@ const APPBar = () => {
                 </Button>
               </Link>
             ) : null}
-            {salesGroup.find((e) => e === userType) ? (
-              <Link to="/quotes">
-                <Button
-                  id="quotes"
-                  sx={{ color: "white" }}
-                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
-                >
-                  Quotes
-                </Button>
-              </Link>
-            ) : null}
+
             {salesGroup.find((e) => e === userType) ? (
               <Link to="/bookings">
                 <Button
@@ -197,7 +186,7 @@ const APPBar = () => {
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
                 >
-                  Bookings
+                  Quotes & Bookings
                 </Button>
               </Link>
             ) : null}

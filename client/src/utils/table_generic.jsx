@@ -391,6 +391,7 @@ const EnhancedTable = (props) => {
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
+                        id={`checkbox${row.id}`}
                         color="primary"
                         checked={isItemSelected}
                         inputProps={{
