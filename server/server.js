@@ -460,6 +460,16 @@ app.delete(
     return response;
   }
 );
+
+//Get bookings by client
+app.get(
+  "/getbookingsbyclient/:clientId",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Booking.getBookingsByClient(req, res);
+    return response;
+  }
+);
 //#endregion
 
 //#region Service

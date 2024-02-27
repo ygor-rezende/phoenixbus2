@@ -38,7 +38,7 @@ full outer join employees e on e.employee_id = d.employee_id
 full outer join vehicles v on v.vehicle_id = d.vehicle_id
 join locations lf on lf.location_id = d.from_location_id
 join locations lt on lt.location_id = d.to_location_id
-join locations lr on lr.location_id = d.return_location_id
+full outer join locations lr on lr.location_id = d.return_location_id
 full outer join companies c on c.company_id = d.company_id
 WHERE s.service_date >= '2024-02-01' AND s.service_date < to_char((DATE '2024-02-22' + INTERVAL '1 day'),'YYYY-MM-DD')
 ORDER BY s.service_date, d.start_time

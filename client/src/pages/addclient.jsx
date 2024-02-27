@@ -12,12 +12,28 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../utils/table_generic";
+
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import CloseIcon from "@mui/icons-material/Close";
+
+import dayjs from "dayjs";
 
 import {
   UsePrivateGet,
@@ -116,6 +132,9 @@ const initialState = {
   expandPanel: false,
   isDataUpdated: false,
   invalidField: "",
+  bookings: [],
+  viewBookings: false,
+  invoices: [],
 };
 
 export const AddClient = () => {
@@ -149,7 +168,7 @@ export const AddClient = () => {
       //no error
       else {
         let responseData = response.data;
-        responseData = responseData.map((item) => {
+        responseData = responseData?.map((item) => {
           const client = {
             id: item.client_id,
             agency: item.agency,
@@ -164,6 +183,15 @@ export const AddClient = () => {
             fax: item.fax,
             email: item.email,
             remark: item.remark,
+            historyIcon: (
+              <Tooltip title="View Bookings">
+                <IconButton
+                  onClick={() => handleBookingHistory(item.client_id)}
+                >
+                  <MenuBookIcon color="primary" fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ),
           };
           return client;
         });
@@ -183,6 +211,41 @@ export const AddClient = () => {
       effectRun.current = true;
     };
   }, [state.isDataUpdated]);
+
+  const handleBookingHistory = async (clientId) => {
+    const controller = new AbortController();
+    const response = await getServer(
+      `/getbookingsbyclient/${clientId}`,
+      controller.signal
+    );
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
+      setState({ success: false, error: response.error, openSnakbar: true });
+    }
+    //no error
+    else {
+      let responseData = response.data;
+
+      //find unique invoices
+      let invoices = responseData?.map((element) => {
+        return {
+          invoice: element.invoice,
+          category: element.category,
+          numPeople: element.num_people,
+        };
+      });
+      invoices = [...new Map(invoices.map((e) => [e["invoice"], e])).values()];
+      setState({
+        bookings: responseData,
+        viewBookings: true,
+        invoices: invoices,
+      });
+    }
+  };
 
   //Get all clients data
   const getData = () => {
@@ -396,25 +459,25 @@ export const AddClient = () => {
   //Show information when clicking on a table row
   const handleItemClick = (id) => {
     //load fields
-    console.log(state.clientsData.filter((e) => e.id === id));
+    //console.log(state.clientsData.filter((e) => e.id === id));
     setState({
       onEditMode: true,
       expandPanel: true,
       clientId: id,
       invalidField: "",
       searchAddress: "",
-      agency: state.clientsData.filter((e) => e.id === id)[0].agency,
-      contact: state.clientsData.filter((e) => e.id === id)[0].contact,
-      address1: state.clientsData.filter((e) => e.id === id)[0].address1,
-      address2: state.clientsData.filter((e) => e.id === id)[0].address2,
-      city: state.clientsData.filter((e) => e.id === id)[0].city,
-      state: state.clientsData.filter((e) => e.id === id)[0].state,
-      zip: state.clientsData.filter((e) => e.id === id)[0].zip,
-      country: state.clientsData.filter((e) => e.id === id)[0].country,
-      phone: state.clientsData.filter((e) => e.id === id)[0].phone,
-      fax: state.clientsData.filter((e) => e.id === id)[0].fax,
-      email: state.clientsData.filter((e) => e.id === id)[0].email,
-      remark: state.clientsData.filter((e) => e.id === id)[0].remark,
+      agency: state.clientsData?.find((e) => e.id === id)?.agency,
+      contact: state.clientsData?.find((e) => e.id === id)?.contact,
+      address1: state.clientsData?.find((e) => e.id === id)?.address1,
+      address2: state.clientsData?.find((e) => e.id === id)?.address2,
+      city: state.clientsData?.find((e) => e.id === id)?.city,
+      state: state.clientsData?.find((e) => e.id === id)?.state,
+      zip: state.clientsData?.find((e) => e.id === id)?.zip,
+      country: state.clientsData?.find((e) => e.id === id)?.country,
+      phone: state.clientsData?.find((e) => e.id === id)?.phone,
+      fax: state.clientsData?.find((e) => e.id === id)?.fax,
+      email: state.clientsData?.find((e) => e.id === id)?.email,
+      remark: state.clientsData?.find((e) => e.id === id)?.remark,
     });
   }; //handleItemClick
 
@@ -463,6 +526,12 @@ export const AddClient = () => {
       isNumeric: false,
       isPaddingDisabled: false,
       label: "E-Mail",
+    },
+    {
+      id: "historyIcon",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Bookings",
     },
   ];
 
@@ -717,28 +786,6 @@ export const AddClient = () => {
               <p></p>
             </AccordionDetails>
           </Accordion>
-
-          <Snackbar
-            open={state.error && state.openSnakbar}
-            autoHideDuration={5000}
-            onClose={handleClose}
-          >
-            <Alert severity="error" onClose={handleClose}>
-              <AlertTitle>Error</AlertTitle>
-              {state.error}
-            </Alert>
-          </Snackbar>
-
-          <Snackbar
-            open={state.success && state.openSnakbar}
-            autoHideDuration={5000}
-            onClose={handleClose}
-          >
-            <Alert severity="success" onClose={handleClose}>
-              <AlertTitle>Clients Updated</AlertTitle>
-              {state.msg}
-            </Alert>
-          </Snackbar>
         </form>
         <p></p>
         <div id="table-container">
@@ -754,6 +801,112 @@ export const AddClient = () => {
             filterOption="agency"
           />
         </div>
+
+        <Dialog
+          onClose={() => setState({ viewBookings: false })}
+          open={state.viewBookings}
+          maxWidth="lg"
+          fullWidth
+        >
+          <Tooltip
+            title="Close"
+            style={{ alignSelf: "flex-end", paddingBottom: 0 }}
+          >
+            <IconButton onClick={() => setState({ viewBookings: false })}>
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <MenuBookIcon style={{ color: "#1976d2" }} />
+            <DialogTitle color="primary">
+              {state.bookings?.length > 0
+                ? `Booking History for ${state.bookings[0]?.agency}`
+                : "No Bookings"}
+            </DialogTitle>
+          </Box>
+
+          <DialogContent>
+            {state.invoices?.map((row) => {
+              return (
+                <Table
+                  size="small"
+                  style={{ marginBottom: "1em" }}
+                  key={row.invoice}
+                >
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: "primary.main" }}>
+                      <TableCell colSpan={2} style={{ color: "white" }}>
+                        Invoice: {row.invoice}
+                      </TableCell>
+                      <TableCell colSpan={2} style={{ color: "white" }}>
+                        Category: {row.category}
+                      </TableCell>
+                      <TableCell style={{ color: "white" }}>
+                        {row.numPeople} people
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ fontWeight: "bold" }}>
+                        Service
+                      </TableCell>
+                      <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
+                      <TableCell style={{ fontWeight: "bold" }}>Date</TableCell>
+                      <TableCell style={{ fontWeight: "bold" }}>Qty</TableCell>
+                      <TableCell style={{ fontWeight: "bold" }}>
+                        Charge
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {state.bookings
+                      ?.filter((element) => element.invoice === row.invoice)
+                      ?.map((service) => {
+                        return (
+                          <TableRow key={service.service_id}>
+                            <TableCell>{service.service_name}</TableCell>
+                            <TableCell>{service.service_code}</TableCell>
+                            <TableCell>
+                              {dayjs(service.service_date).format("MM/DD/YYYY")}
+                            </TableCell>
+                            <TableCell>{service.qty}</TableCell>
+                            <TableCell>${service.charge}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              );
+            })}
+          </DialogContent>
+        </Dialog>
+
+        <Snackbar
+          open={state.error && state.openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="error" onClose={handleClose}>
+            <AlertTitle>Error</AlertTitle>
+            {state.error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={state.success && state.openSnakbar}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert severity="success" onClose={handleClose}>
+            <AlertTitle>Clients Updated</AlertTitle>
+            {state.msg}
+          </Alert>
+        </Snackbar>
       </div>
     </div>
   );

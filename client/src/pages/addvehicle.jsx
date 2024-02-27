@@ -87,7 +87,7 @@ const AddVehicle = () => {
             ada: item.ada,
             maintenanceCheck: <Checkbox checked={item.maintenance} />,
             adaCheck: <Checkbox checked={item.ada} />,
-            icon: <BusIcon color={item.vehicle_color} />,
+            icon: <BusIcon color={item.vehicle_color} fontSize="small" />,
           };
           return vehicles;
         });

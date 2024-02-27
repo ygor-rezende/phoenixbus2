@@ -137,6 +137,25 @@ class Booking {
       return res.status(500).json({ message: err.message });
     }
   } //deleteBooking
+
+  static async getBookingsByClient(req, res) {
+    try {
+      let { clientId } = req.params;
+
+      if (!clientId)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing client id information" });
+
+      const result = await pool.query(
+        `Select * FROM get_bookings_by_client('${clientId}')`
+      );
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getBookingsByClient
 }
 
 module.exports = { Booking };

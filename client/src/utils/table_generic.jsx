@@ -16,8 +16,6 @@ import Paper from "@mui/material/Paper";
 import Checkbox from "@mui/material/Checkbox";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 
@@ -210,7 +208,6 @@ const EnhancedTable = (props) => {
   const [orderBy, setOrderBy] = useState("calories");
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [dense, setDense] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -263,7 +260,13 @@ const EnhancedTable = (props) => {
   //Calls the parent function to show the data for editing
   //when the user clicks a row
   const handleClick = (event, id) => {
-    if (event.target.localName === "input") return;
+    if (
+      event.target.localName === "input" ||
+      event.target.localName === "path" ||
+      event.target.localName === "svg" ||
+      event.target.localName === "button"
+    )
+      return;
     console.log(id);
     editData(id);
   };
@@ -295,10 +298,6 @@ const EnhancedTable = (props) => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
   };
 
   //filter table content
@@ -362,7 +361,7 @@ const EnhancedTable = (props) => {
           <Table
             sx={{ minWidth: 750 }}
             aria-labelledby="tableTitle"
-            size={dense ? "small" : "medium"}
+            size="small"
           >
             <EnhancedTableHead
               numSelected={selected?.length}
@@ -417,7 +416,7 @@ const EnhancedTable = (props) => {
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: (dense ? 33 : 53) * emptyRows,
+                    height: 33 * emptyRows,
                   }}
                 >
                   <TableCell colSpan={6} />
@@ -436,10 +435,7 @@ const EnhancedTable = (props) => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
+
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
