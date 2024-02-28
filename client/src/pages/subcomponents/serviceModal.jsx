@@ -54,6 +54,7 @@ export const ServiceModal = (props) => {
   const [qty, setQty] = useState(0);
   const [charge, setCharge] = useState(0.0);
   const [salesTax, setSalesTax] = useState(0.0);
+  const [gratuity, setGratuity] = useState(0.0);
   const [openModal, setOpenModal] = useState(false);
   const [invalidField, setInvalidField] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
@@ -78,10 +79,11 @@ export const ServiceModal = (props) => {
         setQty(data?.qty);
         setCharge(data?.charge);
         setSalesTax(data?.sales_tax);
+        setGratuity(data?.gratuity);
       }
       setOpenModal(true);
     }
-  }, [open, onEditMode, data]);
+  }, [open]);
 
   const modalStile = {
     position: "absolute",
@@ -132,6 +134,7 @@ export const ServiceModal = (props) => {
           qty: qty,
           charge: charge,
           salesTax: salesTax,
+          gratuity: gratuity,
         },
       });
 
@@ -157,6 +160,7 @@ export const ServiceModal = (props) => {
           qty: qty,
           charge: charge,
           salesTax: salesTax,
+          gratuity: gratuity,
         },
       });
 
@@ -226,6 +230,7 @@ export const ServiceModal = (props) => {
     setQty(0);
     setCharge(0.0);
     setSalesTax(0.0);
+    setGratuity(0.0);
     setOpenModal(false);
     setOpenDialog(false);
     setInvalidField("");
@@ -364,6 +369,17 @@ export const ServiceModal = (props) => {
               placeholder="Charge $"
               value={charge}
               onChange={(e) => setCharge(e.target.value)}
+            />
+
+            <TextField
+              id="gratuity"
+              className="modalField"
+              label="Gratuity $"
+              type="text"
+              inputProps={{ inputMode: "decimal", step: "0.01" }}
+              placeholder="Gratuity $"
+              value={gratuity}
+              onChange={(e) => setGratuity(e.target.value)}
             />
 
             <TextField

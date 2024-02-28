@@ -8,13 +8,9 @@ import {
   View,
   Font,
 } from "@react-pdf/renderer";
-import dayjs from "dayjs";
-
 import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
-
-import { Table, TableRow, TableCell, TableHeader } from "./Table";
 
 Font.register({
   family: "Roboto",
@@ -63,7 +59,7 @@ const styles = StyleSheet.create({
   innerBoard: {
     margin: 10,
   },
-  totalsSection: {
+  contentSection: {
     marginTop: 20,
     paddingTop: 30,
     borderTop: 1,
@@ -71,12 +67,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     flexDirection: "row",
   },
-  tableSection: {
-    borderTop: 1,
+  signatureSection: {
     marginTop: 30,
-    marginBottom: 20,
+    fontSize: 12,
+    marginBottom: 30,
   },
-
+  signature: {
+    textAlign: "left",
+    marginBottom: 10,
+    marginHorizontal: 20,
+    paddingTop: 10,
+  },
   infoSection: {
     margin: 10,
     border: 2,
@@ -97,30 +98,28 @@ const Invoice = (props) => {
   const {
     date,
     invoiceNum,
-    client,
+    destination,
+    account,
+    responsible,
+    address,
+    city,
+    state,
+    phone,
+    email,
     passengers,
     bookingDate,
     arrival,
     departure,
-    services,
+    reference,
+    payment,
+    charges,
+    tax,
   } = props;
 
-  const currencyFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
-
-  //Total invoice
-  let totalInvoice = services?.reduce((sum, current) => {
-    return sum + Number(current.gratuity) + current.charge * current.qty;
-  }, 0);
-
-  totalInvoice = currencyFormatter.format(totalInvoice);
-
+  const total = payment + charges + tax;
   return (
     <Document>
-      <Page style={styles.body} size={"LETTER"}>
+      <Page style={styles.body}>
         <View style={styles.header}>
           <Image style={styles.image} src={PhoenixLogo} />
           <View>
@@ -131,15 +130,15 @@ const Invoice = (props) => {
         </View>
         <View style={styles.header}>
           <View style={styles.text}>
-            <Text>To: {client.agency}</Text>
-            <Text>Account #: {client.client_id?.substring(0, 8)}</Text>
-            <Text>Attn: {client.contact}</Text>
-            <Text>{client.address1}</Text>
+            <Text>To: {destination}</Text>
+            <Text>Account: {account}</Text>
+            <Text>Attn: {responsible}</Text>
+            <Text>{address}</Text>
             <Text>
-              {client.city}, {client.client_state}
+              {city}, {state}
             </Text>
-            <Text>Phone: {client.phone}</Text>
-            <Text>Email: {client.email}</Text>
+            <Text>Phone: {phone}</Text>
+            <Text>Email: {email}</Text>
           </View>
           <View style={styles.tripBoard}>
             <View style={[styles.textBold, styles.innerBoard]}>
@@ -147,46 +146,18 @@ const Invoice = (props) => {
               <Text>Booking date:</Text>
               <Text>Arrival:</Text>
               <Text>Departure:</Text>
+              <Text>Reference:</Text>
             </View>
             <View style={[styles.text, styles.innerBoard]}>
               <Text>{passengers}</Text>
               <Text>{bookingDate}</Text>
               <Text>{arrival}</Text>
               <Text>{departure}</Text>
+              <Text>{reference}</Text>
             </View>
           </View>
         </View>
-        <View style={styles.tableSection}>
-          <Table>
-            <TableHeader>
-              <TableCell>Date</TableCell>
-              <TableCell>Service</TableCell>
-              <TableCell align="right">Charge</TableCell>
-              <TableCell align="right">Qty</TableCell>
-              <TableCell align="right">Gratuity</TableCell>
-              <TableCell align="right">Total</TableCell>
-            </TableHeader>
-            {services?.map((service) => (
-              <TableRow>
-                <TableCell>
-                  {dayjs(service.service_date).format("MM/DD/YYYY")}
-                </TableCell>
-                <TableCell>{service.service_name}</TableCell>
-                <TableCell align="right">
-                  {currencyFormatter.format(service.charge)}
-                </TableCell>
-                <TableCell align="right">{service.qty}</TableCell>
-                <TableCell align="right">{service.gratuity}</TableCell>
-                <TableCell align="right">
-                  {currencyFormatter.format(
-                    service.charge * service.qty + Number(service.gratuity)
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </Table>
-        </View>
-        <View style={styles.totalsSection}>
+        <View style={styles.contentSection}>
           <View style={[styles.textBold, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>Total Invoice</Text>
             <Text>Total Payment/Credit</Text>
@@ -196,14 +167,24 @@ const Invoice = (props) => {
             <Text>Total Amount Due</Text>
           </View>
           <View style={[styles.text, styles.innerBoard]}>
-            <Text style={{ marginBottom: 10 }}>{totalInvoice}</Text>
-            <Text>???</Text>
-            <Text>???</Text>
-            <Text>???</Text>
-            <Text>{totalInvoice}</Text>
+            <Text style={{ marginBottom: 10 }}>${total}</Text>
+            <Text>${payment}</Text>
+            <Text>${charges}</Text>
+            <Text>${tax}</Text>
+            <Text>${total}</Text>
           </View>
         </View>
-
+        <View style={styles.signatureSection}>
+          <Text style={styles.signature}>
+            Please sign, date and return ___________________________ Date:
+            _____________
+          </Text>
+          <Text style={styles.signature}>
+            Thank you: TO CONFIRM PLEASE EMAIL BACK SIGNED CONTRACT THEN EMAIL
+            BACK AUTHORIZATION FORM OR/AND PAY ONLINE - CONTACT US IF THERE IS
+            ANY QUESTIONS.
+          </Text>
+        </View>
         <View style={[styles.infoSection, styles.text]}>
           <Text style={{ marginBottom: 10 }}>5 CONVENIENT WAYS TO PAY</Text>
           <Text>1) CHECK, CASHIERS CHECK OR MONEY ORDER</Text>

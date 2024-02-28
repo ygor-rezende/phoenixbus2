@@ -25,6 +25,9 @@ import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import GavelIcon from "@mui/icons-material/Gavel";
+
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -77,6 +80,7 @@ const initialState = {
   agencyName: null,
   agencyEmail: "",
   agencyContact: "",
+  curClient: {},
   employeeId: "",
   salesPerson: null,
   responsibleName: "",
@@ -404,6 +408,7 @@ export const Bookings = () => {
       invoice: "",
       isQuote: false,
       clientId: "",
+      curClient: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -442,6 +447,7 @@ export const Bookings = () => {
       invoice: "",
       isQuote: false,
       clientId: "",
+      curClient: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -610,6 +616,8 @@ export const Bookings = () => {
     const clientId = state.bookingsData?.find((e) => e.id === id)?.clientId;
     const employeeId = state.bookingsData?.find((e) => e.id === id)?.employeeId;
     const isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
+    const curClient = state.clientsData?.find((e) => e.client_id === clientId);
+
     setState({
       onEditMode: true,
       expandPanel: true,
@@ -619,15 +627,10 @@ export const Bookings = () => {
       invoice: id,
       isQuote: isQuote,
       clientId: clientId,
-      agencyName: state.clientsData?.find(
-        (client) => client.client_id === clientId
-      )?.agency,
-      agencyEmail: state.clientsData?.find(
-        (client) => client.client_id === clientId
-      )?.email,
-      agencyContact: state.clientsData?.find(
-        (client) => client.client_id === clientId
-      )?.contact,
+      curClient: curClient,
+      agencyName: curClient?.agency,
+      agencyEmail: curClient?.email,
+      agencyContact: curClient?.contact,
       employeeId: employeeId,
       salesPerson: state.salesPeople?.find((e) => e.employee_id === employeeId)
         ?.fullname,
@@ -933,24 +936,14 @@ export const Bookings = () => {
     try {
       const blob = await pdf(
         <Invoice
-          date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+          date={new Date().toLocaleDateString("en-US")}
           invoiceNum={state.invoice}
-          responsible={state.responsibleName}
-          destination={"Universal"}
-          account={"1830"}
-          address={"123 Main St"}
-          city={"Orlando"}
-          state={"FL"}
-          phone={state.responsiblePhone}
-          email={state.responsibleEmail}
+          client={state.curClient}
           passengers={state.numPeople}
           bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
-          arrival={"10:30 am"}
-          departure={"11:00 am"}
-          reference={""}
-          payment={0.0}
-          charges={0.0}
-          tax={0.0}
+          arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
+          departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+          services={state.servicesData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -966,6 +959,8 @@ export const Bookings = () => {
   const handleDownloadInvoice = () => {
     generatePdfDoc(`invoice${state.invoice}.pdf`);
   };
+
+  const handleDowloadContract = () => {};
 
   //When the create quote button is clicked
   const handleNewQuote = () => {
@@ -1428,7 +1423,18 @@ export const Bookings = () => {
                       onClick={handleDownloadInvoice}
                       size="small"
                     >
-                      Download Invoice
+                      <ReceiptIcon />
+                      Invoice
+                    </Button>
+
+                    <Button
+                      style={{ marginLeft: "10px" }}
+                      variant="contained"
+                      onClick={handleDowloadContract}
+                      size="small"
+                    >
+                      <GavelIcon />
+                      Contract
                     </Button>
 
                     <p></p>
@@ -1489,13 +1495,28 @@ export const Bookings = () => {
                                     <TableCell style={{ fontWeight: "bold" }}>
                                       Date
                                     </TableCell>
-                                    <TableCell style={{ fontWeight: "bold" }}>
+                                    <TableCell
+                                      style={{ fontWeight: "bold" }}
+                                      align="center"
+                                    >
                                       Qty
                                     </TableCell>
-                                    <TableCell style={{ fontWeight: "bold" }}>
+                                    <TableCell
+                                      style={{ fontWeight: "bold" }}
+                                      align="right"
+                                    >
                                       Charge
                                     </TableCell>
-                                    <TableCell style={{ fontWeight: "bold" }}>
+                                    <TableCell
+                                      style={{ fontWeight: "bold" }}
+                                      align="right"
+                                    >
+                                      Gratuity
+                                    </TableCell>
+                                    <TableCell
+                                      style={{ fontWeight: "bold" }}
+                                      align="right"
+                                    >
                                       Sales Tax
                                     </TableCell>
                                   </TableRow>
@@ -1518,9 +1539,18 @@ export const Bookings = () => {
                                         "MM/DD/YYYY"
                                       )}
                                     </TableCell>
-                                    <TableCell>{service.qty}</TableCell>
-                                    <TableCell>{service.charge}</TableCell>
-                                    <TableCell>{service.sales_tax}</TableCell>
+                                    <TableCell align="center">
+                                      {service.qty}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      ${service.charge}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      ${service.gratuity}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {service.sales_tax}%
+                                    </TableCell>
                                   </TableRow>
                                 </TableBody>
                               </Table>
