@@ -11,10 +11,15 @@ import {
 import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
+import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
 
 Font.register({
   family: "Roboto",
-  fonts: [{ src: Roboto }, { src: RobotoBold, fontWeight: 700 }],
+  fonts: [
+    { src: Roboto },
+    { src: RobotoBold, fontWeight: 700 },
+    { src: RobotoItalic, fontStyle: "italic" },
+  ],
 });
 
 const styles = StyleSheet.create({
@@ -40,12 +45,17 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: "Roboto",
-    fontSize: 12,
+    fontSize: 11,
   },
   textBold: {
     fontFamily: "Roboto",
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 700,
+  },
+  textItalic: {
+    fontFamily: "Roboto",
+    fontSize: 10,
+    fontStyle: "italic",
   },
   h2: {
     fontSize: 18,
@@ -61,15 +71,15 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     marginTop: 20,
-    paddingTop: 30,
     borderTop: 1,
-    display: "flex",
-    justifyContent: "space-around",
-    flexDirection: "row",
+  },
+  tableSection: {
+    borderTop: 1,
+    marginBottom: 20,
   },
   signatureSection: {
     marginTop: 30,
-    fontSize: 12,
+    fontSize: 11,
     marginBottom: 30,
   },
   signature: {
@@ -94,85 +104,67 @@ const styles = StyleSheet.create({
   },
 });
 
-const Invoice = (props) => {
+const Contract = (props) => {
   const {
     date,
     invoiceNum,
-    destination,
-    account,
-    responsible,
-    address,
-    city,
-    state,
-    phone,
-    email,
+    client,
     passengers,
     bookingDate,
     arrival,
     departure,
-    reference,
-    payment,
-    charges,
-    tax,
+    services,
   } = props;
 
-  const total = payment + charges + tax;
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
+
+  //Total invoice
+  let totalCharges = services?.reduce((sum, current) => {
+    return sum + Number(current.gratuity) + current.charge * current.qty;
+  }, 0);
+
   return (
     <Document>
       <Page style={styles.body}>
         <View style={styles.header}>
-          <Image style={styles.image} src={PhoenixLogo} />
           <View>
-            <Text style={styles.title}>Invoice / Receipt</Text>
-            <Text style={styles.textBold}>Date: {date}</Text>
-            <Text style={styles.textBold}>Invoice #: {invoiceNum}</Text>
-          </View>
-        </View>
-        <View style={styles.header}>
-          <View style={styles.text}>
-            <Text>To: {destination}</Text>
-            <Text>Account: {account}</Text>
-            <Text>Attn: {responsible}</Text>
-            <Text>{address}</Text>
-            <Text>
-              {city}, {state}
-            </Text>
-            <Text>Phone: {phone}</Text>
-            <Text>Email: {email}</Text>
-          </View>
-          <View style={styles.tripBoard}>
-            <View style={[styles.textBold, styles.innerBoard]}>
-              <Text>Passengers:</Text>
-              <Text>Booking date:</Text>
-              <Text>Arrival:</Text>
-              <Text>Departure:</Text>
-              <Text>Reference:</Text>
-            </View>
-            <View style={[styles.text, styles.innerBoard]}>
-              <Text>{passengers}</Text>
-              <Text>{bookingDate}</Text>
-              <Text>{arrival}</Text>
-              <Text>{departure}</Text>
-              <Text>{reference}</Text>
+            <Text style={styles.title}>Booking / Invoice</Text>
+            <View style={styles.text}>
+              <Text>To: {client.agency}</Text>
+              <Text>Account #: {client.client_id?.substring(0, 8)}</Text>
+              <Text>Attn: {client.contact}</Text>
+              <Text>{client.address1}</Text>
+              <Text>
+                {client.city}, {client.zip} {client.client_state}
+              </Text>
+              <Text>Phone: {client.phone}</Text>
+              <Text>Email: {client.email}</Text>
             </View>
           </View>
+          <Image style={styles.image} src={PhoenixLogo} />
         </View>
+
         <View style={styles.contentSection}>
-          <View style={[styles.textBold, styles.innerBoard]}>
-            <Text style={{ marginBottom: 10 }}>Total Invoice</Text>
-            <Text>Total Payment/Credit</Text>
-            <Text>Other Charges/Refund</Text>
-            <Text>Sales Tax Waived</Text>
-            <p></p>
-            <Text>Total Amount Due</Text>
+          <View style={[styles.textItalic, styles.innerBoard]}>
+            <Text>Dear Client:</Text>
+            <Text>
+              Thank you for choosing us to provide you with your transportation
+              needs. We pride ourselves in having the finest motorcoach service
+              available. In order to ensure that you receive the best possible
+              service, we ask you to review the information below, sign and fax
+              back to us at 407-517-4788.
+            </Text>
           </View>
-          <View style={[styles.text, styles.innerBoard]}>
-            <Text style={{ marginBottom: 10 }}>${total}</Text>
-            <Text>${payment}</Text>
-            <Text>${charges}</Text>
-            <Text>${tax}</Text>
-            <Text>${total}</Text>
+          <View style={styles.header}>
+            <Text style={styles.textBold}>{date}</Text>
+            <Text style={styles.textItalic}>PHOENIX BUS INC</Text>
+            <Text style={styles.textBold}>Page 1 of 1</Text>
           </View>
+          <View style={styles.tableSection}></View>
         </View>
         <View style={styles.signatureSection}>
           <Text style={styles.signature}>
@@ -185,16 +177,7 @@ const Invoice = (props) => {
             ANY QUESTIONS.
           </Text>
         </View>
-        <View style={[styles.infoSection, styles.text]}>
-          <Text style={{ marginBottom: 10 }}>5 CONVENIENT WAYS TO PAY</Text>
-          <Text>1) CHECK, CASHIERS CHECK OR MONEY ORDER</Text>
-          <Text>2) BANK TRANSFER (ASK US FOR WIRE INFO)</Text>
-          <Text>3) CREDIT CARD VIA FORM(4% FEE) OR GO TO OUR WEBSITE</Text>
-          <Text>
-            4) ZELLE QUICK PAY APPLICATION (USE CONTACT@PHOENIXBUSORLANDO.COM)
-          </Text>
-          <Text>5) VIA PURCHASE ORDER</Text>
-        </View>
+
         <View style={styles.footer}>
           <Text>
             5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
@@ -209,4 +192,4 @@ const Invoice = (props) => {
   );
 };
 
-export default Invoice;
+export default Contract;

@@ -103,6 +103,7 @@ const Invoice = (props) => {
     arrival,
     departure,
     services,
+    deposit,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -116,6 +117,11 @@ const Invoice = (props) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
+  let credit = (totalInvoice * deposit) / 100;
+  let totalAmount = totalInvoice - credit;
+
+  credit = currencyFormatter.format(credit);
+  totalAmount = currencyFormatter.format(totalAmount);
   totalInvoice = currencyFormatter.format(totalInvoice);
 
   return (
@@ -190,17 +196,12 @@ const Invoice = (props) => {
           <View style={[styles.textBold, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>Total Invoice</Text>
             <Text>Total Payment/Credit</Text>
-            <Text>Other Charges/Refund</Text>
-            <Text>Sales Tax Waived</Text>
-            <p></p>
             <Text>Total Amount Due</Text>
           </View>
           <View style={[styles.text, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>{totalInvoice}</Text>
-            <Text>???</Text>
-            <Text>???</Text>
-            <Text>???</Text>
-            <Text>{totalInvoice}</Text>
+            <Text>{credit}</Text>
+            <Text>{totalAmount}</Text>
           </View>
         </View>
 

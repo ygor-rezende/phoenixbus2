@@ -52,6 +52,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import Invoice from "./pdfReports/invoice";
+import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
 
 dayjs.extend(utc);
@@ -932,11 +933,36 @@ export const Bookings = () => {
   };
 
   //function to generate invoice PDF
-  const generatePdfDoc = async (filename) => {
+  const generateInvoice = async (filename) => {
     try {
       const blob = await pdf(
         <Invoice
           date={new Date().toLocaleDateString("en-US")}
+          invoiceNum={state.invoice}
+          client={state.curClient}
+          passengers={state.numPeople}
+          bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
+          arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
+          departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+          services={state.servicesData}
+          deposit={state.deposit}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
+  //function to generate invoice PDF
+  const generateContract = async (filename) => {
+    try {
+      const blob = await pdf(
+        <Contract
+          date={new Date().toString().substring(0, 24)}
           invoiceNum={state.invoice}
           client={state.curClient}
           passengers={state.numPeople}
@@ -957,10 +983,12 @@ export const Bookings = () => {
 
   //Handle download pdf click
   const handleDownloadInvoice = () => {
-    generatePdfDoc(`invoice${state.invoice}.pdf`);
+    generateInvoice(`invoice${state.invoice}.pdf`);
   };
 
-  const handleDowloadContract = () => {};
+  const handleDowloadContract = () => {
+    generateContract(`confirmation${state.invoice}.pdf`);
+  };
 
   //When the create quote button is clicked
   const handleNewQuote = () => {
