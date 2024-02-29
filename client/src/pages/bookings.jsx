@@ -166,7 +166,7 @@ export const Bookings = () => {
       response = await getServer("/getallvehiclenames", controller.signal);
       const vehiclesRespData = response?.data;
 
-      response = await getServer("/getalllocationnames", controller.signal);
+      response = await getServer("/getlocations", controller.signal);
       const locationsRespData = response?.data;
 
       response = await getServer("/getallcompanynames", controller.signal);
@@ -965,11 +965,15 @@ export const Bookings = () => {
           date={new Date().toString().substring(0, 24)}
           invoiceNum={state.invoice}
           client={state.curClient}
+          category={state.category}
           passengers={state.numPeople}
           bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
           arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
           departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           services={state.servicesData}
+          details={state.detailsData}
+          locations={state.locationsData}
+          deposit={state.deposit}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);

@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
   header: {
     flexDirection: "row",
@@ -19,9 +20,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderBottom: 1,
     fontWeight: 700,
+    width: "100%",
   },
   cell: {
-    width: "17%",
+    //width: "17%",
   },
 });
 
@@ -56,13 +58,17 @@ const TableHeader = (props) => {
 };
 
 const TableCell = (props) => {
-  const { children, align, ...other } = props;
+  const { children, align, width, ...other } = props;
 
   TableCell.propTypes = {
     children: PropTypes.node || PropTypes.string,
   };
 
-  return <Text style={[styles.cell, { textAlign: align }]}>{children}</Text>;
+  return (
+    <Text style={[styles.cell, { textAlign: align, width: width }]}>
+      {children}
+    </Text>
+  );
 };
 
 export { Table, TableRow, TableCell, TableHeader };

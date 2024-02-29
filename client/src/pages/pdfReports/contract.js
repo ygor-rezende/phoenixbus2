@@ -12,6 +12,9 @@ import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
+import { Table, TableCell, TableHeader, TableRow } from "./Table";
+
+import dayjs from "dayjs";
 
 Font.register({
   family: "Roboto",
@@ -42,10 +45,15 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 10,
   },
   text: {
     fontFamily: "Roboto",
-    fontSize: 11,
+    fontSize: 10,
+  },
+  paragraph: {
+    marginBottom: 5,
+    textAlign: "justify",
   },
   textBold: {
     fontFamily: "Roboto",
@@ -58,7 +66,8 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   h2: {
-    fontSize: 18,
+    fontSize: 16,
+    textAlign: "center",
   },
   tripBoard: {
     display: "flex",
@@ -67,10 +76,11 @@ const styles = StyleSheet.create({
     border: 2,
   },
   innerBoard: {
-    margin: 10,
+    marginLeft: 10,
   },
   contentSection: {
     marginTop: 20,
+    marginBottom: 10,
     borderTop: 1,
   },
   tableSection: {
@@ -93,9 +103,27 @@ const styles = StyleSheet.create({
     border: 2,
     padding: 10,
   },
+  serviceRow: {
+    marginBottom: 3,
+    fontWeight: "semibold",
+  },
+  detailsRow: {
+    marginBottom: 5,
+  },
+  detailsSection: {
+    marginBottom: 10,
+  },
+  totalsSection: {
+    marginTop: 20,
+    paddingTop: 10,
+    borderTop: 1,
+    display: "flex",
+    justifyContent: "space-around",
+    flexDirection: "row",
+  },
   footer: {
     position: "absolute",
-    bottom: 40,
+    bottom: 30,
     left: 0,
     right: 0,
     textAlign: "center",
@@ -109,11 +137,15 @@ const Contract = (props) => {
     date,
     invoiceNum,
     client,
+    category,
     passengers,
     bookingDate,
     arrival,
     departure,
     services,
+    details,
+    locations,
+    deposit,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -126,6 +158,22 @@ const Contract = (props) => {
   let totalCharges = services?.reduce((sum, current) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
+
+  let credit = (totalCharges * deposit) / 100;
+  let totalAmount = totalCharges - credit;
+
+  credit = currencyFormatter.format(credit);
+  totalAmount = currencyFormatter.format(totalAmount);
+  totalCharges = currencyFormatter.format(totalCharges);
+
+  //Create a unique array with services and details
+  //Return an array with an array of services and its details
+  const allData = services?.map((service) => {
+    let thisDetails = details
+      ?.flat()
+      .filter((detail) => detail.service_id === service.service_id);
+    return [service, thisDetails];
+  });
 
   return (
     <Document>
@@ -162,30 +210,293 @@ const Contract = (props) => {
           <View style={styles.header}>
             <Text style={styles.textBold}>{date}</Text>
             <Text style={styles.textItalic}>PHOENIX BUS INC</Text>
-            <Text style={styles.textBold}>Page 1 of 1</Text>
+            <Text
+              style={styles.textBold}
+              render={({ pageNumber, totalPages }) =>
+                `Page ${pageNumber} of ${totalPages}`
+              }
+            />
           </View>
-          <View style={styles.tableSection}></View>
+          <View style={styles.tableSection}>
+            <Table>
+              <TableHeader>
+                <TableCell width="33%" align="left">
+                  Category: {category}
+                </TableCell>
+                <TableCell width="33%" align="center">
+                  Number of Seats: {passengers}
+                </TableCell>
+                <TableCell width="33%" align="right">
+                  Invoice: {invoiceNum}
+                </TableCell>
+              </TableHeader>
+            </Table>
+          </View>
+          <View style={styles.h2}>
+            <Text>SERVICES</Text>
+          </View>
+          <View style={styles.tableSection}>
+            <Table>
+              <TableHeader>
+                <TableCell width="17%" align="left">
+                  Date
+                </TableCell>
+                <TableCell width="17%" align="left">
+                  Service
+                </TableCell>
+                <TableCell width="17%" align="right">
+                  Charge
+                </TableCell>
+                <TableCell width="17%" align="right">
+                  Qty
+                </TableCell>
+                <TableCell width="17%" align="right">
+                  Gratuity
+                </TableCell>
+                <TableCell width="17%" align="right">
+                  SubTotal
+                </TableCell>
+              </TableHeader>
+              {allData?.map((service) => (
+                <View key={service[0]?.service_id}>
+                  <View style={styles.serviceRow}>
+                    <TableRow>
+                      <TableCell width="17%" align="left">
+                        {dayjs(service[0]?.service_date).format("MM/DD/YYYY")}
+                      </TableCell>
+                      <TableCell width="17%" align="left">
+                        {service[0]?.service_name}
+                      </TableCell>
+                      <TableCell width="17%" align="right">
+                        {currencyFormatter.format(service[0]?.charge)}
+                      </TableCell>
+                      <TableCell width="17%" align="right">
+                        {service[0]?.qty}
+                      </TableCell>
+                      <TableCell width="17%" align="right">
+                        {currencyFormatter.format(service[0]?.gratuity)}
+                      </TableCell>
+                      <TableCell width="17%" align="right">
+                        {currencyFormatter.format(
+                          service[0]?.charge * service[0]?.qty +
+                            Number(service[0]?.gratuity)
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </View>
+                  <View style={styles.detailsSection}>
+                    {service[1]?.map((detail) => {
+                      const fromLocation = locations?.find(
+                        (e) => e.location_id === detail.from_location_id
+                      );
+                      const toLocation = locations?.find(
+                        (e) => e.location_id === detail.to_location_id
+                      );
+                      const returnLocation = locations?.find(
+                        (e) => e.location_id === detail.return_location_id
+                      );
+                      return (
+                        <View key={detail.detail_id} style={styles.detailsRow}>
+                          <TableRow>
+                            <TableCell width="15%" align="left"></TableCell>
+                            {fromLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                From: {fromLocation?.location_name}
+                              </TableCell>
+                            )}
+                            {toLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                To: {toLocation?.location_name}
+                              </TableCell>
+                            )}
+                            {returnLocation && (
+                              <TableCell width="28%" align="left">
+                                Return: {returnLocation?.location_name}
+                              </TableCell>
+                            )}
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell width="15%" align="left">
+                              Spot: {dayjs(detail.spot_time).format("HH:mm")}
+                            </TableCell>
+                            {fromLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                {fromLocation?.address}
+                              </TableCell>
+                            )}
+                            {toLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                {toLocation?.address}
+                              </TableCell>
+                            )}
+                            {returnLocation && (
+                              <TableCell width="28%" align="left">
+                                {returnLocation?.address}
+                              </TableCell>
+                            )}
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell width="15%" align="left">
+                              Start: {dayjs(detail.start_time).format("HH:mm")}
+                            </TableCell>
+                            {fromLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                {fromLocation?.city},{" "}
+                                {fromLocation.location_state} {fromLocation.zip}
+                              </TableCell>
+                            )}
+                            {toLocation && (
+                              <TableCell
+                                width={returnLocation ? "28%" : "42%"}
+                                align="left"
+                              >
+                                {toLocation?.city}, {toLocation.location_state}{" "}
+                                {toLocation.zip}
+                              </TableCell>
+                            )}
+                            {returnLocation && (
+                              <TableCell width="28%" align="left">
+                                {returnLocation?.city},{" "}
+                                {returnLocation.location_state}{" "}
+                                {returnLocation.zip}
+                              </TableCell>
+                            )}
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell width="15%" align="left">
+                              End: {dayjs(detail.end_time).format("HH:mm")}
+                            </TableCell>
+                            <TableCell width="85%" align="left">
+                              <Text style={styles.textBold}>Instructions:</Text>{" "}
+                              {detail.instructions}
+                            </TableCell>
+                          </TableRow>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </Table>
+          </View>
+        </View>
+        <View style={styles.totalsSection}>
+          <Text style={{ fontSize: 14 }}>
+            NOTE: Times in Military time (24-hour clock)
+          </Text>
+          <View style={[styles.textBold, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>Total Charges</Text>
+            <Text>Total Payment/Credit</Text>
+            <Text>Total Amount Due</Text>
+          </View>
+          <View style={[styles.text, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>{totalCharges}</Text>
+            <Text>({credit})</Text>
+            <Text style={styles.textBold}>{totalAmount}</Text>
+          </View>
+        </View>
+        <View style={styles.contentSection}>
+          <Text style={[styles.textItalic, styles.h2, { margin: 10 }]}>
+            TERMS AND CONDITIONS
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            A 10% NON REFUNDABLE DEPOSIT IS REQUIRED TO CONFIRM YOUR BOOKING.
+            ALL BOOKINGS SHOULD BE PAID IN FULL 7 DAYS PRIOR TO THE FIRST
+            SERVICE. A 90% REFUND WILL BE PROVIDED FOR BOOKINGS CANCELLED 7 DAYS
+            PRIOR TO FIRST SERVICE. ALL CANCELLATIONS WITHIN 7 DAYS OF FIRST
+            SERVICE WILL BE CHARGED THE FULL AMOUNT OF SERVICE.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            PERSONAL BAGGAGE, INSTRUMENTS, EQUIPMENTS AND OTHER PROPERTIES WILL
+            BE LIMITED TO THE CAPACITY OF THE VEHICLE. CARRIER ASSUMES NO
+            RESPONSIBILITIES OR LIABILITIES FOR DAMAGED, STOLEN OR LOST ITEMS
+            TRANSPORTED OR LEFT IN ITS VEHICLE.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            RATES AND CHARGES ARE BASED ON THE INFORMATION PROVIDED. ALL RATES
+            AND CHARGES ARE SUBJECT TO CHANGE BASED ON ACTUAL SERVICES RENDERED.
+            IF DURING THE TRIP THE CHARTERING PARTY DESIRES TO CHANGE ROUTING OR
+            SERVICES, ADDITIONAL CHARGES WILL BE ASSESSED AND COLLECTED, BASED
+            ON AVAILABILITY AT TIME OF CHANGE.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            CARRIER WILL NOT BE LIABLE FOR DELAYS CAUSED BY ACCIDENTS,
+            BREAKDOWNS, BAD ROAD CONDITIONS, INCLEMENT WEATHER, AND OTHER
+            CONDITIONS BEYOND ITS CONTROL. IF, IN THE OPINION OF THE CARRIER,
+            CONDITIONS MAKE IT INADVISABLE TO OPERATE CHARTER SERVICE AT ANY
+            POINT IN ROUTE, THE CARRIER RESERVES THE RIGHT TO DISCONTINUE
+            SERVICE AND WILL NOT BE HELD LIABLE THEREFORE, OR BE CAUSED TO BE
+            HELD FOR DAMAGE FOR ANY REASON WHATSOEVER. ADDITIONAL COSTS, SUCH AS
+            MEALS, LODGING AND TRANSPORTATION WILL IN THIS RESPECT BECOME THE
+            RESPONSIBILITY OF THE CHARTERING PARTY.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            PHOENIX BUS INC, RESERVES ITS RIGHT TO LEASE EQUIPMENT FROM OTHER
+            COMPANIES IN ORDER TO FULFILL THIS AGREEMENT. PHOENIX BUS INC,
+            RESERVES THE RIGHT TO USE ASSIGNED MOTORCOACHES FOR MULTIPLE
+            CHARTERS AND CUSTOMERS ON THE SAME DAY.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            PHOENIX BUS INC, SHALL NOT BE LIABLE FOR LOSS OF TIME OR REVENUE DUE
+            TO MECHANICAL FAILURE OR INCLEMENT WEATHER. EATING OR DRINKING IS
+            NOT ALLOWED IN THE COACHES. PARKING IS THE RESPONSIBILITY OF THE
+            CUSTOMER
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            CARRIER RESERVES THE RIGHT TO REFUSE TO TRANSPORT ANY PERSON OR
+            PERSONS UNDER THE INFLUENCE OF ALCOHOL AND/OR DRUGS, OR WHOSE
+            CONDUCT IS SUCH AS TO MAKE HIM/HER OBJECTIONABLE TO OTHER PASSENGER
+            OR THE SAFE OPERATION OF THE VEHICLE.
+          </Text>
+          <Text style={[styles.text, styles.paragraph]}>
+            DAMAGE TO SEATS, WINDOWS OR OTHER EQUIPMENT OR PART OF THE COACH,
+            WHICH IS CAUSED BY ANY MEMBER OF THE CHARTERING PARTY, SHALL BE THE
+            RESPONSIBILITY OF THE CHARTERING PARTY AND THE CHARTERING PARTY WILL
+            PAY THE COST TO REPAIR AND LOSS OF SERVICE DUE TO SUCH DAMAGE.
+          </Text>
         </View>
         <View style={styles.signatureSection}>
           <Text style={styles.signature}>
             Please sign, date and return ___________________________ Date:
             _____________
           </Text>
-          <Text style={styles.signature}>
+          <Text style={[styles.signature, styles.text]}>
             Thank you: TO CONFIRM PLEASE EMAIL BACK SIGNED CONTRACT THEN EMAIL
             BACK AUTHORIZATION FORM OR/AND PAY ONLINE - CONTACT US IF THERE IS
             ANY QUESTIONS.
           </Text>
         </View>
 
-        <View style={styles.footer}>
+        <View style={styles.footer} fixed>
           <Text>
             5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>
           <Text>Thanks for your business</Text>
-          <Text>Page 1 of 1</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
         </View>
       </Page>
     </Document>

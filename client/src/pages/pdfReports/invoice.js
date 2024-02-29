@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 40,
+    bottom: 30,
     left: 0,
     right: 0,
     textAlign: "center",
@@ -165,25 +165,43 @@ const Invoice = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell>Date</TableCell>
-              <TableCell>Service</TableCell>
-              <TableCell align="right">Charge</TableCell>
-              <TableCell align="right">Qty</TableCell>
-              <TableCell align="right">Gratuity</TableCell>
-              <TableCell align="right">Total</TableCell>
+              <TableCell align="left" width="17%">
+                Date
+              </TableCell>
+              <TableCell align="left" width="17%">
+                Service
+              </TableCell>
+              <TableCell align="right" width="17%">
+                Charge
+              </TableCell>
+              <TableCell align="right" width="17%">
+                Qty
+              </TableCell>
+              <TableCell align="right" width="17%">
+                Gratuity
+              </TableCell>
+              <TableCell align="right" width="17%">
+                Total
+              </TableCell>
             </TableHeader>
             {services?.map((service) => (
               <TableRow>
-                <TableCell>
+                <TableCell align="left" width="17%">
                   {dayjs(service.service_date).format("MM/DD/YYYY")}
                 </TableCell>
-                <TableCell>{service.service_name}</TableCell>
-                <TableCell align="right">
+                <TableCell align="left" width="17%">
+                  {service.service_name}
+                </TableCell>
+                <TableCell align="right" width="17%">
                   {currencyFormatter.format(service.charge)}
                 </TableCell>
-                <TableCell align="right">{service.qty}</TableCell>
-                <TableCell align="right">{service.gratuity}</TableCell>
-                <TableCell align="right">
+                <TableCell align="right" width="17%">
+                  {service.qty}
+                </TableCell>
+                <TableCell align="right" width="17%">
+                  {service.gratuity}
+                </TableCell>
+                <TableCell align="right" width="17%">
                   {currencyFormatter.format(
                     service.charge * service.qty + Number(service.gratuity)
                   )}
@@ -200,8 +218,8 @@ const Invoice = (props) => {
           </View>
           <View style={[styles.text, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>{totalInvoice}</Text>
-            <Text>{credit}</Text>
-            <Text>{totalAmount}</Text>
+            <Text>({credit})</Text>
+            <Text style={styles.textBold}>{totalAmount}</Text>
           </View>
         </View>
 
@@ -215,14 +233,18 @@ const Invoice = (props) => {
           </Text>
           <Text>5) VIA PURCHASE ORDER</Text>
         </View>
-        <View style={styles.footer}>
+        <View style={styles.footer} fixed>
           <Text>
             5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>
           <Text>Thanks for your business</Text>
-          <Text>Page 1 of 1</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
         </View>
       </Page>
     </Document>
