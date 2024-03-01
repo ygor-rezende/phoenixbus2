@@ -54,6 +54,7 @@ import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import Invoice from "./pdfReports/invoice";
 import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
+import QuoteReport from "./pdfReports/quote";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -957,7 +958,7 @@ export const Bookings = () => {
     }
   };
 
-  //function to generate invoice PDF
+  //function to generate contract PDF
   const generateContract = async (filename) => {
     try {
       const blob = await pdf(
@@ -967,13 +968,36 @@ export const Bookings = () => {
           client={state.curClient}
           category={state.category}
           passengers={state.numPeople}
-          bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
-          arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
-          departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           services={state.servicesData}
           details={state.detailsData}
           locations={state.locationsData}
           deposit={state.deposit}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
+  //function to generate contract PDF
+  const generateQuoteReport = async (filename) => {
+    try {
+      const blob = await pdf(
+        <QuoteReport
+          date={new Date().toString().substring(0, 24)}
+          invoiceNum={state.invoice}
+          quotedCost={state.quotedCost}
+          salesPerson={state.salesPerson}
+          client={state.curClient}
+          passengers={state.numPeople}
+          deposit={state.deposit}
+          tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
+          tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
+          quoteExp={state.numHoursQuoteValid}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -992,6 +1016,10 @@ export const Bookings = () => {
 
   const handleDowloadContract = () => {
     generateContract(`confirmation${state.invoice}.pdf`);
+  };
+
+  const handleDownloadQuote = () => {
+    generateQuoteReport(`quote${state.invoice}.pdf`);
   };
 
   //When the create quote button is clicked
@@ -1438,36 +1466,51 @@ export const Bookings = () => {
                     </Button>
 
                     {state.isQuote && (
+                      <Box sx={{ display: "inline-flex" }}>
+                        <Button
+                          style={{ marginLeft: "10px" }}
+                          variant="contained"
+                          onClick={handleSaveAsBooking}
+                          color="success"
+                          size="small"
+                        >
+                          Transform Quote to Booking
+                        </Button>
+                        <Button
+                          style={{ marginLeft: "10px" }}
+                          variant="contained"
+                          onClick={handleDownloadQuote}
+                          size="small"
+                        >
+                          <ReceiptIcon />
+                          Quote
+                        </Button>
+                      </Box>
+                    )}
+
+                    {!state.isQuote && (
                       <Button
                         style={{ marginLeft: "10px" }}
                         variant="contained"
-                        onClick={handleSaveAsBooking}
-                        color="success"
+                        onClick={handleDownloadInvoice}
                         size="small"
                       >
-                        Transform Quote to Booking
+                        <ReceiptIcon />
+                        Invoice
                       </Button>
                     )}
 
-                    <Button
-                      style={{ marginLeft: "10px" }}
-                      variant="contained"
-                      onClick={handleDownloadInvoice}
-                      size="small"
-                    >
-                      <ReceiptIcon />
-                      Invoice
-                    </Button>
-
-                    <Button
-                      style={{ marginLeft: "10px" }}
-                      variant="contained"
-                      onClick={handleDowloadContract}
-                      size="small"
-                    >
-                      <GavelIcon />
-                      Contract
-                    </Button>
+                    {!state.isQuote && (
+                      <Button
+                        style={{ marginLeft: "10px" }}
+                        variant="contained"
+                        onClick={handleDowloadContract}
+                        size="small"
+                      >
+                        <GavelIcon />
+                        Contract
+                      </Button>
+                    )}
 
                     <p></p>
 

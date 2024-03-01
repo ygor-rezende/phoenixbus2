@@ -69,12 +69,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
-  tripBoard: {
-    display: "flex",
-    justifyContent: "space-around",
-    flexDirection: "row",
-    border: 2,
-  },
   innerBoard: {
     marginLeft: 10,
   },
@@ -98,14 +92,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     paddingTop: 10,
   },
-  infoSection: {
-    margin: 10,
-    border: 2,
-    padding: 10,
-  },
   serviceRow: {
     marginBottom: 3,
     fontWeight: "semibold",
+    borderBottom: 0.5,
   },
   detailsRow: {
     marginBottom: 5,
@@ -123,12 +113,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 30,
+    bottom: 25,
     left: 0,
     right: 0,
     textAlign: "center",
     color: "grey",
-    fontSize: "10",
+    fontSize: "9",
   },
 });
 
@@ -139,9 +129,6 @@ const Contract = (props) => {
     client,
     category,
     passengers,
-    bookingDate,
-    arrival,
-    departure,
     services,
     details,
     locations,
@@ -159,8 +146,20 @@ const Contract = (props) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
+  let totalTax = services
+    ?.map((service) => {
+      return {
+        tax: service.sales_tax,
+        charge: service.charge,
+        qty: service.qty,
+      };
+    })
+    ?.reduce((sum, service) => {
+      return sum + Number(service.tax * service.charge * service.qty) / 100;
+    }, 0);
+
   let credit = (totalCharges * deposit) / 100;
-  let totalAmount = totalCharges - credit;
+  let totalAmount = totalCharges - credit + totalTax;
 
   credit = currencyFormatter.format(credit);
   totalAmount = currencyFormatter.format(totalAmount);
@@ -238,17 +237,17 @@ const Contract = (props) => {
           <View style={styles.tableSection}>
             <Table>
               <TableHeader>
-                <TableCell width="17%" align="left">
+                <TableCell width="15%" align="left">
                   Date
                 </TableCell>
-                <TableCell width="17%" align="left">
+                <TableCell width="19%" align="left">
                   Service
                 </TableCell>
                 <TableCell width="17%" align="right">
-                  Charge
+                  No. Buses
                 </TableCell>
                 <TableCell width="17%" align="right">
-                  Qty
+                  Charge
                 </TableCell>
                 <TableCell width="17%" align="right">
                   Gratuity
@@ -261,17 +260,17 @@ const Contract = (props) => {
                 <View key={service[0]?.service_id}>
                   <View style={styles.serviceRow}>
                     <TableRow>
-                      <TableCell width="17%" align="left">
+                      <TableCell width="15%" align="left">
                         {dayjs(service[0]?.service_date).format("MM/DD/YYYY")}
                       </TableCell>
-                      <TableCell width="17%" align="left">
+                      <TableCell width="19%" align="left">
                         {service[0]?.service_name}
                       </TableCell>
                       <TableCell width="17%" align="right">
-                        {currencyFormatter.format(service[0]?.charge)}
+                        {service[0]?.qty}
                       </TableCell>
                       <TableCell width="17%" align="right">
-                        {service[0]?.qty}
+                        {currencyFormatter.format(service[0]?.charge)}
                       </TableCell>
                       <TableCell width="17%" align="right">
                         {currencyFormatter.format(service[0]?.gratuity)}
@@ -298,10 +297,9 @@ const Contract = (props) => {
                       return (
                         <View key={detail.detail_id} style={styles.detailsRow}>
                           <TableRow>
-                            <TableCell width="15%" align="left"></TableCell>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 From: {fromLocation?.location_name}
@@ -309,26 +307,23 @@ const Contract = (props) => {
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 To: {toLocation?.location_name}
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="28%" align="left">
+                              <TableCell width="33%" align="left">
                                 Return: {returnLocation?.location_name}
                               </TableCell>
                             )}
                           </TableRow>
 
                           <TableRow>
-                            <TableCell width="15%" align="left">
-                              Spot: {dayjs(detail.spot_time).format("HH:mm")}
-                            </TableCell>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 {fromLocation?.address}
@@ -336,26 +331,23 @@ const Contract = (props) => {
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 {toLocation?.address}
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="28%" align="left">
+                              <TableCell width="33%" align="left">
                                 {returnLocation?.address}
                               </TableCell>
                             )}
                           </TableRow>
 
                           <TableRow>
-                            <TableCell width="15%" align="left">
-                              Start: {dayjs(detail.start_time).format("HH:mm")}
-                            </TableCell>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 {fromLocation?.city},{" "}
@@ -364,7 +356,7 @@ const Contract = (props) => {
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "28%" : "42%"}
+                                width={returnLocation ? "33%" : "50%"}
                                 align="left"
                               >
                                 {toLocation?.city}, {toLocation.location_state}{" "}
@@ -372,7 +364,7 @@ const Contract = (props) => {
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="28%" align="left">
+                              <TableCell width="33%" align="left">
                                 {returnLocation?.city},{" "}
                                 {returnLocation.location_state}{" "}
                                 {returnLocation.zip}
@@ -381,10 +373,18 @@ const Contract = (props) => {
                           </TableRow>
 
                           <TableRow>
-                            <TableCell width="15%" align="left">
-                              End: {dayjs(detail.end_time).format("HH:mm")}
+                            <TableCell width="25%" align="left">
+                              Spot time:{" "}
+                              {dayjs(detail.spot_time).format("HH:mm")}
                             </TableCell>
-                            <TableCell width="85%" align="left">
+                            <TableCell width="25%" align="left">
+                              Start Time:{" "}
+                              {dayjs(detail.start_time).format("HH:mm")}
+                            </TableCell>
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell width="100%" align="left">
                               <Text style={styles.textBold}>Instructions:</Text>{" "}
                               {detail.instructions}
                             </TableCell>
@@ -405,14 +405,34 @@ const Contract = (props) => {
           <View style={[styles.textBold, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>Total Charges</Text>
             <Text>Total Payment/Credit</Text>
+            <Text>Sales Tax:</Text>
             <Text>Total Amount Due</Text>
           </View>
           <View style={[styles.text, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>{totalCharges}</Text>
             <Text>({credit})</Text>
+            <Text>
+              {totalTax > 0 ? currencyFormatter.format(totalTax) : "Waived"}
+            </Text>
             <Text style={styles.textBold}>{totalAmount}</Text>
           </View>
         </View>
+
+        <View style={styles.footer} fixed>
+          <Text>
+            5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
+            407-517-4788
+          </Text>
+          <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>
+          <Text>Thank you for your business</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+      <Page style={styles.body}>
         <View style={styles.contentSection}>
           <Text style={[styles.textItalic, styles.h2, { margin: 10 }]}>
             TERMS AND CONDITIONS
@@ -484,14 +504,13 @@ const Contract = (props) => {
             ANY QUESTIONS.
           </Text>
         </View>
-
         <View style={styles.footer} fixed>
           <Text>
             5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>
-          <Text>Thanks for your business</Text>
+          <Text>Thank you for your business</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Page ${pageNumber} of ${totalPages}`

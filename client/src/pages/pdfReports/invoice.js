@@ -51,9 +51,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 700,
   },
-  h2: {
-    fontSize: 18,
-  },
   tripBoard: {
     display: "flex",
     justifyContent: "space-around",
@@ -84,7 +81,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 30,
+    bottom: 25,
     left: 0,
     right: 0,
     textAlign: "center",
@@ -117,8 +114,20 @@ const Invoice = (props) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
+  let totalTax = services
+    ?.map((service) => {
+      return {
+        tax: service.sales_tax,
+        charge: service.charge,
+        qty: service.qty,
+      };
+    })
+    ?.reduce((sum, service) => {
+      return sum + Number(service.tax * service.charge * service.qty) / 100;
+    }, 0);
+
   let credit = (totalInvoice * deposit) / 100;
-  let totalAmount = totalInvoice - credit;
+  let totalAmount = totalInvoice - credit + totalTax;
 
   credit = currencyFormatter.format(credit);
   totalAmount = currencyFormatter.format(totalAmount);
@@ -214,11 +223,15 @@ const Invoice = (props) => {
           <View style={[styles.textBold, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>Total Invoice</Text>
             <Text>Total Payment/Credit</Text>
+            <Text>Sales Tax:</Text>
             <Text>Total Amount Due</Text>
           </View>
           <View style={[styles.text, styles.innerBoard]}>
             <Text style={{ marginBottom: 10 }}>{totalInvoice}</Text>
             <Text>({credit})</Text>
+            <Text>
+              {totalTax > 0 ? currencyFormatter.format(totalTax) : "Waived"}
+            </Text>
             <Text style={styles.textBold}>{totalAmount}</Text>
           </View>
         </View>
@@ -239,7 +252,7 @@ const Invoice = (props) => {
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>
-          <Text>Thanks for your business</Text>
+          <Text>Thank you for your business</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Page ${pageNumber} of ${totalPages}`
