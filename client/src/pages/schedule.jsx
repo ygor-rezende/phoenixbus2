@@ -30,6 +30,10 @@ import useAuth from "../hooks/useAuth";
 
 import { ScheduleTable } from "./schedule_subcomponents/schedule_table";
 import Summary from "./schedule_subcomponents/summary";
+import DriverReport from "./pdfReports/driverReport";
+
+import { pdf } from "@react-pdf/renderer";
+import * as FileSaver from "file-saver";
 
 const drawerWidth = 240;
 
@@ -223,6 +227,30 @@ export const Schedule = () => {
     }
   };
 
+  const handleDriverReport = (detailId) => {
+    const dataFound = data?.find((item) => item.detail_id === detailId);
+    //setRowData(dataFound);
+
+    generateDriverReport(`driverReport_${detailId}`, dataFound);
+  };
+
+  const generateDriverReport = async (filename, data) => {
+    try {
+      const blob = await pdf(
+        <DriverReport
+          data={data}
+          date={new Date().toString().substring(0, 24)}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
   //closes the snakbar
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -275,6 +303,7 @@ export const Schedule = () => {
                     onDatePick={pickDate}
                     dateString={dateString}
                     editData={handleOnRowClick}
+                    createDriverPDF={handleDriverReport}
                   />
                 </Paper>
               </Grid>

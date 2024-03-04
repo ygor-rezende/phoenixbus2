@@ -27,6 +27,7 @@ import { BusIcon } from "../../utils/busIcon";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -55,7 +56,7 @@ const SmallBoldCell = (props) => {
 };
 
 export const ScheduleTable = (props) => {
-  const { data, onDatePick, dateString, editData } = props;
+  const { data, onDatePick, dateString, editData, createDriverPDF } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [extendLine, setExtendLine] = useState("");
@@ -78,6 +79,10 @@ export const ScheduleTable = (props) => {
   //when the user clicks a row
   const handleClick = (event, detailId) => {
     editData(detailId);
+  };
+
+  const handleDriverPDF = (detailId) => {
+    createDriverPDF(detailId);
   };
 
   return (
@@ -137,6 +142,7 @@ export const ScheduleTable = (props) => {
             <BoldTableCell>Vehicle</BoldTableCell>
             <BoldTableCell>Type</BoldTableCell>
             <BoldTableCell align="right">Charge</BoldTableCell>
+            <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
           </TableRow>
@@ -220,6 +226,15 @@ export const ScheduleTable = (props) => {
                   <Tooltip title="Edit">
                     <IconButton onClick={(e) => handleClick(e, row?.detail_id)}>
                       <EditNoteIcon color="primary" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+                <TableCell padding="none">
+                  <Tooltip title="Print Driver PDF">
+                    <IconButton
+                      onClick={(e) => handleDriverPDF(row?.detail_id)}
+                    >
+                      <PictureAsPdfIcon color="primary" />
                     </IconButton>
                   </Tooltip>
                 </TableCell>

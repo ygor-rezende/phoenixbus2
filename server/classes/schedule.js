@@ -37,16 +37,24 @@ class Schedule {
         v.vehicle_id,
         v.vehicle_name,
         v.vehicle_color,
+        cli.agency,
         lf.location_id as from_location_id,
         lf.location_name as from_location,
         lf.city as from_city,
+        lf.address as from_address,
+        lf.location_state as from_state,
         lt.location_id as to_location_id,
         lt.location_name as to_location,
         lt.city as to_city,
+        lt.address as to_address,
+        lt.location_state as to_state,
         lr.location_id as return_location_id,
         lr.location_name as return_location,
-        lr.city as return_city
+        lr.city as return_city,
+        lr.address as return_address,
+        lr.location_state as return_state
         from bookings b join services s on b.invoice = s.booking_id
+        join clients cli on cli.client_id = b.client_id
         join service_details d on d.service_id = s.service_id
         full outer join employees e on e.employee_id = d.employee_id
         full outer join vehicles v on v.vehicle_id = d.vehicle_id

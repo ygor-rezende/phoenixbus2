@@ -50,7 +50,7 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import Invoice from "./pdfReports/invoice";
 import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
@@ -721,12 +721,12 @@ export const Bookings = () => {
     //load fields
     console.log(state.quotesData.filter((e) => e.id === id));
     //get client id and employee id from bookings data
-    const clientId = state.quotesData.filter((e) => e.id === id)[0].clientId;
-    const employeeId = state.quotesData.filter((e) => e.id === id)[0]
-      .employeeId;
-    const employeeObject = state.employeesData.filter(
+    const clientId = state.quotesData.find((e) => e.id === id)?.clientId;
+    const employeeId = state.quotesData.find((e) => e.id === id)?.employeeId;
+    const employeeObject = state.employeesData.find(
       (employee) => employee.employee_id === employeeId
-    )[0];
+    );
+    const curClient = state.clientsData?.find((e) => e.client_id === clientId);
 
     setState({
       onEditMode: true,
@@ -737,45 +737,37 @@ export const Bookings = () => {
       invoice: id,
       isQuote: state.quotesData?.find((e) => e.id === id)?.isQuote,
       clientId: clientId,
-      agencyName: state.clientsData.filter(
-        (client) => client.client_id === clientId
-      )[0].agency,
-      agencyEmail: state.clientsData.filter(
-        (client) => client.client_id === clientId
-      )[0].email,
-      agencyContact: state.clientsData.filter(
-        (client) => client.client_id === clientId
-      )[0].contact,
+      curClient: curClient,
+      agencyName: curClient?.agency,
+      agencyEmail: curClient?.email,
+      agencyContact: curClient?.contact,
       employeeId: employeeId,
       salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
       responsibleName: state.quotesData.find((e) => e.id === id)
-        .responsibleName,
+        ?.responsibleName,
       responsibleEmail: state.quotesData.find((e) => e.id === id)
-        .responsibleEmail,
+        ?.responsibleEmail,
       responsiblePhone: state.quotesData.find((e) => e.id === id)
-        .responsiblePhone,
+        ?.responsiblePhone,
       bookingDate: null,
-      quoteDate: dayjs(
-        state.quotesData?.filter((e) => e.id === id)[0]?.quoteDate
-      ),
-      category: state.quotesData.filter((e) => e.id === id)[0].category,
-      numPeople: state.quotesData.filter((e) => e.id === id)[0].numPeople,
+      quoteDate: dayjs(state.quotesData?.find((e) => e.id === id)?.quoteDate),
+      category: state.quotesData.find((e) => e.id === id)?.category,
+      numPeople: state.quotesData.find((e) => e.id === id)?.numPeople,
       tripStartDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].tripStartDate
+        state.quotesData.find((e) => e.id === id)?.tripStartDate
       ),
       tripEndDate: dayjs(
-        state.quotesData.filter((e) => e.id === id)[0].tripEndDate
+        state.quotesData.find((e) => e.id === id)?.tripEndDate
       ),
-      deposit: state.quotesData.filter((e) => e.id === id)[0].deposit,
-      quotedCost: state.quotesData.filter((e) => e.id === id)[0].cost,
-      numHoursQuoteValid: state.quotesData.filter((e) => e.id === id)[0]
-        .numHoursQuoteValid,
-      clientComments: state.quotesData.filter((e) => e.id === id)[0]
-        .clientComments,
-      intineraryDetails: state.quotesData.filter((e) => e.id === id)[0]
-        .intineraryDetails,
-      internalComments: state.quotesData.filter((e) => e.id === id)[0]
-        .internalComents,
+      deposit: state.quotesData.find((e) => e.id === id)?.deposit,
+      quotedCost: state.quotesData.find((e) => e.id === id)?.cost,
+      numHoursQuoteValid: state.quotesData.find((e) => e.id === id)
+        ?.numHoursQuoteValid,
+      clientComments: state.quotesData.find((e) => e.id === id)?.clientComments,
+      intineraryDetails: state.quotesData.find((e) => e.id === id)
+        ?.intineraryDetails,
+      internalComments: state.quotesData.find((e) => e.id === id)
+        ?.internalComents,
       servicesData: services,
       tabService: 0,
       detailsData: details,
@@ -988,7 +980,7 @@ export const Bookings = () => {
     try {
       const blob = await pdf(
         <QuoteReport
-          date={new Date().toString().substring(0, 24)}
+          date={dayjs(state.quoteDate).format("dddd, MMMM D, YYYY")}
           invoiceNum={state.invoice}
           quotedCost={state.quotedCost}
           salesPerson={state.salesPerson}
