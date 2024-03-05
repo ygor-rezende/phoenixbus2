@@ -5,7 +5,7 @@ const GoogleMaps = (props) => {
   const mapRef = useRef();
   const containerRef = useRef();
 
-  const { origin, destination } = props;
+  const { origin, destination, showMap, updateRouteInfo } = props;
 
   useEffect(() => {
     async function initMap() {
@@ -18,6 +18,7 @@ const GoogleMaps = (props) => {
       mapRef.current = new Map(containerRef.current, {
         center: { lat: 28.538336, lng: -81.379234 },
         zoom: 8,
+        mapId: "DEMO_MAP_ID",
       });
 
       //Find the lat and lng for the origin and destination
@@ -39,7 +40,13 @@ const GoogleMaps = (props) => {
       };
 
       directionsService.route(request, (result, status) => {
-        if (status === "OK") directionsRenderer.setDirections(result);
+        if (status === "OK") {
+          directionsRenderer.setDirections(result);
+          const duration = result.routes[0]?.legs[0]?.duration;
+          const distance = result.routes[0]?.legs[0]?.distance;
+
+          updateRouteInfo(duration, distance);
+        }
       });
 
       //create custom button
@@ -80,10 +87,16 @@ const GoogleMaps = (props) => {
     } //createButton
 
     initMap();
-  });
+  }, [origin, destination]);
 
   return (
-    <div id="mapsContainer" className="map-container" ref={containerRef}></div>
+    showMap && (
+      <div
+        id="mapsContainer"
+        className="map-container"
+        ref={containerRef}
+      ></div>
+    )
   );
 };
 

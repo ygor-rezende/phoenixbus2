@@ -12,9 +12,6 @@ import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
-import { Table, TableCell, TableHeader, TableRow } from "./Table";
-
-import dayjs from "dayjs";
 
 Font.register({
   family: "Roboto",
@@ -209,7 +206,7 @@ const QuoteReport = (props) => {
           </View>
           <View style={styles.innerBoard}>
             <Text style={styles.textJustify}>
-              We make sure that all of your transportation needs are pre-planned
+              We ensure that all of your transportation needs are pre-planned
               with meticulous care so that we can provide you with fast and
               convenient service. Our executive fleet vehicles are pristine and
               come with with full air conditioning, and a uniformed chauffer.
@@ -223,10 +220,14 @@ const QuoteReport = (props) => {
             <View style={styles.bulletPoints}>
               <Text style={styles.textBold}>{"\u2022"}</Text>
               <Text style={[{ marginLeft: 10 }, styles.textItalic]}>
-                The all-inclusive grand total for your reservation would be{" "}
+                The total for your reservation would be{" "}
               </Text>
               <Text style={styles.textBold}>
                 {currencyFormatter.format(quotedCost)}
+              </Text>
+              <Text style={styles.textItalic}>
+                {" "}
+                (Driver gratuitiy not included)
               </Text>
             </View>
             <View style={styles.bulletPoints}>
@@ -256,18 +257,17 @@ const QuoteReport = (props) => {
           <View style={{ marginTop: 20, borderBottom: 1 }}>
             <Text style={styles.h2}>AMENITIES</Text>
             <Text style={styles.textCenter}>
-              Prevost/Volvo/Temsa/MCI/Van Hool/Setra Mercedes Motor coach which
-              allows 45-59-53-55-57 pax or Mini Coach Bus 18-24-28-33-39 pax or
-              Van for 14 pax
+              Motorcoaches which allow from 45-57 pax or Mini Coach Bus with
+              capacity for 18-39 pax or Van for 14 pax.
             </Text>
             <Text style={styles.textCenter}>
               Wireless internet (extra) AM/FM REI Video system w/5 TV's with
-              DVD/VCD/CD/MP3/MP4 player
+              DVD/VCD/CD/MP3/MP4 player.
             </Text>
             <Text style={styles.textCenter}>
               PA System/Passenger pull-down shades/Passenger seat grab
               handles/Passenger seat footrests/Restroom/Reclining Seats/Shaded
-              Windows
+              Windows.
             </Text>
           </View>
           <View style={styles.innerBoard}>
@@ -302,8 +302,8 @@ const QuoteReport = (props) => {
         <View>
           <Text style={styles.h4}>Included in the Quote</Text>
           <Text style={styles.textCenter}>
-            THIS QUOTE IS ONLY VALID AFTER IS APPROVED BY PHOENIX BUS, INC AND
-            THE CLIENT.
+            THIS QUOTE IS ONLY VALID AFTER APPROVED BY PHOENIX BUS, INC AND THE
+            CLIENT.
           </Text>
           <Text style={styles.textCenter}>
             FUEL AND ANY FUEL SURCHAGE •• ANY DEADHEAD MILES •• LUGGAGE STORAGE
@@ -386,7 +386,7 @@ const QuoteReport = (props) => {
 
         <View style={styles.footer} fixed>
           <Text>
-            5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
+            3220 37TH ST * ORLANDO * FL * 32839 * PH: 888-755-5398 * FAX:
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>

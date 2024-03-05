@@ -1263,7 +1263,7 @@ export const Bookings = () => {
                         },
                       }}
                       label="Booking Date"
-                      className="textfield"
+                      className="textfieldSmall"
                       id="bookingDate"
                       timezone="America/New_York"
                       disabled={state.isQuote}
@@ -1277,7 +1277,7 @@ export const Bookings = () => {
 
                   <div
                     id="category-box"
-                    className="textfield"
+                    className="textfieldSmall"
                     style={{ display: "inline-block" }}
                   >
                     <Autocomplete
@@ -1314,7 +1314,7 @@ export const Bookings = () => {
                         ? "Information required"
                         : ""
                     }
-                    className="textfield"
+                    className="textfieldSmall"
                     id="numPeople"
                     required
                     label="People #"
@@ -1337,7 +1337,7 @@ export const Bookings = () => {
                           : ""
                       }
                       label="Trip Start Date"
-                      className="textfield"
+                      className="textfieldSmall"
                       id="tripStartDate"
                       timezone="America/New_York"
                       required
@@ -1356,7 +1356,7 @@ export const Bookings = () => {
                           : ""
                       }
                       label="Trip End Date"
-                      className="textfield"
+                      className="textfieldSmall"
                       id="tripEndDate"
                       timezone="America/New_York"
                       required
@@ -1369,7 +1369,7 @@ export const Bookings = () => {
                   </LocalizationProvider>
 
                   <TextField
-                    className="textfield"
+                    className="textfieldSmall"
                     id="deposit"
                     label="Deposit %"
                     type="text"
@@ -1380,7 +1380,7 @@ export const Bookings = () => {
                   />
 
                   <TextField
-                    className="textfield"
+                    className="textfieldSmall"
                     id="quotedCost"
                     label="Quoted Cost $"
                     type="text"
@@ -1391,7 +1391,7 @@ export const Bookings = () => {
                   />
 
                   <TextField
-                    className="textfield"
+                    className="textfieldSmall"
                     id="numHoursQuoteValid"
                     label="Quote valid for (Hr #)"
                     type="text"
