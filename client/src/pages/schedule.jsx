@@ -35,6 +35,8 @@ import DriverReport from "./pdfReports/driverReport";
 import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 
+import dayjs from "dayjs";
+
 const drawerWidth = 240;
 
 const MyDrawer = styled(Drawer, {
@@ -67,7 +69,9 @@ export const Schedule = () => {
   const [openDrawer, setOpenDrawer] = useState(true);
   const [data, setData] = useState([]);
   const [rowData, setRowData] = useState(null);
-  const [dateString, setDateString] = useState("Today");
+  const [dateString, setDateString] = useState(
+    dayjs().format("dddd, MMMM D, YYYY")
+  );
   const [triggerModal, setTriggerModal] = useState(0);
   const [employees, setEmployees] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -79,6 +83,7 @@ export const Schedule = () => {
   const [openSnakbar, setOpenSnakbar] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const effectRun = useRef(false);
 
@@ -138,7 +143,8 @@ export const Schedule = () => {
         else {
           const responseMsg = await response.data;
           isMounted && setData(responseMsg);
-          setDateString(`for Today (${startDate.slice(0, 10)})`);
+          setDateString(dayjs(startDate).format("dddd, MMMM D, YYYY"));
+          setIsLoading(false);
         }
       } catch (err) {
         console.error(err);
@@ -180,13 +186,10 @@ export const Schedule = () => {
       else {
         const responseData = await response.data;
         setData(responseData);
-        if (
-          sDate === eDate &&
-          sDate === new Date().toLocaleDateString().slice(0, 10)
-        )
-          setDateString(`for Today (${sDate})`);
-        else if (sDate === eDate) setDateString(`for ${sDate}`);
-        else setDateString(`from ${sDate} to ${eDate}`);
+        setIsLoading(false);
+        if (sDate === eDate)
+          setDateString(dayjs(sDate).format("dddd, MMMM D, YYYY"));
+        else setDateString(`${sDate} to ${eDate}`);
       }
     } catch (err) {
       console.error(err);
@@ -229,8 +232,6 @@ export const Schedule = () => {
 
   const handleDriverReport = (detailId) => {
     const dataFound = data?.find((item) => item.detail_id === detailId);
-    //setRowData(dataFound);
-
     generateDriverReport(`driverReport_${detailId}`, dataFound);
   };
 
@@ -277,7 +278,11 @@ export const Schedule = () => {
           </Toolbar>
           <Divider />
           <List component="nav">
-            <ScheduleListItems />
+            <ScheduleListItems
+              data={data}
+              startDate={startDate}
+              endDate={endDate}
+            />
             <Divider sx={{ my: 1 }} />
             <TimeListItems onDatePick={pickDate} />
           </List>
@@ -304,6 +309,9 @@ export const Schedule = () => {
                     dateString={dateString}
                     editData={handleOnRowClick}
                     createDriverPDF={handleDriverReport}
+                    isLoading={isLoading}
+                    dateStart={startDate}
+                    dateEnd={endDate}
                   />
                 </Paper>
               </Grid>

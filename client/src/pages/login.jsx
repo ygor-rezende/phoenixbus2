@@ -59,7 +59,8 @@ const Login = () => {
       setErrorMessage(null);
       setUserName("");
       setPassword("");
-      navigate(from, { replace: true });
+      if (role === 6935) navigate("/driverpage", { replace: true });
+      else navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       if (!err?.response) {

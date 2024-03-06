@@ -65,6 +65,9 @@ const APPBar = () => {
   };
 
   const pages = [
+    { name: "Vehicles", link: "/addvehicle" },
+    { name: "Locations", link: "/servicelocations" },
+    { name: "Clients", link: "/addclient" },
     { name: "View Schedule", link: "/schedule" },
     { name: "Bookings", link: "/bookings" },
     { name: "My Trips", link: "/driverpage" },
@@ -129,7 +132,7 @@ const APPBar = () => {
             </Typography>
           </Link>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {salesGroup.find((e) => e === userType) ? (
+            {/* {salesGroup.find((e) => e === userType) ? (
               <IconButton
                 onClick={handleClick}
                 color="inherit"
@@ -166,7 +169,44 @@ const APPBar = () => {
               >
                 Vehicles
               </MenuItem>
-            </Menu>
+            </Menu> */}
+
+            {salesGroup.find((e) => e === userType) ? (
+              <Link to="/addvehicle">
+                <Button
+                  id="addvehicle"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                >
+                  Vehicles
+                </Button>
+              </Link>
+            ) : null}
+
+            {salesGroup.find((e) => e === userType) ? (
+              <Link to="/servicelocations">
+                <Button
+                  id="servicelocations"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                >
+                  Locations
+                </Button>
+              </Link>
+            ) : null}
+
+            {salesGroup.find((e) => e === userType) ? (
+              <Link to="/addclient">
+                <Button
+                  id="client"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                >
+                  Clients
+                </Button>
+              </Link>
+            ) : null}
+
             {salesGroup.find((e) => e === userType) ? (
               <Link to="/schedule">
                 <Button

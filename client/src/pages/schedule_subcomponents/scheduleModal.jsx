@@ -508,13 +508,15 @@ export const ScheduleModal = (props) => {
                   isOptionEqualToValue={(option, value) =>
                     option.company === value
                   }
-                  options={compData?.map((element) => {
-                    const company = {
-                      companyId: element.company_id,
-                      company: element.company_name,
-                    };
-                    return company;
-                  })}
+                  options={
+                    compData?.map((element) => {
+                      const company = {
+                        companyId: element.company_id,
+                        company: element.company_name,
+                      };
+                      return company;
+                    }) ?? []
+                  }
                   sx={{ width: 200 }}
                   getOptionLabel={(option) => option.company ?? option}
                   renderInput={(params) => (
@@ -549,13 +551,15 @@ export const ScheduleModal = (props) => {
                     isOptionEqualToValue={(option, value) =>
                       option.driver === value
                     }
-                    options={empData?.map((element) => {
-                      const employee = {
-                        employeeId: element.employee_id,
-                        driver: `${element.firstname} ${element.lastname}`,
-                      };
-                      return employee;
-                    })}
+                    options={
+                      empData?.map((element) => {
+                        const employee = {
+                          employeeId: element.employee_id,
+                          driver: `${element.firstname} ${element.lastname}`,
+                        };
+                        return employee;
+                      }) ?? []
+                    }
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.driver ?? option}
                     renderInput={(params) => (
@@ -586,13 +590,15 @@ export const ScheduleModal = (props) => {
                     isOptionEqualToValue={(option, value) =>
                       option.vehicleName === value
                     }
-                    options={vehData?.map((element) => {
-                      const vehicle = {
-                        vehicleId: element.vehicle_id,
-                        vehicleName: element.vehicle_name,
-                      };
-                      return vehicle;
-                    })}
+                    options={
+                      vehData?.map((element) => {
+                        const vehicle = {
+                          vehicleId: element.vehicle_id,
+                          vehicleName: element.vehicle_name,
+                        };
+                        return vehicle;
+                      }) ?? []
+                    }
                     sx={{ width: 200 }}
                     getOptionLabel={(option) => option.vehicleName ?? option}
                     renderInput={(params) => (
@@ -626,13 +632,15 @@ export const ScheduleModal = (props) => {
                 isOptionEqualToValue={(option, value) =>
                   option.locationName === value
                 }
-                options={locData?.map((element) => {
-                  const location = {
-                    locationId: element.location_id,
-                    locationName: element.location_name,
-                  };
-                  return location;
-                })}
+                options={
+                  locData?.map((element) => {
+                    const location = {
+                      locationId: element.location_id,
+                      locationName: element.location_name,
+                    };
+                    return location;
+                  }) ?? []
+                }
                 sx={{ width: 200 }}
                 getOptionLabel={(option) => option.locationName ?? option}
                 renderInput={(params) => (
@@ -664,13 +672,15 @@ export const ScheduleModal = (props) => {
                 isOptionEqualToValue={(option, value) =>
                   option.locationName === value
                 }
-                options={locData?.map((element) => {
-                  const location = {
-                    locationId: element.location_id,
-                    locationName: element.location_name,
-                  };
-                  return location;
-                })}
+                options={
+                  locData?.map((element) => {
+                    const location = {
+                      locationId: element.location_id,
+                      locationName: element.location_name,
+                    };
+                    return location;
+                  }) ?? []
+                }
                 sx={{ width: 200 }}
                 getOptionLabel={(option) => option.locationName ?? option}
                 renderInput={(params) => (

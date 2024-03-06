@@ -6,6 +6,9 @@ import {
   Paper,
   Tooltip,
   Typography,
+  Snackbar,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import { useState, useRef, useEffect } from "react";
 import { UsePrivateGet } from "../hooks/useFetchServer";
@@ -27,7 +30,6 @@ export const ScheduledRoutes = () => {
   const effectRun = useRef(false);
 
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const [openSnakbar, setOpenSnakbar] = useState(false);
   const [tripsData, setTripsData] = useState([]);
   const [todaysTrip, setTodaysTrip] = useState({});
@@ -62,7 +64,6 @@ export const ScheduledRoutes = () => {
         navigate("/login", { state: { from: location }, replace: true });
         //other errors
       } else if (response.error) {
-        setSuccess(false);
         setError(response.error);
         setOpenSnakbar(true);
       }
@@ -151,6 +152,14 @@ export const ScheduledRoutes = () => {
   const handleUpdateRouteInfo = (duration, distance) => {
     setDistance(distance);
     setDuration(duration);
+  };
+
+  //closes the snakbar
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnakbar(false);
   };
 
   return (
@@ -371,6 +380,17 @@ export const ScheduledRoutes = () => {
           )}
         </Box>
       )}
+
+      <Snackbar
+        open={error && openSnakbar}
+        autoHideDuration={5000}
+        onClose={handleClose}
+      >
+        <Alert severity="error" onClose={handleClose}>
+          <AlertTitle>Error</AlertTitle>
+          {error}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

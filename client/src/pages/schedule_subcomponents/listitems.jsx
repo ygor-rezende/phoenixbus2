@@ -14,23 +14,50 @@ import DateRangeIcon from "@mui/icons-material/DateRange";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { BusIcon } from "../../utils/busIcon";
+import { pdf } from "@react-pdf/renderer";
+import * as FileSaver from "file-saver";
+import BusesReport from "../pdfReports/busReport";
 
 export const ScheduleListItems = (props) => {
+  const { data, startDate, endDate } = props;
+
+  const handlePrintBusList = () => {
+    generateBusReport(
+      `Buses_${
+        startDate === endDate ? startDate : startDate.concat("_", endDate)
+      }`
+    );
+  };
+
+  const generateBusReport = async (filename) => {
+    try {
+      const blob = await pdf(
+        <BusesReport data={data} startDate={startDate} endDate={endDate} />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
   return (
     <Fragment>
-      <ListItemButton>
+      {/* <ListItemButton>
         <ListItemIcon>
           <AccessTimeIcon />
         </ListItemIcon>
         <ListItemText primary="Schedule by Time" />
-      </ListItemButton>
-      <ListItemButton>
+      </ListItemButton> */}
+      <ListItemButton onClick={handlePrintBusList}>
         <ListItemIcon>
           <DirectionsBusIcon />
         </ListItemIcon>
-        <ListItemText primary="Schedule by Vehicle" />
+        <ListItemText primary="Print List of Buses" />
       </ListItemButton>
-      <ListItemButton>
+      {/* <ListItemButton>
         <ListItemIcon>
           <PersonIcon />
         </ListItemIcon>
@@ -41,7 +68,7 @@ export const ScheduleListItems = (props) => {
           <ReceiptIcon />
         </ListItemIcon>
         <ListItemText primary="Schedule by Invoice" />
-      </ListItemButton>
+      </ListItemButton> */}
     </Fragment>
   );
 };

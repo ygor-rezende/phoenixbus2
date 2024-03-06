@@ -37,6 +37,8 @@ class Schedule {
         v.vehicle_id,
         v.vehicle_name,
         v.vehicle_color,
+        v.vehicle_model,
+        v.tag,
         cli.agency,
         lf.location_id as from_location_id,
         lf.location_name as from_location,
