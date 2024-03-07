@@ -26,6 +26,12 @@ export const QuotesView = (props) => {
   //table headings
   const headings = [
     {
+      id: "id",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Quote ID",
+    },
+    {
       id: "agencyName",
       isNumeric: false,
       isPaddingDisabled: false,
@@ -82,7 +88,7 @@ export const QuotesView = (props) => {
       onChange={() => setExpandPanel(!expandPanel)}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+        <Typography sx={{ fontWeight: "bold", color: "green" }}>
           VIEW QUOTES
         </Typography>
       </AccordionSummary>
@@ -95,6 +101,7 @@ export const QuotesView = (props) => {
           boxChecked={handleBoxChecked}
           onDelete={handleDelete}
           filterOption="agencyName"
+          bgcolor="green"
         />
       </AccordionDetails>
     </Accordion>

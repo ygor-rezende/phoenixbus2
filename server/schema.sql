@@ -187,6 +187,12 @@ CREATE TABLE service_details (
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )
 
+DROP TABLE invoices;
+CREATE TABLE invoices (
+    invoice VARCHAR(15) PRIMARY KEY
+);
+INSERT INTO invoices VALUES ('2024-00000');
+
 
 ALTER TABLE child_table 
 ADD CONSTRAINT constraint_name 

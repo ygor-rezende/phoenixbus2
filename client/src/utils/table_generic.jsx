@@ -71,6 +71,7 @@ function EnhancedTableHead(props) {
     rowCount,
     onRequestSort,
     heading,
+    bgcolor,
   } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
@@ -78,7 +79,7 @@ function EnhancedTableHead(props) {
 
   return (
     <TableHead>
-      <TableRow sx={{ backgroundColor: "primary.main" }}>
+      <TableRow sx={{ backgroundColor: bgcolor ? bgcolor : "primary.main" }}>
         <TableCell padding="checkbox">
           <Checkbox
             style={{ color: "white" }}
@@ -222,6 +223,7 @@ const EnhancedTable = (props) => {
     boxChecked,
     onDelete,
     filterOption,
+    bgcolor,
   } = props;
 
   useEffect(() => {
@@ -372,6 +374,7 @@ const EnhancedTable = (props) => {
               onRequestSort={handleRequestSort}
               rowCount={filteredData?.length}
               heading={headCells}
+              bgcolor={bgcolor}
             />
             <TableBody>
               {visibleRows?.map((row, index) => {

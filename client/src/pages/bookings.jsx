@@ -20,6 +20,11 @@ import {
   Tabs,
   Tab,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -88,12 +93,12 @@ const initialState = {
   responsibleName: "",
   responsibleEmail: "",
   responsiblePhone: "",
-  quoteDate: dayjs(Date(Date.now())),
-  bookingDate: dayjs(Date(Date.now())),
+  quoteDate: dayjs(new Date()),
+  bookingDate: dayjs(new Date()),
   category: null,
   numPeople: 0,
-  tripStartDate: dayjs(Date(Date.now())),
-  tripEndDate: dayjs(Date(Date.now())),
+  tripStartDate: dayjs(new Date()),
+  tripEndDate: dayjs(new Date()),
   deposit: 0.0,
   quotedCost: 0.0,
   numHoursQuoteValid: 0,
@@ -131,6 +136,7 @@ const initialState = {
   currentDetail: [],
   showAccordion: false,
   accordionTitle: "",
+  openInvoiceDialog: false,
 };
 
 export const Bookings = () => {
@@ -361,22 +367,34 @@ export const Bookings = () => {
   }; //isFormValid
 
   //handle form submit
-  const handleSubmit = async () => {
+  const handleSubmit = async (id, isAQuote) => {
     //validate form
     if (!isFormValid()) {
       return;
     }
 
+    //check if there is an id (booking being created from a quote)
+    let invoice = "";
+    let bookingDate = "";
+    if (id) {
+      invoice = id;
+      bookingDate = dayjs(new Date());
+    } else {
+      invoice = state.invoice;
+      bookingDate = state.bookingDate;
+    }
+
     const response = await postServer("/createbooking", {
       booking: {
+        invoice: invoice,
         clientId: state.clientId,
         employeeId: state.employeeId,
         responsibleName: state.responsibleName,
         responsibleEmail: state.responsibleEmail,
         responsiblePhone: state.responsiblePhone,
-        isQuote: state.isQuote,
+        isQuote: isAQuote,
         quoteDate: state.quoteDate,
-        bookingDate: state.bookingDate,
+        bookingDate: bookingDate,
         category: state.category,
         numPeople: state.numPeople,
         tripStartDate: state.tripStartDate,
@@ -419,12 +437,12 @@ export const Bookings = () => {
       responsibleName: "",
       responsibleEmail: "",
       responsiblePhone: "",
-      quoteDate: dayjs(Date(Date.now())),
-      bookingDate: dayjs(Date(Date.now())),
+      quoteDate: dayjs(new Date()),
+      bookingDate: dayjs(new Date()),
       category: null,
       numPeople: 0,
-      tripStartDate: dayjs(Date(Date.now())),
-      tripEndDate: dayjs(Date(Date.now())),
+      tripStartDate: dayjs(new Date()),
+      tripEndDate: dayjs(new Date()),
       deposit: 0.0,
       quotedCost: 0.0,
       numHoursQuoteValid: 0,
@@ -782,6 +800,12 @@ export const Bookings = () => {
   //table headings
   const headings = [
     {
+      id: "id",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Invoice",
+    },
+    {
       id: "agencyName",
       isNumeric: false,
       isPaddingDisabled: false,
@@ -1038,7 +1062,18 @@ export const Bookings = () => {
   };
 
   const handleSaveAsBooking = () => {
-    handleSaveChanges(false);
+    handleSubmit(state.invoice?.replace("Q", ""), false);
+  };
+
+  const handleInvoiceClick = () => {
+    if (state.onEditMode) return;
+
+    //open dialog to enter the invoice
+    setState({ openInvoiceDialog: true });
+  };
+
+  const handleCloseInvoice = () => {
+    setState({ openInvoiceDialog: false, invoice: "" });
   };
 
   return (
@@ -1051,10 +1086,14 @@ export const Bookings = () => {
             marginBottom={2}
             justifyContent="center"
           >
-            <Button variant="contained" onClick={handleNewQuote}>
+            <Button
+              variant="contained"
+              onClick={handleNewQuote}
+              color="success"
+            >
               Create Quote
             </Button>
-            <Button variant="outlined" onClick={handleNewBooking}>
+            <Button variant="contained" onClick={handleNewBooking}>
               Create Booking
             </Button>
           </Stack>
@@ -1066,20 +1105,36 @@ export const Bookings = () => {
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 {state.onEditMode ? (
                   <Box sx={{ display: "inline-flex" }}>
-                    <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    <Typography
+                      sx={{
+                        fontWeight: "bold",
+                        color: state.isQuote ? "success.main" : "#1976d2",
+                      }}
+                    >
                       Editing {state.accordionTitle}
                     </Typography>
                     <EditIcon
-                      style={{ color: "#1976d2", marginLeft: "10px" }}
+                      style={{
+                        color: state.isQuote ? "green" : "#1976d2",
+                        marginLeft: "10px",
+                      }}
                     />
                   </Box>
                 ) : (
                   <Box sx={{ display: "inline-flex" }}>
-                    <Typography sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    <Typography
+                      sx={{
+                        fontWeight: "bold",
+                        color: state.isQuote ? "success.main" : "primary.main",
+                      }}
+                    >
                       New {state.accordionTitle}
                     </Typography>
                     <RequestQuoteIcon
-                      style={{ color: "#1976d2", marginLeft: "10px" }}
+                      style={{
+                        color: state.isQuote ? "green" : "#1976d2",
+                        marginLeft: "10px",
+                      }}
                     />
                   </Box>
                 )}
@@ -1089,11 +1144,15 @@ export const Bookings = () => {
                   <TextField
                     className="textfield"
                     id="invoice"
-                    label="Invoice #"
+                    label={state.isQuote ? "Quote ID" : "Invoice #"}
                     type="text"
                     disabled
                     value={state.invoice}
                     onChange={handleOnChange}
+                    InputLabelProps={{
+                      onClick: handleInvoiceClick,
+                      shrink: true,
+                    }}
                   />
 
                   <div
@@ -1444,6 +1503,7 @@ export const Bookings = () => {
                       variant="contained"
                       onClick={() => handleSaveChanges(state.isQuote)}
                       size="small"
+                      color={state.isQuote ? "success" : "primary"}
                     >
                       Save Changes
                     </Button>
@@ -1463,10 +1523,10 @@ export const Bookings = () => {
                           style={{ marginLeft: "10px" }}
                           variant="contained"
                           onClick={handleSaveAsBooking}
-                          color="success"
+                          color="primary"
                           size="small"
                         >
-                          Transform Quote to Booking
+                          Create Booking from this Quote
                         </Button>
                         <Button
                           style={{ marginLeft: "10px" }}
@@ -1765,7 +1825,11 @@ export const Bookings = () => {
                   </Box>
                 ) : (
                   <Box>
-                    <Button variant="contained" onClick={handleSubmit}>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleSubmit("", state.isQuote)}
+                      color={state.isQuote ? "success" : "primary"}
+                    >
                       Save New {state.accordionTitle}
                     </Button>
                     <Button
@@ -1864,6 +1928,33 @@ export const Bookings = () => {
             onEditMode={state.editingDetail}
             onSave={handleItemClick}
           />
+
+          <Dialog open={state.openInvoiceDialog} onClose={handleCloseInvoice}>
+            <DialogTitle>
+              Manual {state.isQuote ? "Quote ID" : "Invoice #"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Enter the {state.isQuote ? "Quote ID" : "Invoice #"}.
+              </DialogContentText>
+              <TextField
+                autofocus
+                margin="dense"
+                id="manualInvoice"
+                name="manualInvoice"
+                label={state.isQuote ? "Quote ID" : "Invoice #"}
+                fullWidth
+                variant="standard"
+                onChange={(e) => setState({ invoice: e.target.value })}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseInvoice}>Cancel</Button>
+              <Button onClick={() => setState({ openInvoiceDialog: false })}>
+                OK
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </div>
     </div>

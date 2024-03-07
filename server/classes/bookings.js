@@ -2,25 +2,57 @@ const { v4: uuid } = require("uuid");
 const pool = require("../db");
 
 class Booking {
-  static async newBooking(req, res) {
-    const { booking } = req.body;
-    if (!booking)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Booking information is required" });
-    try {
-      //generate a new id
-      let newId = uuid();
+  static async createInvoice(isQuote) {
+    //get current year
+    const year = new Date().getFullYear();
 
-      //extract the first 8 digits to be the invoice number
-      newId = newId.substring(0, 8);
+    //get the last invoice saved
+    const lastInvoice = await pool.query(
+      "SELECT invoice from invoices ORDER BY invoice DESC LIMIT 1"
+    );
+
+    //strip the sequential part (last 5 digits)
+    let digits = lastInvoice.rows[0]?.invoice.substring(5, 10);
+    digits = parseInt(digits) + 1;
+
+    //find the number of digits and add zeros before until length = 5
+    const length = digits.toString().length;
+    const numOfZeros = 5 - length;
+    for (let i = 0; i < numOfZeros; i++) digits = "0" + digits;
+
+    //new invoice
+    let newInvoice = year.toString() + "-" + digits;
+    if (isQuote) newInvoice = newInvoice + "Q";
+
+    //insert invoice into invoices table
+    const result = await pool.query(`INSERT INTO invoices VALUES ($1)`, [
+      newInvoice,
+    ]);
+
+    return newInvoice;
+  }
+
+  static async newBooking(req, res) {
+    try {
+      const { booking } = req.body;
+      if (!booking)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Booking information is required" });
+
+      let invoice = "";
+      //check if invoice is empty
+      if (!booking.invoice) {
+        //generate the id
+        invoice = await Booking.createInvoice(booking.isQuote);
+      } else invoice = booking.invoice;
 
       //insert the new Booking
       const newBooking = await pool.query(
         `INSERT INTO bookings (invoice, is_quote, client_id, employee_id, responsible_name, responsible_email, responsible_phone, quote_date, booking_date, category, num_people, trip_start_date, trip_end_date, deposit, cost, hours_quote_valid, client_comments, intinerary_details, internal_coments)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
-          newId,
+          invoice,
           booking.isQuote,
           booking.clientId,
           booking.employeeId,
@@ -43,9 +75,14 @@ class Booking {
       );
       console.log(newBooking.rowCount);
       //send the reponse to booking
-      return res.status(201).json(`Booking ${newId} created`);
+      return res.status(201).json(`Booking/Quote ${invoice} created`);
     } catch (err) {
       console.error(err);
+      if (err.code === "23505")
+        return res.status(409).json({
+          message: `Invoice # or Quote ID already exists.`,
+        });
+
       return res.status(500).json({ message: err.message });
     }
   } //newBooking
@@ -108,7 +145,7 @@ class Booking {
         ]
       );
       if (updatedBooking.rowCount)
-        return res.json(`Booking ${booking.invoice} updated`);
+        return res.json(`Booking/Quote ${booking.invoice} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -131,7 +168,7 @@ class Booking {
       const deletedPromise = await Promise.all(deletedBookings);
       console.log(deletedPromise);
       if (deletedPromise[0]?.rowCount)
-        return res.json(`Number of bookings deleted: ${deletedPromise.length}`);
+        return res.json(`Number of items deleted: ${deletedPromise.length}`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });

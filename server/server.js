@@ -420,7 +420,7 @@ app.post(
   bodyParser.json(),
   async (req, res) => {
     let response = await Booking.newBooking(req, res);
-    console.log(response);
+    //console.log(response);
     return response;
   }
 );
