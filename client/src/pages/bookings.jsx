@@ -25,6 +25,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -32,6 +34,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import GavelIcon from "@mui/icons-material/Gavel";
+import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -137,6 +140,8 @@ const initialState = {
   showAccordion: false,
   accordionTitle: "",
   openInvoiceDialog: false,
+  openHistoryDialog: false,
+  historyDetailData: [],
 };
 
 export const Bookings = () => {
@@ -144,7 +149,7 @@ export const Bookings = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -576,7 +581,7 @@ export const Bookings = () => {
           //converting it to json
           const detailsIds = JSON.stringify(detailIdsToDelete);
           const response = await deleteServer(
-            `/deletesomedetails/${detailsIds}`
+            `/deletesomedetails/${detailsIds}/${auth.userName}`
           );
           if (response?.error) {
             setState({
@@ -916,6 +921,12 @@ export const Bookings = () => {
 
   //when a service row is clicked to edit a detail
   const handleEditDetail = (event, detail) => {
+    if (
+      event.target.localName === "path" ||
+      event.target.localName === "svg" ||
+      event.target.localName === "button"
+    )
+      return;
     //find the service
     const service = state.servicesData?.find(
       (item) => item.service_id === detail?.service_id
@@ -1074,6 +1085,45 @@ export const Bookings = () => {
 
   const handleCloseInvoice = () => {
     setState({ openInvoiceDialog: false, invoice: "" });
+  };
+
+  const handleOpenHistoryDialog = async (detailId) => {
+    const controller = new AbortController();
+
+    let response = await getServer(
+      `/getlogdetail/${detailId}`,
+      controller.signal
+    );
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
+      setState({ success: false, error: response.error, openSnakbar: true });
+    }
+    //no error
+    else {
+      let responseData = response.data;
+
+      responseData = responseData?.map((e) => {
+        const log = {
+          detailId: e.detail_id,
+          operation: e.operation === "U" ? "Update" : "Create",
+          stamp: e.stamp,
+          user: e.userid,
+          field: e.field_updated,
+          from: e.field_updated?.includes("time")
+            ? dayjs(e.from_value).format("HH:mm")
+            : e.from_value,
+          to: e.field_updated?.includes("time")
+            ? dayjs(e.to_value).format("HH:mm")
+            : e.to_value,
+        };
+        return log;
+      });
+      setState({ openHistoryDialog: true, historyDetailData: responseData });
+    }
   };
 
   return (
@@ -1723,6 +1773,7 @@ export const Bookings = () => {
                                         </TableCell>
                                         <TableCell
                                           style={{ fontWeight: "bold" }}
+                                          colSpan={2}
                                         >
                                           End Time
                                         </TableCell>
@@ -1800,7 +1851,17 @@ export const Bookings = () => {
                                               )}
                                             </TableCell>
                                             <TableCell>
-                                              {detail?.service_type}
+                                              <Tooltip title="View History">
+                                                <IconButton
+                                                  onClick={() =>
+                                                    handleOpenHistoryDialog(
+                                                      detail?.detail_id
+                                                    )
+                                                  }
+                                                >
+                                                  <ManageSearchIcon color="primary" />
+                                                </IconButton>
+                                              </Tooltip>
                                             </TableCell>
                                           </TableRow>
                                         );
@@ -1954,6 +2015,45 @@ export const Bookings = () => {
                 OK
               </Button>
             </DialogActions>
+          </Dialog>
+
+          <Dialog
+            open={state.openHistoryDialog}
+            onClose={() => setState({ openHistoryDialog: false })}
+            fullWidth
+            maxWidth="md"
+          >
+            <DialogTitle>Transactions History</DialogTitle>
+            <DialogContent>
+              {state.historyDetailData.length > 0 ? (
+                <Table>
+                  <TableHead>
+                    <TableCell>Operation</TableCell>
+                    <TableCell>User</TableCell>
+                    <TableCell>Time Stamp</TableCell>
+                    <TableCell>Field Updated</TableCell>
+                    <TableCell>From</TableCell>
+                    <TableCell>To</TableCell>
+                  </TableHead>
+                  <TableBody>
+                    {state.historyDetailData?.map((item, index) => {
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{item.operation}</TableCell>
+                          <TableCell>{item.user}</TableCell>
+                          <TableCell>{item.stamp}</TableCell>
+                          <TableCell>{item.field}</TableCell>
+                          <TableCell>{item.from}</TableCell>
+                          <TableCell>{item.to}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <DialogContentText>No log history found.</DialogContentText>
+              )}
+            </DialogContent>
           </Dialog>
         </div>
       </div>

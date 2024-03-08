@@ -575,7 +575,7 @@ app.put(
 
 //Delete a service detail
 app.delete(
-  "/deletedetail/:detailid",
+  "/deletedetail/:detailid/:username",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await ServiceDetail.deleteDetail(req, res);
@@ -585,7 +585,7 @@ app.delete(
 
 //Delete some details
 app.delete(
-  "/deletesomedetails/:detailsIds",
+  "/deletesomedetails/:detailIds/:username",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await ServiceDetail.deleteSomeDetails(req, res);
@@ -641,6 +641,18 @@ app.get(
   verifyRoles(ROLES_LIST.driver, ROLES_LIST.admin),
   async (req, res) => {
     let response = await Driver.getTripsByDriver(req, res);
+    return response;
+  }
+);
+
+//#endregion
+
+//#region log history
+app.get(
+  "/getlogdetail/:detailid",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await ServiceDetail.getLogDetail(req, res);
     return response;
   }
 );

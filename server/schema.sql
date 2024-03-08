@@ -184,6 +184,7 @@ CREATE TABLE service_details (
     additional_stop_info VARCHAR(50),
     additional_stop_detail VARCHAR(10),
     trip_length DECIMAL (10,2),
+    change_user VARCHAR(50)
     CONSTRAINT service_detailsPK PRIMARY KEY (detail_id)
 )
 

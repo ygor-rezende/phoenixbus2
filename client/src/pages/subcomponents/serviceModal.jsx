@@ -59,7 +59,7 @@ export const ServiceModal = (props) => {
   const [invalidField, setInvalidField] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -193,7 +193,9 @@ export const ServiceModal = (props) => {
     //delete details
     if (detailIdsToDelete.length > 0) {
       const detailsIds = JSON.stringify(detailIdsToDelete);
-      const response = await deleteServer(`/deletesomedetails/${detailsIds}`);
+      const response = await deleteServer(
+        `/deletesomedetails/${detailsIds}/${auth.userName}`
+      );
 
       if (response?.disconnect) {
         setAuth({});

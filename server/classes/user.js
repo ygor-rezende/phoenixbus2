@@ -74,15 +74,15 @@ class User {
   } //signUp
 
   static async login(req, res) {
-    const { userName, password } = req.body;
-
-    //check if the username and password are filled in
-    if (!userName || !password)
-      return res
-        .status(400)
-        .json({ message: "Username and password are required." });
-
     try {
+      const { userName, password } = req.body;
+
+      //check if the username and password are filled in
+      if (!userName || !password)
+        return res
+          .status(400)
+          .json({ message: "Username and password are required." });
+
       //Find the user in the database
       const users = await pool.query(
         "SELECT * FROM users WHERE username = $1",
@@ -126,12 +126,11 @@ class User {
 
         //update the user in DB with the refresh token
         const updatedUser = await pool.query(
-          "UPDATE users SET refresh_token = $1 WHERE username = $2",
-          [refreshToken, userName]
+          `SELECT login('${userName}', '${refreshToken}')`
         );
 
         //check if the user was updated
-        if (!updatedUser?.rowCount)
+        if (!updatedUser)
           return res
             .status(500)
             .json({ message: "Failed to update refresh token" });

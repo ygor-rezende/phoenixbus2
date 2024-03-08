@@ -11,8 +11,8 @@ class ServiceDetail {
     try {
       //insert new
       const newDetail = await pool.query(
-        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, return_location_id, spot_time, start_time, end_time, instructions, gratuity, payment, company_id, use_farmout, additional_stop, additional_stop_info, additional_stop_detail, trip_length)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, return_location_id, spot_time, start_time, end_time, instructions, gratuity, payment, company_id, use_farmout, additional_stop, additional_stop_info, additional_stop_detail, trip_length, change_user)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
           detail.serviceId,
           detail.employeeId,
@@ -32,6 +32,7 @@ class ServiceDetail {
           detail.additionalStopInfo,
           detail.additionalStopDetail,
           detail.tripLength,
+          detail.changeUser,
         ]
       );
       console.log(newDetail.rowCount);
@@ -110,7 +111,7 @@ class ServiceDetail {
 
     try {
       const updatedDetail = await pool.query(
-        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11, company_id = $12, use_farmout = $13, return_location_id = $14, additional_stop = $15, additional_stop_info = $16, additional_stop_detail = $17, trip_length = $18 WHERE detail_id = $19",
+        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11, company_id = $12, use_farmout = $13, return_location_id = $14, additional_stop = $15, additional_stop_info = $16, additional_stop_detail = $17, trip_length = $18, change_user = $19 WHERE detail_id = $20",
         [
           detail.serviceId,
           detail.employeeId,
@@ -130,6 +131,7 @@ class ServiceDetail {
           detail.additionalStopInfo,
           detail.additionalStopDetail,
           detail.tripLength,
+          detail.changeUser,
           detail.detailId,
         ]
       );
@@ -142,16 +144,15 @@ class ServiceDetail {
   } //updateDetail
 
   static async deleteDetail(req, res) {
-    const { detailid } = req.params;
-    if (!detailid)
+    const { detailid, username } = req.params;
+    if (!detailid || !username)
       return res.status(400).json({
-        message: "Bad request: Missing service detail id",
+        message: "Bad request: Missing service detail id or username",
       });
 
     try {
       const deletedDetail = await pool.query(
-        "DELETE from service_details WHERE detail_id = $1",
-        [detailid]
+        `SELECT delete_detail(${detailid}, '${username}')`
       );
       console.log(deletedDetail);
       if (deletedDetail) return res.json(`Service detail ${detailid} deleted`);
@@ -163,17 +164,16 @@ class ServiceDetail {
 
   static async deleteSomeDetails(req, res) {
     try {
-      let { detailIds } = req.params;
+      let { detailIds, username } = req.params;
       detailIds = JSON.parse(detailIds);
-      if (!detailIds)
+      if (!detailIds || !username)
         return res.status(400).json({
-          message: "Bad request: Missing service detail id",
+          message: "Bad request: Missing service detail id or username",
         });
 
       const deletedDetails = await detailIds.map(async (detail) => {
         return await pool.query(
-          "DELETE from service_details WHERE detail_id = $1",
-          [detail]
+          `SELECT delete_detail(${detail}, '${username}')`
         );
       });
       const deletedPromise = await Promise.all(deletedDetails);
@@ -227,6 +227,26 @@ class ServiceDetail {
       return res.status(500).json({ message: err.message });
     }
   } //checkVehicleHasTrip
+
+  static async getLogDetail(req, res) {
+    try {
+      let { detailid } = req.params;
+      if (!detailid)
+        return res.status(400).json({
+          message: "Bad request: Missing detail id",
+        });
+
+      const result = await pool.query(
+        "SELECT * from log_service_details WHERE detail_id = $1",
+        [detailid]
+      );
+
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    }
+  } //getLogDetail
 }
 
 module.exports = { ServiceDetail };

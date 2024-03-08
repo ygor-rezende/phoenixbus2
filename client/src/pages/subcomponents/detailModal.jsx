@@ -95,7 +95,7 @@ export const DetailModal = (props) => {
   } = props;
   const [state, setState] = useReducer(reducer, initialState);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -319,6 +319,7 @@ export const DetailModal = (props) => {
           additionalStopInfo: state.addStopInfo,
           additionalStopDetail: state.addStopDetail,
           tripLength: state.tripLength,
+          changeUser: auth.userName,
         },
       });
 
@@ -364,6 +365,7 @@ export const DetailModal = (props) => {
           additionalStopInfo: state.addStopInfo,
           additionalStopDetail: state.addStopDetail,
           tripLength: tripLength,
+          changeUser: auth.userName,
         },
       });
 
@@ -392,7 +394,9 @@ export const DetailModal = (props) => {
   };
 
   const handleDeleteDetail = async () => {
-    const response = await deleteServer(`/deletedetail/${state.detailId}`);
+    const response = await deleteServer(
+      `/deletedetail/${state.detailId}/${auth.userName}`
+    );
 
     if (response?.data) {
       onSuccess(response.data);
