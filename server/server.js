@@ -1,4 +1,4 @@
-const PORT = process.env.PORT ?? 8000;
+//const PORT = process.env.PORT ?? 8000;
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -22,6 +22,9 @@ const corsOptions = require("./config/corsOptions");
 const ROLES_LIST = require("./config/roles_list");
 const verifyRoles = require("./middleware/verifyRoles");
 
+const { onRequest } = require("firebase-functions/v2/https");
+const allowedOrigins = require("./config/allowedOrigins");
+
 //Handle fetch cookies credentials requirement
 app.use(credentials);
 
@@ -40,6 +43,10 @@ app.use("/", require("./routes/root"));
 app.use("/api/login", require("./routes/auth"));
 app.use("/refresh", require("./routes/refresh"));
 app.use("/logout", require("./routes/logout"));
+
+app.get("/test", (req, res) => {
+  res.json("Helo! world");
+});
 
 //Middleware
 app.use(verifyJWT);
@@ -659,4 +666,6 @@ app.get(
 
 //#endregion
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+///=app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+exports.app = onRequest(app);

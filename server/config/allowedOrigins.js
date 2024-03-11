@@ -4,6 +4,7 @@ const allowedOrigins = [
   "44.225.181.72",
   "44.227.217.144",
   "https://phoenixintranet.onrender.com",
+  "https://phoenixbus-58721.web.app",
 ];
 
 module.exports = allowedOrigins;
