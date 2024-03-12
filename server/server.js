@@ -1,4 +1,4 @@
-//const PORT = process.env.PORT ?? 8000;
+const PORT = process.env.PORT ?? 8000;
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -199,7 +199,7 @@ app.put(
 
 //Delete clients
 app.delete(
-  "/deleteclient/:clientIds",
+  "/deleteclient/:clientIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Client.deleteClient(req, res);
@@ -668,6 +668,6 @@ app.get(
 
 //#endregion
 
-///=app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 exports.app = onRequest(app);
