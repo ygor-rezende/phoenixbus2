@@ -1,5 +1,6 @@
-DROP TABLE log_service_details;
+DROP TABLE IF EXISTS log_service_details;
 CREATE TABLE log_service_details(
+	log_id SERIAL,
 	operation char(1) NOT NULL,
 	stamp timestamp NOT NULL,
 	userid text NOT NULL,

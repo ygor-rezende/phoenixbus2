@@ -5,6 +5,8 @@ const allowedOrigins = [
   "44.227.217.144",
   "https://phoenixintranet.onrender.com",
   "https://phoenixbus-58721.web.app",
+  "https://phoenixbus.web.app",
+  "https://phoenixbus.firebaseapp.com",
 ];
 
 module.exports = allowedOrigins;
