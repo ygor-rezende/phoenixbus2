@@ -1,5 +1,5 @@
-DROP FUNCTION get_trips_by_driver;
-DROP TYPE my_table_type;
+DROP FUNCTION IF EXISTS get_trips_by_driver;
+DROP TYPE IF EXISTS my_table_type;
 CREATE TYPE my_table_type AS (
 	employee_id VARCHAR(255),
 	service_date VARCHAR(30),
@@ -57,6 +57,5 @@ BEGIN
 		where user_id = userId;
 END; $$
 
-SELECT * FROM get_trips_by_driver('ylopezr')
 		
 

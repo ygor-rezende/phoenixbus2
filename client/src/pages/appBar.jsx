@@ -76,7 +76,7 @@ const APPBar = () => {
 
   const dispatchGroup = [ROLES.dispatch, ROLES.admin];
   const salesGroup = [ROLES.sales, ROLES.dispatch, ROLES.admin];
-  const driverGroup = [ROLES.driver, ROLES.admin];
+  const driverGroup = [ROLES.driver];
 
   const userType = auth.role;
 
