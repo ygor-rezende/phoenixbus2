@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://app-n5prypcvgq-uc.a.run.app";
+const BASE_URL = "https://app-aybje326pa-uc.a.run.app";
 
 export default axios.create({
   baseURL: BASE_URL,

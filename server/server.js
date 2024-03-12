@@ -44,9 +44,11 @@ app.use("/api/login", require("./routes/auth"));
 app.use("/refresh", require("./routes/refresh"));
 app.use("/logout", require("./routes/logout"));
 
-app.get("/test", (req, res) => {
-  res.json("Helo! world");
-});
+// //sign a new user up
+// app.post("/tempsignup", bodyParser.json(), async (req, res) => {
+//   let response = await User.signUp(req, res);
+//   return response;
+// });
 
 //Middleware
 app.use(verifyJWT);
