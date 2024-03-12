@@ -210,7 +210,7 @@ const EnhancedTable = (props) => {
   const [orderBy, setOrderBy] = useState("calories");
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -430,7 +430,7 @@ const EnhancedTable = (props) => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[25, 30, 35]}
           component="div"
           count={filteredData?.length}
           rowsPerPage={rowsPerPage}
