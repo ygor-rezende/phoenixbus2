@@ -125,7 +125,7 @@ const initialState = {
 export const FarmOut = () => {
   const [state, setState] = useReducer(reducer, initialState);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -279,6 +279,7 @@ export const FarmOut = () => {
         routing: state.routing,
         wire: state.wire,
         zelle: state.zelle,
+        changeUser: auth.userName,
       },
     });
 
@@ -377,6 +378,7 @@ export const FarmOut = () => {
       routing: state.routing,
       wire: state.wire,
       zelle: state.zelle,
+      changeUser: auth.userName,
     };
 
     const response = await putServer("/updatecompany", {
@@ -396,7 +398,9 @@ export const FarmOut = () => {
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     const companyIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deletecompany/${companyIds}`);
+    const response = await deleteServer(
+      `/deletecompany/${companyIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       clearState(response.data);

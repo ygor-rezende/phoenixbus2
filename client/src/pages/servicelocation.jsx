@@ -110,7 +110,7 @@ export const ServiceLocation = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -228,6 +228,7 @@ export const ServiceLocation = () => {
         zip: zip,
         phone: phone,
         fax: fax,
+        changeUser: auth.userName,
       },
     });
 
@@ -296,6 +297,7 @@ export const ServiceLocation = () => {
       zip: zip,
       phone: phone,
       fax: fax,
+      changeUser: auth.userName,
     };
 
     const response = await putServer("/updatelocation", {
@@ -327,7 +329,9 @@ export const ServiceLocation = () => {
   //Delete one or more locations from the database
   const handleDelete = async (itemsSelected) => {
     const locationIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deletelocation/${locationIds}`);
+    const response = await deleteServer(
+      `/deletelocation/${locationIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       setMsg(response.data);
