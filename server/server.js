@@ -1,4 +1,4 @@
-//const PORT = process.env.PORT ?? 8000;
+const PORT = 8000;
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -135,7 +135,7 @@ app.get("/getallvehicles", async (req, res) => {
 
 //Delete vehicle
 app.delete(
-  "/deletevehicle/:vehicleIds",
+  "/deletevehicle/:vehicleIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
   async (req, res) => {
     let response = await Vehicle.deleteVehicle(req, res);
@@ -199,7 +199,7 @@ app.put(
 
 //Delete clients
 app.delete(
-  "/deleteclient/:clientIds",
+  "/deleteclient/:clientIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Client.deleteClient(req, res);
@@ -241,7 +241,7 @@ app.put(
 
 //Delete location
 app.delete(
-  "/deletelocation/:locationIds",
+  "/deletelocation/:locationIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Location.deleteLocation(req, res);
@@ -301,7 +301,7 @@ app.put(
 
 //Delete companies
 app.delete(
-  "/deletecompany/:companyIds",
+  "/deletecompany/:companyIds/:changeUser",
   verifyRoles(ROLES_LIST.admin),
   async (req, res) => {
     let response = await FarmOut.deleteCompany(req, res);
@@ -668,6 +668,7 @@ app.get(
 
 //#endregion
 
-///=app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV === "development")
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 exports.app = onRequest(app);

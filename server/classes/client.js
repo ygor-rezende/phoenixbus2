@@ -27,7 +27,8 @@ class Client {
           phone => '${client.phone}'::TEXT,
           fax => '${client.fax}'::TEXT,
           email => '${client.email}'::TEXT,
-          remark => '${client.remark}'::TEXT
+          remark => '${client.remark}'::TEXT,
+          change_user => '${client.changeUser}'::TEXT
         );
         `
       );
@@ -73,7 +74,8 @@ class Client {
           phone1 => '${client.phone}'::TEXT,
           fax1 => '${client.fax}'::TEXT,
           email1 => '${client.email}'::TEXT,
-          remark1=> '${client.remark}'::TEXT
+          remark1=> '${client.remark}'::TEXT,
+          changeUser => '${client.changeUser}'::TEXT
         );
         `
       );
@@ -89,7 +91,7 @@ class Client {
     const dbClient = await pool.connect();
 
     try {
-      let { clientIds } = req.params;
+      let { clientIds, changeUser } = req.params;
       clientIds = JSON.parse(clientIds);
 
       if (!clientIds)
@@ -100,7 +102,7 @@ class Client {
       await dbClient.query("BEGIN");
       const deletedClients = await clientIds.map(async (client) => {
         await dbClient.query(
-          `CALL delete_client(clientId=> '${client}'::TEXT)`
+          `CALL delete_client(clientId=> '${client}'::TEXT, changeUser => '${changeUser}'::TEXT)`
         );
         return 1;
       });

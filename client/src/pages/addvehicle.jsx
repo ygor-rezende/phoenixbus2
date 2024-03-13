@@ -47,7 +47,7 @@ const AddVehicle = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -152,6 +152,7 @@ const AddVehicle = () => {
         tag: tag,
         maintenance: maintenance,
         ada: ada,
+        changeUser: auth.userName,
       });
 
       if (response?.data) {
@@ -179,6 +180,7 @@ const AddVehicle = () => {
           tag: tag,
           maintenance: maintenance,
           ada: ada,
+          changeUser: auth.userName,
         },
       });
 
@@ -233,7 +235,9 @@ const AddVehicle = () => {
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     const vehicleIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deletevehicle/${vehicleIds}`);
+    const response = await deleteServer(
+      `/deletevehicle/${vehicleIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       clearState(response.data);

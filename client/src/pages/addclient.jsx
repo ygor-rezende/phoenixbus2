@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   Table,
   TableHead,
   TableRow,
@@ -142,7 +141,7 @@ export const AddClient = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -337,6 +336,7 @@ export const AddClient = () => {
         fax: state.fax,
         email: state.email,
         remark: state.remark,
+        changeUser: auth.userName,
       },
     });
 
@@ -425,6 +425,7 @@ export const AddClient = () => {
       fax: state.fax,
       email: state.email,
       remark: state.remark,
+      changeUser: auth.userName,
     };
 
     const response = await putServer("/updateclient", {
@@ -444,7 +445,9 @@ export const AddClient = () => {
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     const clientIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deleteclient/${clientIds}`);
+    const response = await deleteServer(
+      `/deleteclient/${clientIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       clearState(response.data);

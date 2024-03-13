@@ -14,7 +14,15 @@ class Location {
       const newId = uuid();
       //insert the new location
       await pool.query(
-        `CALL create_location(location_id => '${newId}'::TEXT, location_name => '${location.name}'::TEXT, address => '${location.address}'::TEXT, city => '${location.city}'::TEXT, location_state => '${location.state}'::TEXT, zip => '${location.zip}'::TEXT, phone => '${location.phone}'::TEXT, fax => '${location.fax}'::TEXT)`
+        `CALL create_location(location_id => '${newId}'::TEXT, 
+        location_name => '${location.name}'::TEXT, 
+        address => '${location.address}'::TEXT, 
+        city => '${location.city}'::TEXT, 
+        location_state => '${location.state}'::TEXT, 
+        zip => '${location.zip}'::TEXT, 
+        phone => '${location.phone}'::TEXT, 
+        fax => '${location.fax}'::TEXT, 
+        change_user => '${location.changeUser}'::TEXT)`
       );
 
       //send the reponse to location
@@ -45,7 +53,15 @@ class Location {
           .json({ message: "Bad request: Location information is required" });
 
       await pool.query(
-        `CALL update_location(locationId => '${location.id}'::TEXT, locationName => '${location.name}'::TEXT, address1 => '${location.address}'::TEXT, city1 => '${location.city}'::TEXT, locationState => '${location.state}'::TEXT, zip1 => '${location.zip}'::TEXT, phone1 => '${location.phone}'::TEXT, fax1 => '${location.fax}'::TEXT)`
+        `CALL update_location(locationId => '${location.id}'::TEXT, 
+        locationName => '${location.name}'::TEXT, 
+        address1 => '${location.address}'::TEXT, 
+        city1 => '${location.city}'::TEXT, 
+        locationState => '${location.state}'::TEXT, 
+        zip1 => '${location.zip}'::TEXT, 
+        phone1 => '${location.phone}'::TEXT, 
+        fax1 => '${location.fax}'::TEXT,
+        changeUser => '${location.changeUser}'::TEXT)`
       );
 
       return res.json(`Location ${location.name} updated`);
@@ -59,7 +75,7 @@ class Location {
     const client = await pool.connect();
 
     try {
-      let { locationIds } = req.params;
+      let { locationIds, changeUser } = req.params;
       locationIds = JSON.parse(locationIds);
       if (!locationIds)
         return res
@@ -69,7 +85,8 @@ class Location {
       await client.query("BEGIN");
       const deletedLocations = await locationIds.map(async (location) => {
         await client.query(
-          `CALL delete_location(locationId => '${location}'::TEXT)`
+          `CALL delete_location(locationId => '${location}'::TEXT,
+          changeuser => '${changeUser}'::TEXT)`
         );
         return 1;
       });

@@ -14,6 +14,7 @@ class Vehicle {
         tag,
         maintenance,
         ada,
+        changeUser,
       } = req.body;
 
       if (!vehicleColor || !vehicleModel || !vehicleName || !vehicleYear)
@@ -25,7 +26,17 @@ class Vehicle {
       const newId = uuid();
       //insert the new vehicle
       await pool.query(
-        `CALL create_vehicle(vehicle_id => '${newId}'::TEXT, vehicle_name => '${vehicleName}'::TEXT, vehicle_model => '${vehicleModel}'::TEXT, vehicle_year => ${vehicleYear}, vehicle_color => '${vehicleColor}'::TEXT, vin => '${vin}'::TEXT, capacity => ${capacity}, tag => '${tag}'::TEXT, maintenance => ${maintenance}, ada => ${ada})`
+        `CALL create_vehicle(vehicle_id => '${newId}'::TEXT, 
+        vehicle_name => '${vehicleName}'::TEXT, 
+        vehicle_model => '${vehicleModel}'::TEXT, 
+        vehicle_year => ${vehicleYear}, 
+        vehicle_color => '${vehicleColor}'::TEXT, 
+        vin => '${vin}'::TEXT, 
+        capacity => ${capacity}, 
+        tag => '${tag}'::TEXT, 
+        maintenance => ${maintenance}, 
+        ada => ${ada},
+        change_user => '${changeUser}'::TEXT)`
       );
 
       //send the reponse to client
@@ -51,7 +62,7 @@ class Vehicle {
     const client = await pool.connect();
 
     try {
-      let { vehicleIds } = req.params;
+      let { vehicleIds, changeUser } = req.params;
       vehicleIds = JSON.parse(vehicleIds);
 
       if (!vehicleIds)
@@ -60,7 +71,7 @@ class Vehicle {
       await client.query("BEGIN");
       const deletedVehicles = await vehicleIds.map(async (vehicle) => {
         await client.query(
-          `CALL delete_vehicle(vehicleId=> '${vehicle}'::TEXT)`
+          `CALL delete_vehicle(vehicleId=> '${vehicle}'::TEXT, changeuser => '${changeUser}'::TEXT)`
         );
         return 1;
       });
@@ -86,7 +97,17 @@ class Vehicle {
           .json({ message: "Bad request: No vehicle info provided" });
 
       await pool.query(
-        `CALL update_vehicle(vehicleId => '${vehicle.id}'::TEXT, vehicleName => '${vehicle.name}'::TEXT, vehicleModel => '${vehicle.model}'::TEXT, vehicleYear => ${vehicle.year}, vehicleColor => '${vehicle.color}'::TEXT, vin1 => '${vehicle.vin}'::TEXT, capacity1 => ${vehicle.capacity}, tag1 => '${vehicle.tag}'::TEXT, maintenance1 => ${vehicle.maintenance}, ada1 => ${vehicle.ada})`
+        `CALL update_vehicle(vehicleId => '${vehicle.id}'::TEXT, 
+        vehicleName => '${vehicle.name}'::TEXT, 
+        vehicleModel => '${vehicle.model}'::TEXT, 
+        vehicleYear => ${vehicle.year}, 
+        vehicleColor => '${vehicle.color}'::TEXT, 
+        vin1 => '${vehicle.vin}'::TEXT, 
+        capacity1 => ${vehicle.capacity}, 
+        tag1 => '${vehicle.tag}'::TEXT, 
+        maintenance1 => ${vehicle.maintenance}, 
+        ada1 => ${vehicle.ada},
+        changeUser => '${vehicle.changeUser}'::TEXT)`
       );
 
       return res.json(`Vehicle ${vehicle.name} updated`);
