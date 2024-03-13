@@ -135,6 +135,7 @@ export const ServiceModal = (props) => {
           charge: charge,
           salesTax: salesTax,
           gratuity: gratuity,
+          changeUser: auth.userName,
         },
       });
 
@@ -161,6 +162,7 @@ export const ServiceModal = (props) => {
           charge: charge,
           salesTax: salesTax,
           gratuity: gratuity,
+          changeUser: auth.userName,
         },
       });
 
@@ -208,7 +210,9 @@ export const ServiceModal = (props) => {
     }
 
     //delete the service
-    const response = await deleteServer(`/deleteservice/${serviceId}`);
+    const response = await deleteServer(
+      `/deleteservice/${serviceId}/${auth.userName}`
+    );
     if (response?.disconnect) {
       setAuth({});
       navigate("/login", { state: { from: location }, replace: true });

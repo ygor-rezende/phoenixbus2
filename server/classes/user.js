@@ -38,7 +38,7 @@ class User {
       console.error(err);
       return { message: err.message };
     }
-  } //getUsernames
+  } //getAvailableUsers
 
   static async signUp(req, res) {
     try {

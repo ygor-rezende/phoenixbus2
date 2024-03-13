@@ -3,18 +3,47 @@ const pool = require("../db");
 
 class Employee {
   static async newEmployee(req, res) {
-    const { employee } = req.body;
-    if (!employee)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Employee information is required" });
     try {
+      const { employee } = req.body;
+      if (!employee)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Employee information is required" });
+
       //generate a new id
       const newId = uuid();
       //insert the new employee
       const newEmployee = await pool.query(
-        `INSERT INTO employees (employee_id, firstname, lastname, birth, title, hire_date, address, city, state, zip, phone, email, medical_card, i9, drug_free, drive_license_exp_date, it_number, national_reg, experience, cdl_tag, insurance, insurance_exp_date, mc, point_contact, emergency_contact, marital_status, notes, user_id)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
+        `CALL create_employee(employee_id => $1::TEXT, 
+          firstname => $2::TEXT, 
+          lastname => $3::TEXT, 
+          birth => $4::TEXT, 
+          title => $5::TEXT, 
+          hire_date => $6::TEXT, 
+          address => $7::TEXT, 
+          city => $8::TEXT, 
+          state => $9::TEXT, 
+          zip => $10::TEXT, 
+          phone => $11::TEXT, 
+          email => $12::TEXT, 
+          medical_card => $13::BOOLEAN, 
+          i9 => $14::BOOLEAN, 
+          drug_free => $15::BOOLEAN, 
+          drive_license_exp_date => $16::TEXT, 
+          it_number => $17::TEXT, 
+          national_reg => $18::TEXT, 
+          experience => $19::TEXT, 
+          cdl_tag => $20::TEXT, 
+          insurance => $21::TEXT, 
+          insurance_exp_date => $22::TEXT, 
+          mc => $23::TEXT, 
+          point_contact => $24::TEXT, 
+          emergency_contact => $25::TEXT, 
+          marital_status => $26::TEXT, 
+          notes => $27::TEXT, 
+          user_id => $28::TEXT,
+          change_user => $29::TEXT)
+          `,
         [
           newId,
           employee.firstname,
@@ -44,9 +73,9 @@ class Employee {
           employee.maritalStatus,
           employee.notes,
           employee.username,
+          employee.changeUser,
         ]
       );
-      console.log(newEmployee.rowCount);
       //send the reponse
       return res.status(201).json(`Employee ${employee.firstname} created`);
     } catch (err) {
@@ -74,7 +103,37 @@ class Employee {
         .json({ message: "Bad request: Employee information is required" });
     try {
       const updatedEmployee = await pool.query(
-        "UPDATE employees SET firstname = $1, lastname = $2, birth = $3, title = $4, hire_date = $5, address = $6, city = $7, state = $8, zip = $9, phone = $10, email = $11, medical_card = $12, i9 = $13, drug_free = $14, drive_license_exp_date = $15, it_number = $16, national_reg = $17, experience = $18, cdl_tag = $19, insurance = $20, insurance_exp_date = $21, mc = $22, point_contact = $23, emergency_contact = $24, marital_status = $25, notes = $26, user_id = $27 WHERE employee_id = $28",
+        `CALL update_employee(
+          firstname1 => $1::TEXT,
+          lastname1 => $2::TEXT,
+          birth1 => $3::TEXT,
+          title1 => $4::TEXT,
+          hiredate => $5::TEXT,
+          address1 => $6::TEXT,
+          city1 => $7::TEXT,
+          state1 => $8::TEXT,
+          zip1 => $9::TEXT,
+          phone1 => $10::TEXT,
+          email1 => $11::TEXT,
+          medicalcard => $12,
+          i91 => $13,
+          drugfree => $14,
+          drivelicenseexpdate => $15::TEXT,
+          itnumber => $16::TEXT,
+          nationalreg => $17::TEXT,
+          experience1 => $18::TEXT,
+          cdltag => $19::TEXT,
+          insurance1 => $20::TEXT,
+          insuranceexpdate => $21::TEXT,
+          mc1 => $22::TEXT,
+          pointcontact => $23::TEXT,
+          emergencycontact => $24::TEXT,
+          maritalstatus => $25::TEXT,
+          notes1 => $26::TEXT,
+          userid => $27::TEXT,
+          changeuser => $28::TEXT,
+          employeeid => $29::TEXT)
+          `,
         [
           employee.firstname,
           employee.lastname,
@@ -103,11 +162,11 @@ class Employee {
           employee.maritalStatus,
           employee.notes,
           employee.username,
+          employee.changeUser,
           employee.id,
         ]
       );
-      if (updatedEmployee.rowCount)
-        return res.json(`Employee ${employee.firstname} updated`);
+      return res.json(`Employee ${employee.firstname} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -115,28 +174,34 @@ class Employee {
   } //updateEmployee
 
   static async deleteEmployee(req, res) {
-    let { employeeIds } = req.params;
-    employeeIds = JSON.parse(employeeIds);
-    if (!employeeIds)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Missing employee id" });
+    const client = await pool.connect();
+
     try {
+      let { employeeIds, changeUser } = req.params;
+      employeeIds = JSON.parse(employeeIds);
+      if (!employeeIds)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing employee id" });
+
+      await client.query("BEGIN");
+
       const deletedEmployees = await employeeIds.map(async (employee) => {
-        return await pool.query(
-          "DELETE from employees WHERE employee_id = $1",
-          [employee]
+        return await client.query(
+          "CALL delete_employee(employeeId => $1::TEXT, changeuser => $2::TEXT)",
+          [employee, changeUser]
         );
       });
+
       const deletedPromise = await Promise.all(deletedEmployees);
-      console.log(deletedPromise);
-      if (deletedPromise[0].rowCount)
-        return res.json(
-          `Number of employees deleted: ${deletedPromise.length}`
-        );
+      await client.query("COMMIT");
+      return res.json(`Number of employees deleted: ${deletedPromise.length}`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //deleteEmployee
 
