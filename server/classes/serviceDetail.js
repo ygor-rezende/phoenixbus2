@@ -2,32 +2,49 @@ const pool = require("../db");
 
 class ServiceDetail {
   static async newDetail(req, res) {
-    const { detail } = req.body;
-    if (!detail)
-      return res.status(400).json({
-        message: "Bad request: Service detail information is required",
-      });
-
     try {
+      const { detail } = req.body;
+      if (!detail)
+        return res.status(400).json({
+          message: "Bad request: Service detail information is required",
+        });
+
       //insert new
-      const newDetail = await pool.query(
-        `INSERT INTO service_details (service_id, employee_id, vehicle_id, from_location_id, to_location_id, return_location_id, spot_time, start_time, end_time, instructions, gratuity, payment, company_id, use_farmout, additional_stop, additional_stop_info, additional_stop_detail, trip_length, change_user)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+      await pool.query(
+        `CALL create_detail(service_id => $1,
+        employee_id => $2::TEXT,
+        company_id => $3::TEXT,
+        vehicle_id => $4::TEXT,
+        from_location_id => $5::TEXT,
+        to_location_id => $6::TEXT,
+        return_location_id => $7::TEXT,
+        use_farmout => $8::BOOLEAN,
+        spot_time => $9::TEXT,
+        start_time => $10::TEXT,
+        end_time => $11::TEXT,
+        instructions => $12::TEXT,
+        payment => $13,
+        gratuity => $14,
+        additional_stop => $15::BOOLEAN,
+        additional_stop_info => $16::TEXT,
+        additional_stop_detail => $17::TEXT,
+        trip_length => $18,
+        change_user => $19::TEXT)`,
         [
           detail.serviceId,
           detail.employeeId,
+          detail.companyId,
           detail.vehicleId,
           detail.fromServiceLocationId,
           detail.toServiceLocationId,
           detail.returnServiceLocationId,
+          detail.useFarmout,
           detail.spotTime,
           detail.startTime,
           detail.endTime,
           detail.instructions,
-          detail.gratuity,
           detail.payment,
-          detail.companyId,
-          detail.useFarmout,
+          detail.gratuity,
           detail.additionalStop,
           detail.additionalStopInfo,
           detail.additionalStopDetail,
@@ -35,7 +52,6 @@ class ServiceDetail {
           detail.changeUser,
         ]
       );
-      console.log(newDetail.rowCount);
       //send reponse
       return res.status(201).json(`Service detail created`);
     } catch (err) {
@@ -103,30 +119,49 @@ class ServiceDetail {
   } //getSomeDetails
 
   static async updateDetail(req, res) {
-    const { detail } = req.body;
-    if (!detail)
-      return res.status(400).json({
-        message: "Bad request: Service detail information is required",
-      });
-
     try {
-      const updatedDetail = await pool.query(
-        "UPDATE service_details SET service_id = $1, employee_id = $2, vehicle_id = $3, from_location_id = $4, to_location_id = $5, spot_time = $6, start_time = $7, end_time = $8, instructions = $9, gratuity = $10, payment = $11, company_id = $12, use_farmout = $13, return_location_id = $14, additional_stop = $15, additional_stop_info = $16, additional_stop_detail = $17, trip_length = $18, change_user = $19 WHERE detail_id = $20",
+      const { detail } = req.body;
+      if (!detail)
+        return res.status(400).json({
+          message: "Bad request: Service detail information is required",
+        });
+
+      await pool.query(
+        `CALL update_detail(serviceid=>$1,
+          employeeid=>$2::TEXT,
+          companyid=>$3::TEXT,
+          vehicleid=>$4::TEXT,
+          fromlocationid=>$5::TEXT,
+          tolocationid=>$6::TEXT,
+          returnlocationid=>$7::TEXT,
+          usefarmout=>$8::BOOLEAN,
+          spottime=>$9::TEXT,
+          starttime=>$10::TEXT,
+          endtime=>$11::TEXT,
+          instructions1=>$12::TEXT,
+          payment1=>$13,
+          gratuity1=>$14,
+          additionalstop=>$15::BOOLEAN,
+          additionalstopinfo=>$16::TEXT,
+          additionalstopdetail=>$17::TEXT,
+          triplength=>$18,
+          changeuser=>$19::TEXT,
+          detailid=>$20)`,
         [
           detail.serviceId,
           detail.employeeId,
+          detail.companyId,
           detail.vehicleId,
           detail.fromServiceLocationId,
           detail.toServiceLocationId,
+          detail.returnServiceLocationId,
+          detail.useFarmout,
           detail.spotTime,
           detail.startTime,
           detail.endTime,
           detail.instructions,
-          detail.gratuity,
           detail.payment,
-          detail.companyId,
-          detail.useFarmout,
-          detail.returnServiceLocationId,
+          detail.gratuity,
           detail.additionalStop,
           detail.additionalStopInfo,
           detail.additionalStopDetail,
@@ -135,8 +170,7 @@ class ServiceDetail {
           detail.detailId,
         ]
       );
-      if (updatedDetail.rowCount)
-        return res.json(`Service detail ${detail.detailId} updated`);
+      return res.json(`Service detail ${detail.detailId} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -144,13 +178,13 @@ class ServiceDetail {
   } //updateDetail
 
   static async deleteDetail(req, res) {
-    const { detailid, username } = req.params;
-    if (!detailid || !username)
-      return res.status(400).json({
-        message: "Bad request: Missing service detail id or username",
-      });
-
     try {
+      const { detailid, username } = req.params;
+      if (!detailid || !username)
+        return res.status(400).json({
+          message: "Bad request: Missing service detail id or username",
+        });
+
       const deletedDetail = await pool.query(
         `SELECT delete_detail(${detailid}, '${username}')`
       );
