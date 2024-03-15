@@ -82,13 +82,23 @@ class Schedule {
       if (!service || !detail)
         return res.status(400).json("Bad request: Missing information");
 
-      const updatedService = await pool.query(
-        `UPDATE services SET charge = $1 WHERE service_id = $2`,
-        [service.charge, service.serviceId]
-      );
-
-      const updatedDetail = await pool.query(
-        "UPDATE service_details SET spot_time = $1, start_time = $2, end_time = $3, instructions = $4, payment = $5, employee_id = $6, vehicle_id = $7, from_location_id = $8, to_location_id = $9, use_farmout = $10, company_id = $11 WHERE detail_id = $12",
+      await pool.query(
+        `CALL update_detail(
+          spottime=>$1::TEXT,
+          starttime=>$2::TEXT,
+          endtime=>$3::TEXT,
+          instructions1=>$4::TEXT,
+          payment1=>$5,          
+          employeeid=>$6::TEXT,
+          vehicleid=>$7::TEXT,
+          fromlocationid=>$8::TEXT,
+          tolocationid=>$9::TEXT,
+          usefarmout=>$10::BOOLEAN,
+          companyid=>$11::TEXT,
+          changeuser=>$12::TEXT,
+          detailid=>$13,
+          charge1=>$14,
+          serviceid=>$15)`,
         [
           detail.spotTime,
           detail.startTime,
@@ -101,7 +111,10 @@ class Schedule {
           detail.toLocationId,
           detail.useFarmout,
           detail.companyId,
+          detail.changeUser,
           detail.detailId,
+          service.charge,
+          service.serviceId,
         ]
       );
 

@@ -2,16 +2,25 @@ const pool = require("../db");
 
 class Service {
   static async newService(req, res) {
-    const { service } = req.body;
-    if (!service)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Service information is required" });
     try {
+      const { service } = req.body;
+      if (!service)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Service information is required" });
+
       //insert the new Service
       const newService = await pool.query(
-        `INSERT INTO services (booking_id, service_name, service_code, service_date, qty, charge, sales_tax, gratuity)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        `CALL create_service(booking_id => $1::TEXT, 
+          service_name => $2::TEXT, 
+          service_code => $3::TEXT, 
+          service_date => $4::TEXT, 
+          qty => $5, 
+          charge => $6, 
+          sales_tax => $7, 
+          gratuity => $8, 
+          change_user => $9::TEXT)
+          `,
         [
           service.bookingId,
           service.serviceName,
@@ -21,9 +30,9 @@ class Service {
           service.charge,
           service.salesTax,
           service.gratuity,
+          service.changeUser,
         ]
       );
-      console.log(newService.rowCount);
       //send the reponse to booking
       return res.status(201).json(`Service ${service.serviceName} created`);
     } catch (err) {
@@ -65,16 +74,26 @@ class Service {
   } //getAllServices
 
   static async updateService(req, res) {
-    const { service } = req.body;
-    if (!service)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Service information is required" });
-
     try {
+      const { service } = req.body;
+      if (!service)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Service information is required" });
+
       const updatedService = await pool.query(
-        "UPDATE services SET booking_id = $1, service_name = $2, service_code = $3, service_date = $4, qty = $5, charge = $6, sales_tax = $7, gratuity = $8 WHERE service_id = $9",
+        `CALL update_service(serviceid => $1, 
+          bookingid => $2::TEXT,
+          servicename => $3::TEXT, 
+          servicecode => $4::TEXT, 
+          servicedate => $5::TEXT, 
+          qty1 => $6, 
+          charge1 => $7, 
+          salestax => $8, 
+          gratuity1 => $9, 
+          changeuser => $10)`,
         [
+          service.serviceId,
           service.bookingId,
           service.serviceName,
           service.serviceCode,
@@ -83,11 +102,10 @@ class Service {
           service.charge,
           service.salesTax,
           service.gratuity,
-          service.serviceId,
+          service.changeUser,
         ]
       );
-      if (updatedService.rowCount)
-        return res.json(`Service ${service.serviceName} updated`);
+      return res.json(`Service ${service.serviceName} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -95,46 +113,58 @@ class Service {
   } //updateService
 
   static async deleteService(req, res) {
-    const { serviceid } = req.params;
-    if (!serviceid)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Missing service id" });
+    const client = await pool.connect();
 
     try {
-      const deletedService = await pool.query(
-        "DELETE from services WHERE service_id = $1",
-        [serviceid]
+      const { serviceid, changeUser } = req.params;
+      if (!serviceid)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing service id" });
+
+      await client.query("BEGIN");
+      const deletedService = await client.query(
+        "CALL delete_service(serviceid => $1, changeuser => $2::TEXT)",
+        [serviceid, changeUser]
       );
-      console.log(deletedService);
-      if (deletedService) return res.json(`Service ${serviceid} deleted`);
+      await client.query("COMMIT");
+      return res.json(`Service ${serviceid} deleted`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //deleteService
 
   static async deleteSomeServices(req, res) {
-    let { serviceIds } = req.params;
-    serviceIds = JSON.parse(serviceIds);
-    if (!serviceIds)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Missing service id" });
+    const client = await pool.connect();
 
     try {
+      let { serviceIds, changeUser } = req.params;
+      serviceIds = JSON.parse(serviceIds);
+      if (!serviceIds)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing service id" });
+
+      await client.query("BEGIN");
       const deletedServices = await serviceIds.map(async (service) => {
-        return await pool.query("DELETE from services WHERE service_id = $1", [
-          service,
-        ]);
+        return await client.query(
+          "CALL delete_service(serviceid => $1, changeuser => $2::TEXT)",
+          [service, changeUser]
+        );
       });
       const deletedPromise = await Promise.all(deletedServices);
-      console.log(deletedPromise);
-      if (deletedPromise[0].rowCount)
-        return res.json(`Number of services deleted: ${deletedPromise.length}`);
+      await client.query("COMMIT");
+      return res.json(`Number of services deleted: ${deletedPromise.length}`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //deleteSomeServices
 }

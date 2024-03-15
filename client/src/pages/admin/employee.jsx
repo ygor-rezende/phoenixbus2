@@ -156,7 +156,7 @@ export const Employee = () => {
 
   const effectRun = useRef(false);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -341,6 +341,7 @@ export const Employee = () => {
         maritalStatus: state.maritalStatus,
         notes: state.notes,
         username: state.username,
+        changeUser: auth.userName,
       },
     });
 
@@ -479,6 +480,7 @@ export const Employee = () => {
       maritalStatus: state.maritalStatus,
       notes: state.notes,
       username: state.username,
+      changeUser: auth.userName,
     };
 
     const response = await putServer("/updateemployee", {
@@ -498,7 +500,9 @@ export const Employee = () => {
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     const employeeIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deleteemployee/${employeeIds}`);
+    const response = await deleteServer(
+      `/deleteemployee/${employeeIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       clearState(response.data);

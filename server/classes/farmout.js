@@ -52,7 +52,7 @@ class FarmOut {
           company.changeUser,
         ]
       );
-      console.log(newCompany.rowCount);
+
       //send the reponse to company
       return res.status(201).json(`Company ${company.name} created`);
     } catch (err) {

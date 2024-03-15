@@ -19,7 +19,7 @@ export const QuotesView = (props) => {
     props;
 
   const deleteServer = UsePrivateDelete();
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -70,7 +70,9 @@ export const QuotesView = (props) => {
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
     const quoteIds = JSON.stringify(itemsSelected);
-    const response = await deleteServer(`/deletebooking/${quoteIds}`);
+    const response = await deleteServer(
+      `/deletebooking/${quoteIds}/${auth.userName}`
+    );
 
     if (response?.data) {
       onSuccess(response.data);

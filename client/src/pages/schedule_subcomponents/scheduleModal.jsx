@@ -78,7 +78,7 @@ export const ScheduleModal = (props) => {
 
   const [state, setState] = useReducer(reducer, initialState);
 
-  const { setAuth } = useAuth();
+  const { setAuth, auth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const putServer = UsePrivatePut();
@@ -200,6 +200,7 @@ export const ScheduleModal = (props) => {
         fromLocationId: state.fromLocationId,
         toLocationId: state.toLocationId,
         useFarmout: state.useFarmout,
+        changeUser: auth.userName,
       },
     });
 
