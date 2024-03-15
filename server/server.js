@@ -266,7 +266,7 @@ app.get("/getlocation/:locationId", async (req, res) => {
 //create company
 app.post(
   "/createcompany",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
     let response = await FarmOut.newCompany(req, res);
@@ -291,7 +291,7 @@ app.get("/getallcompanynames", async (req, res) => {
 //Update a company
 app.put(
   "/updatecompany",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
     let response = await FarmOut.updateCompany(req, res);
@@ -303,7 +303,7 @@ app.put(
 //Delete companies
 app.delete(
   "/deletecompany/:companyIds/:changeUser",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await FarmOut.deleteCompany(req, res);
     return response;
