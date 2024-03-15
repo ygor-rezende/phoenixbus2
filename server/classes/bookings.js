@@ -49,11 +49,29 @@ class Booking {
 
       //insert the new Booking
       const newBooking = await pool.query(
-        `INSERT INTO bookings (invoice, is_quote, client_id, employee_id, responsible_name, responsible_email, responsible_phone, quote_date, booking_date, category, num_people, trip_start_date, trip_end_date, deposit, cost, hours_quote_valid, client_comments, intinerary_details, internal_coments)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+        `CALL create_booking(invoice => $1::TEXT, 
+          client_id => $2::TEXT, 
+          employee_id => $3::TEXT, 
+          responsible_name => $4::TEXT, 
+          responsible_email => $5::TEXT, 
+          responsible_phone => $6::TEXT, 
+          quote_date => $7::TEXT, 
+          booking_date => $8::TEXT, 
+          category => $9::TEXT, 
+          num_people => $10, 
+          trip_start_date => $11::TEXT, 
+          trip_end_date => $12::TEXT, 
+          deposit => $13, 
+          cost => $14, 
+          hours_quote_valid => $15, 
+          client_comments => $16::TEXT, 
+          intinerary_details => $17::TEXT, 
+          internal_coments => $18::TEXT, 
+          is_quote => $19::BOOLEAN, 
+          change_user => $20::TEXT)
+          `,
         [
           invoice,
-          booking.isQuote,
           booking.clientId,
           booking.employeeId,
           booking.responsibleName,
@@ -71,6 +89,8 @@ class Booking {
           booking.clientComments,
           booking.intineraryDetails,
           booking.internalComments,
+          booking.isQuote,
+          booking.changeUser,
         ]
       );
       console.log(newBooking.rowCount);
@@ -114,18 +134,42 @@ class Booking {
   } //getAllQuotes
 
   static async updateBooking(req, res) {
-    const { booking } = req.body;
-    if (!booking)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Booking information is required" });
     try {
+      const { booking } = req.body;
+      if (!booking)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Booking information is required" });
+
       const updatedBooking = await pool.query(
-        "UPDATE bookings SET client_id = $1, employee_id = $2, quote_date = $3, category = $4, num_people = $5, trip_start_date = $6, trip_end_date = $7, deposit = $8, cost = $9, hours_quote_valid = $10, client_comments = $11, intinerary_details = $12, internal_coments = $13, is_quote = $14, booking_date = $15, responsible_name = $16, responsible_email = $17, responsible_phone = $18 WHERE invoice = $19",
+        `CALL update_booking(clientid => $1::TEXT, 
+          employeeId => $2::TEXT, 
+          responsiblename => $3::TEXT, 
+          responsibleemail => $4::TEXT, 
+          responsiblephone => $5::TEXT, 
+          quotedate => $6::TEXT, 
+          bookingdate => $7::TEXT, 
+          category1 => $8::TEXT, 
+          numpeople => $9, 
+          tripstartdate => $10::TEXT, 
+          tripenddate => $11::TEXT, 
+          deposit1 => $12, 
+          cost1 => $13, 
+          hoursquotevalid => $14, 
+          clientcomments => $15::TEXT, 
+          intinerarydetails => $16::TEXT, 
+          internalcoments => $17::TEXT, 
+          isquote => $18::BOOLEAN,
+          changeuser => $19::TEXT,
+          invoice1 => $20::TEXT)`,
         [
           booking.clientId,
           booking.employeeId,
+          booking.responsibleName,
+          booking.responsibleEmail,
+          booking.responsiblePhone,
           booking.quoteDate,
+          booking.bookingDate,
           booking.category,
           booking.numPeople,
           booking.tripStartDate,
@@ -137,15 +181,11 @@ class Booking {
           booking.intineraryDetails,
           booking.internalComments,
           booking.isQuote,
-          booking.bookingDate,
-          booking.responsibleName,
-          booking.responsibleEmail,
-          booking.responsiblePhone,
+          booking.changeUser,
           booking.invoice,
         ]
       );
-      if (updatedBooking.rowCount)
-        return res.json(`Booking/Quote ${booking.invoice} updated`);
+      return res.json(`Booking/Quote ${booking.invoice} updated`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
@@ -153,25 +193,32 @@ class Booking {
   } //updateBooking
 
   static async deleteBooking(req, res) {
-    let { bookingIds } = req.params;
-    bookingIds = JSON.parse(bookingIds);
-    if (!bookingIds)
-      return res
-        .status(400)
-        .json({ message: "Bad request: Missing invoice information" });
+    const client = await pool.connect();
+
     try {
+      let { bookingIds, changeUser } = req.params;
+      bookingIds = JSON.parse(bookingIds);
+      if (!bookingIds)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing invoice information" });
+
+      await client.query("BEGIN");
       const deletedBookings = await bookingIds.map(async (booking) => {
-        return await pool.query("DELETE from bookings WHERE invoice = $1", [
-          booking,
-        ]);
+        return await client.query(
+          `CALL delete_booking(bookingid => $1::TEXT, changeuser => $2::TEXT)`,
+          [booking, changeUser]
+        );
       });
       const deletedPromise = await Promise.all(deletedBookings);
-      console.log(deletedPromise);
-      if (deletedPromise[0]?.rowCount)
-        return res.json(`Number of items deleted: ${deletedPromise.length}`);
+      await client.query("COMMIT");
+      return res.json(`Number of items deleted: ${deletedPromise.length}`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //deleteBooking
 

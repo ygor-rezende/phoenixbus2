@@ -16,15 +16,18 @@ DECLARE i text;
 		old_data jsonb;
 	BEGIN
 		IF (TG_OP = 'DELETE') THEN
-			INSERT INTO log_services SELECT 'D', now(), OLD.change_user, OLD.service_id, '-', '-', 'Deleted service ' || OLD.service_id || ' from booking ' || OLD.booking_id;
+			INSERT INTO log_services (operation, stamp, userid, service_id, field_updated, from_value, to_value)
+				VALUES('D', now(), OLD.change_user, OLD.service_id, '-', '-', 'Deleted service ' || OLD.service_id || ' from booking ' || OLD.booking_id);
 		ELSIF(TG_OP = 'INSERT') THEN
-			INSERT INTO log_services SELECT 'I', now(), NEW.change_user, NEW.service_id, '-', '-', 'Created service ' || NEW.service_id;
+			INSERT INTO log_services (operation, stamp, userid, service_id, field_updated, from_value, to_value)
+				VALUES('I', now(), NEW.change_user, NEW.service_id, '-', '-', 'Created service ' || NEW.service_id);
 		ELSIF(TG_OP = 'UPDATE') THEN
 			new_data := to_jsonb(NEW);
 			old_data := to_jsonb(OLD);
 			FOR i IN SELECT jsonb_object_keys(new_data) INTERSECT SELECT jsonb_object_keys(old_data) LOOP
 				IF (old_data ->> i != new_data ->> i) THEN
-					INSERT INTO log_services SELECT 'U', now(), NEW.change_user, OLD.service_id, i, (old_data ->> i)::TEXT, (new_data ->> i)::TEXT;
+					INSERT INTO log_services (operation, stamp, userid, service_id, field_updated, from_value, to_value)
+						VALUES('U', now(), NEW.change_user, OLD.service_id, i, (old_data ->> i)::TEXT, (new_data ->> i)::TEXT);
 				END IF;
 			END LOOP;
 		END IF;

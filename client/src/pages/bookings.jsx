@@ -410,6 +410,7 @@ export const Bookings = () => {
         clientComments: state.clientComments,
         intineraryDetails: state.intineraryDetails,
         internalComments: state.internalComments,
+        changeUser: auth.userName,
       },
     });
 
@@ -532,6 +533,7 @@ export const Bookings = () => {
       clientComments: state.clientComments,
       intineraryDetails: state.intineraryDetails,
       internalComments: state.internalComments,
+      changeUser: auth.userName,
     };
 
     const response = await putServer("/updatebooking", {
@@ -599,7 +601,7 @@ export const Bookings = () => {
         //converting it to json
         const serviceIds = JSON.stringify(serviceIdsToDelete);
         const response = await deleteServer(
-          `/deletesomeservices/${serviceIds}`
+          `/deletesomeservices/${serviceIds}/${auth.userName}`
         );
         if (response?.error) {
           setState({
@@ -616,7 +618,9 @@ export const Bookings = () => {
     if (itemsSelected.length > 0) {
       //converting it to json
       const bookingIds = JSON.stringify(itemsSelected);
-      const response = await deleteServer(`/deletebooking/${bookingIds}`);
+      const response = await deleteServer(
+        `/deletebooking/${bookingIds}/${auth.userName}`
+      );
       if (response?.data) {
         clearState(response.data);
       } else if (response?.disconnect) {

@@ -1,4 +1,5 @@
 const PORT = 8000;
+const os = require("os");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -265,7 +266,7 @@ app.get("/getlocation/:locationId", async (req, res) => {
 //create company
 app.post(
   "/createcompany",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
     let response = await FarmOut.newCompany(req, res);
@@ -290,7 +291,7 @@ app.get("/getallcompanynames", async (req, res) => {
 //Update a company
 app.put(
   "/updatecompany",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   bodyParser.json(),
   async (req, res) => {
     let response = await FarmOut.updateCompany(req, res);
@@ -302,7 +303,7 @@ app.put(
 //Delete companies
 app.delete(
   "/deletecompany/:companyIds/:changeUser",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await FarmOut.deleteCompany(req, res);
     return response;
@@ -344,10 +345,9 @@ app.put(
 
 //Delete
 app.delete(
-  "/deleteemployee/:employeeIds",
+  "/deleteemployee/:employeeIds/:changeUser",
   verifyRoles(ROLES_LIST.admin),
   async (req, res) => {
-    console.log(req.params);
     let response = await Employee.deleteEmployee(req, res);
     return response;
   }
@@ -462,7 +462,7 @@ app.put(
 
 //Delete bookings
 app.delete(
-  "/deletebooking/:bookingIds",
+  "/deletebooking/:bookingIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Booking.deleteBooking(req, res);
@@ -519,7 +519,7 @@ app.put(
 
 //Delete Service
 app.delete(
-  "/deleteservice/:serviceid",
+  "/deleteservice/:serviceid/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Service.deleteService(req, res);
@@ -529,7 +529,7 @@ app.delete(
 
 //Delete some services
 app.delete(
-  "/deletesomeservices/:serviceIds",
+  "/deletesomeservices/:serviceIds/:changeUser",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Service.deleteSomeServices(req, res);
@@ -668,7 +668,7 @@ app.get(
 
 //#endregion
 
-if (process.env.NODE_ENV === "development")
+if (os.hostname().indexOf("LAPTOP") > -1)
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 exports.app = onRequest(app);

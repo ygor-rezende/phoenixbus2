@@ -72,6 +72,7 @@ const APPBar = () => {
     { name: "Bookings", link: "/bookings" },
     { name: "My Trips", link: "/driverpage" },
     { name: "Payroll", link: "/driverpayroll" },
+    { name: "FarmOut", link: "/farmout" },
   ];
 
   const dispatchGroup = [ROLES.dispatch, ROLES.admin];
@@ -177,6 +178,7 @@ const APPBar = () => {
                   id="addvehicle"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
                   Vehicles
                 </Button>
@@ -189,6 +191,7 @@ const APPBar = () => {
                   id="servicelocations"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
                   Locations
                 </Button>
@@ -201,8 +204,22 @@ const APPBar = () => {
                   id="client"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
                   Clients
+                </Button>
+              </Link>
+            ) : null}
+
+            {salesGroup.find((e) => e === userType) ? (
+              <Link to="/farmout">
+                <Button
+                  id="farmout"
+                  sx={{ color: "white" }}
+                  style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
+                >
+                  FarmOut
                 </Button>
               </Link>
             ) : null}
@@ -213,8 +230,9 @@ const APPBar = () => {
                   id="schedule"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
-                  View Schedule
+                  Schedule
                 </Button>
               </Link>
             ) : null}
@@ -225,6 +243,7 @@ const APPBar = () => {
                   id="bookings"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
                   Quotes & Bookings
                 </Button>
@@ -236,6 +255,7 @@ const APPBar = () => {
                   id="driverpage"
                   sx={{ color: "white" }}
                   style={{ marginLeft: "5vh", marginRight: "5vh" }}
+                  size="small"
                 >
                   My Trips
                 </Button>
@@ -253,6 +273,7 @@ const APPBar = () => {
                 sx={{ color: "white" }}
                 style={{ marginLeft: "5vh", marginRight: "5vh" }}
                 endIcon={<KeyboardArrowDownIcon />}
+                size="small"
               >
                 Accounting
               </Button>
@@ -292,6 +313,7 @@ const APPBar = () => {
                 sx={{ color: "white" }}
                 style={{ marginLeft: "5vh", marginRight: "5vh" }}
                 endIcon={<KeyboardArrowDownIcon />}
+                size="small"
               >
                 Admin
               </Button>
@@ -310,13 +332,6 @@ const APPBar = () => {
                 Manage users
               </MenuItem>
 
-              <MenuItem
-                component={NavLink}
-                to="/farmout"
-                onClick={handleCloseAdmin}
-              >
-                Farm-outs
-              </MenuItem>
               <MenuItem
                 component={NavLink}
                 to="/employee"
