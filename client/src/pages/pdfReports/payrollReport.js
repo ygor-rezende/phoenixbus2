@@ -176,28 +176,34 @@ const PayrollReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="33%" align="left">
+              <TableCell width="25%" align="left">
                 Name
               </TableCell>
-              <TableCell width="33%" align="right">
+              <TableCell width="25%" align="right">
                 Payment
               </TableCell>
-              <TableCell width="33%" align="right">
+              <TableCell width="25%" align="right">
                 Gratuity
+              </TableCell>
+              <TableCell width="25%" align="right">
+                Total
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
               {data?.map((row) => {
                 return (
                   <TableRow key={row.vehicle_id}>
-                    <TableCell width="33%" align="left">
+                    <TableCell width="25%" align="left">
                       {row?.driver}
                     </TableCell>
-                    <TableCell width="33%" align="right">
+                    <TableCell width="25%" align="right">
                       {currencyFormatter.format(row?.payment)}
                     </TableCell>
-                    <TableCell width="33%" align="right">
+                    <TableCell width="25%" align="right">
                       {currencyFormatter.format(row?.gratuity)}
+                    </TableCell>
+                    <TableCell width="25%" align="right">
+                      {currencyFormatter.format(row?.total)}
                     </TableCell>
                   </TableRow>
                 );
