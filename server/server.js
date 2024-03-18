@@ -16,6 +16,7 @@ const { Service } = require("./classes/services");
 const { ServiceDetail } = require("./classes/serviceDetail");
 const { Schedule } = require("./classes/schedule");
 const { Driver } = require("./classes/driver");
+const { Payroll } = require("./classes/payroll");
 const cookieParser = require("cookie-parser");
 const verifyJWT = require("./middleware/verifyJWT");
 const credentials = require("./middleware/credentials");
@@ -665,7 +666,17 @@ app.get(
     return response;
   }
 );
+//#endregion
 
+//#region payroll
+app.get(
+  "/getdriverpayroll/:dates",
+  verifyRoles(ROLES_LIST.admin),
+  async (req, res) => {
+    let response = await Payroll.getDriverPayroll(req, res);
+    return response;
+  }
+);
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
