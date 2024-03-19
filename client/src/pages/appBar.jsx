@@ -133,45 +133,6 @@ const APPBar = () => {
             </Typography>
           </Link>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {/* {salesGroup.find((e) => e === userType) ? (
-              <IconButton
-                onClick={handleClick}
-                color="inherit"
-                style={{ marginLeft: "auto", paddingRight: "1vh" }}
-              >
-                <AddCircleIcon />
-              </IconButton>
-            ) : null}
-            <Menu
-              id="simple-menu"
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem
-                component={NavLink}
-                to="/addclient"
-                onClick={handleClose}
-              >
-                Clients
-              </MenuItem>
-              <MenuItem
-                component={NavLink}
-                to="/servicelocations"
-                onClick={handleClose}
-              >
-                Service Locations
-              </MenuItem>
-
-              <MenuItem
-                component={NavLink}
-                to="/addvehicle"
-                onClick={handleClose}
-              >
-                Vehicles
-              </MenuItem>
-            </Menu> */}
-
             {salesGroup.find((e) => e === userType) ? (
               <Link to="/addvehicle">
                 <Button

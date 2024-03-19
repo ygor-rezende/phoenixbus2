@@ -26,6 +26,7 @@ const verifyRoles = require("./middleware/verifyRoles");
 
 const { onRequest } = require("firebase-functions/v2/https");
 const allowedOrigins = require("./config/allowedOrigins");
+const { Sales } = require("./classes/sales");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -668,7 +669,7 @@ app.get(
 );
 //#endregion
 
-//#region payroll
+//#region reports
 app.get(
   "/getdriverpayroll/:dates",
   verifyRoles(ROLES_LIST.admin),
@@ -677,6 +678,12 @@ app.get(
     return response;
   }
 );
+
+app.get("/getsales/:dates", verifyRoles(ROLES_LIST.admin), async (req, res) => {
+  let response = await Sales.getSales(req, res);
+  return response;
+});
+
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
