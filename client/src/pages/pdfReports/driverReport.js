@@ -9,7 +9,7 @@ import {
   Font,
 } from "@react-pdf/renderer";
 import PhoenixLogo from "../../images/phoenix_logo.png";
-import TripTrace from "../../images/triptrace3.png";
+import PlaceIcon from "../../images/Location-Icon-1.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   image2: {
-    width: "170px",
+    width: "20px",
   },
   header: {
     display: "flex",
@@ -60,6 +60,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 20,
     borderTop: 1,
+    alignItems: "center",
+  },
+  header3: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 10,
     alignItems: "center",
   },
   text: {
@@ -87,6 +94,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   innerBoard: {
+    marginBottom: 10,
     marginLeft: 10,
   },
   contentSection: {
@@ -139,55 +147,12 @@ const styles = StyleSheet.create({
 });
 
 const DriverReport = (props) => {
-  const {
-    data,
-    date,
-    client,
-    category,
-    passengers,
-    services,
-    details,
-    locations,
-    deposit,
-  } = props;
+  const { data } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
-  });
-
-  //Total invoice
-  let totalCharges = services?.reduce((sum, current) => {
-    return sum + Number(current.gratuity) + current.charge * current.qty;
-  }, 0);
-
-  let totalTax = services
-    ?.map((service) => {
-      return {
-        tax: service.sales_tax,
-        charge: service.charge,
-        qty: service.qty,
-      };
-    })
-    ?.reduce((sum, service) => {
-      return sum + Number(service.tax * service.charge * service.qty) / 100;
-    }, 0);
-
-  let credit = (totalCharges * deposit) / 100;
-  let totalAmount = totalCharges - credit + totalTax;
-
-  credit = currencyFormatter.format(credit);
-  totalAmount = currencyFormatter.format(totalAmount);
-  totalCharges = currencyFormatter.format(totalCharges);
-
-  //Create a unique array with services and details
-  //Return an array with an array of services and its details
-  const allData = services?.map((service) => {
-    let thisDetails = details
-      ?.flat()
-      .filter((detail) => detail.service_id === service.service_id);
-    return [service, thisDetails];
   });
 
   return (
@@ -200,7 +165,7 @@ const DriverReport = (props) => {
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
         <Text style={styles.h2}>
-          {data?.from_location} to {data?.to_location}
+          Service Date: {dayjs(data?.service_date).format("l")}
         </Text>
         <Text
           style={[styles.textBold, { textAlign: "center", marginBottom: 10 }]}
@@ -210,13 +175,10 @@ const DriverReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="33%" align="left">
-                {date}
-              </TableCell>
-              <TableCell width="33%" align="center">
+              <TableCell width="50%" align="left">
                 Client: {data?.agency}
               </TableCell>
-              <TableCell width="33%" align="right">
+              <TableCell width="50%" align="right">
                 Invoice: {data?.invoice}
               </TableCell>
             </TableHeader>
@@ -224,7 +186,7 @@ const DriverReport = (props) => {
               <TableRow>
                 <TableCell width="50%" align="center">
                   {data?.use_farmout
-                    ? "Driver: Farm-out"
+                    ? `Farmout Company: ${data?.company_name}`
                     : `Driver: ${data?.firstname} ${data?.lastname}`}
                 </TableCell>
                 <TableCell width="50%" align="center">
@@ -246,41 +208,72 @@ const DriverReport = (props) => {
         </View>
 
         <View style={styles.contentSection}>
-          <View style={styles.header}>
-            <View style={styles.innerBoard}>
-              <Text style={styles.textBold}>From: {data?.from_location}</Text>
-              <Text style={styles.text}>{data?.from_address}</Text>
-              <Text style={styles.text}>
-                {data?.from_city}, {data?.from_state}
-              </Text>
-              <Text style={styles.text}>
-                Spot Time: {dayjs(data?.spot_time).format("HH:mm")}
-              </Text>
-              <Text style={styles.text}>
-                Service time: {dayjs(data?.start_time).format("HH:mm")}
-              </Text>
+          <View style={styles.header3}>
+            <View
+              style={{
+                display: "grid",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Image src={PlaceIcon} style={styles.image2} />
+              <Text style={[styles.text, { color: "blue" }]}>.</Text>
+              <Text style={[styles.text, { color: "blue" }]}>.</Text>
+              <Text style={[styles.text, { color: "blue" }]}>.</Text>
+              <Image src={PlaceIcon} style={styles.image2} />
+              {data?.return_location ? (
+                <View style={{ alignItems: "center" }}>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Image src={PlaceIcon} style={styles.image2} />
+                </View>
+              ) : null}
             </View>
-            <View>
-              <Image src={TripTrace} style={styles.image2} />
-            </View>
+
             <View style={styles.innerBoard}>
-              <Text style={styles.textBold}>To: {data?.to_location}</Text>
-              <Text style={styles.text}>{data?.to_address}</Text>
-              <Text style={styles.text}>
-                {data?.to_city}, {data?.to_state}
-              </Text>
+              <View style={styles.innerBoard}>
+                <Text style={styles.textBold}>From: {data?.from_location}</Text>
+                <Text style={styles.text}>{data?.from_address}</Text>
+                <Text style={styles.text}>
+                  {data?.from_city}, {data?.from_state}
+                </Text>
+                <Text style={styles.text}>
+                  Spot Time: {dayjs(data?.spot_time).format("HH:mm")}
+                </Text>
+                <Text style={styles.text}>
+                  Service time: {dayjs(data?.start_time).format("HH:mm")}
+                </Text>
+              </View>
+
+              <View style={styles.innerBoard}>
+                <Text style={styles.textBold}>To: {data?.to_location}</Text>
+                <Text style={styles.text}>{data?.to_address}</Text>
+                <Text style={styles.text}>
+                  {data?.to_city}, {data?.to_state}
+                </Text>
+              </View>
+
+              {data?.return_location ? (
+                <View style={styles.innerBoard}>
+                  <Text style={styles.textBold}>
+                    Return: {data?.return_location}
+                  </Text>
+                  <Text style={styles.text}>{data?.return_address}</Text>
+                  <Text style={styles.text}>
+                    {data?.return_city}, {data?.return_state}
+                  </Text>
+                  <Text style={styles.text}>
+                    End time: {dayjs(data?.end_time).format("HH:mm")}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </View>
           <Text style={[styles.textBold, { marginTop: 10 }]}>
             Instructions: {data?.instructions}
           </Text>
-          <View style={styles.header2}>
-            <Text style={styles.textBold}>Start Mile: _______</Text>
-            <Text style={styles.textBold}>End Mile: _______</Text>
-            <Text style={styles.textBold}>Fuel (Gallons): _______</Text>
-            <Text style={styles.textBold}>Time Released: _______</Text>
-            <Text style={styles.textBold}>Released By: _______</Text>
-          </View>
+
           <View style={styles.header2}>
             <Text style={styles.textBold}>PLEASE FUEL THE BUS</Text>
             <Text style={styles.textBold}>PARK THE CAR ON BUS SPOT</Text>

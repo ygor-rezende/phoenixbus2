@@ -301,11 +301,6 @@ export const AddClient = () => {
       return;
     }
 
-    if (!state.phone) {
-      setState({ invalidField: "phone" });
-      return;
-    }
-
     if (!state.email) {
       setState({ invalidField: "email" });
       return;
@@ -725,14 +720,9 @@ export const AddClient = () => {
                 />
 
                 <MuiTelInput
-                  error={state.invalidField === "phone"}
-                  helperText={
-                    state.invalidField === "phone" ? "Information required" : ""
-                  }
                   className="textfield"
                   id="phone"
                   defaultCountry="US"
-                  required
                   label="Phone"
                   placeholder="Phone"
                   value={state.phone}

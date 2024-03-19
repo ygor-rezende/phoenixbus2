@@ -1365,25 +1365,21 @@ export const Bookings = () => {
                     />
 
                     <DatePicker
-                      slotProps={{
-                        textField: {
-                          error: state.invalidField === "bookingDate",
-                          helperText:
-                            state.invalidField === "bookingDate"
-                              ? "Information required"
-                              : "",
-                          required: !state.isQuote,
-                        },
-                      }}
-                      label="Booking Date"
+                      error={state.invalidField === "tripStartDate"}
+                      helperText={
+                        state.invalidField === "tripStartDate"
+                          ? "Information required"
+                          : ""
+                      }
+                      label="Trip Start Date"
                       className="textfieldSmall"
-                      id="bookingDate"
+                      id="tripStartDate"
                       timezone="America/New_York"
-                      disabled={state.isQuote}
-                      placeholder="Booking Date"
-                      value={dayjs(state.bookingDate)}
+                      required
+                      placeholder="Trip Start Date"
+                      value={state.tripStartDate}
                       onChange={(newValue) =>
-                        setState({ bookingDate: newValue })
+                        setState({ tripStartDate: dayjs(newValue) })
                       }
                     />
                   </LocalizationProvider>
@@ -1443,21 +1439,25 @@ export const Bookings = () => {
                     adapterLocale="en"
                   >
                     <DatePicker
-                      error={state.invalidField === "tripStartDate"}
-                      helperText={
-                        state.invalidField === "tripStartDate"
-                          ? "Information required"
-                          : ""
-                      }
-                      label="Trip Start Date"
+                      slotProps={{
+                        textField: {
+                          error: state.invalidField === "bookingDate",
+                          helperText:
+                            state.invalidField === "bookingDate"
+                              ? "Information required"
+                              : "",
+                          required: !state.isQuote,
+                        },
+                      }}
+                      label="Booking Date"
                       className="textfieldSmall"
-                      id="tripStartDate"
+                      id="bookingDate"
                       timezone="America/New_York"
-                      required
-                      placeholder="Trip Start Date"
-                      value={state.tripStartDate}
+                      disabled={state.isQuote}
+                      placeholder="Booking Date"
+                      value={dayjs(state.bookingDate)}
                       onChange={(newValue) =>
-                        setState({ tripStartDate: dayjs(newValue) })
+                        setState({ bookingDate: newValue })
                       }
                     />
 
