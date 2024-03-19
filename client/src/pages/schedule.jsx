@@ -237,12 +237,7 @@ export const Schedule = () => {
 
   const generateDriverReport = async (filename, data) => {
     try {
-      const blob = await pdf(
-        <DriverReport
-          data={data}
-          date={new Date().toString().substring(0, 24)}
-        />
-      ).toBlob();
+      const blob = await pdf(<DriverReport data={data} />).toBlob();
       FileSaver.saveAs(blob, filename);
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, "_blank");

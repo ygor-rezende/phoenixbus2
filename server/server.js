@@ -16,6 +16,7 @@ const { Service } = require("./classes/services");
 const { ServiceDetail } = require("./classes/serviceDetail");
 const { Schedule } = require("./classes/schedule");
 const { Driver } = require("./classes/driver");
+const { Payroll } = require("./classes/payroll");
 const cookieParser = require("cookie-parser");
 const verifyJWT = require("./middleware/verifyJWT");
 const credentials = require("./middleware/credentials");
@@ -25,6 +26,7 @@ const verifyRoles = require("./middleware/verifyRoles");
 
 const { onRequest } = require("firebase-functions/v2/https");
 const allowedOrigins = require("./config/allowedOrigins");
+const { Sales } = require("./classes/sales");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -665,6 +667,22 @@ app.get(
     return response;
   }
 );
+//#endregion
+
+//#region reports
+app.get(
+  "/getdriverpayroll/:dates",
+  verifyRoles(ROLES_LIST.admin),
+  async (req, res) => {
+    let response = await Payroll.getDriverPayroll(req, res);
+    return response;
+  }
+);
+
+app.get("/getsales/:dates", verifyRoles(ROLES_LIST.admin), async (req, res) => {
+  let response = await Sales.getSales(req, res);
+  return response;
+});
 
 //#endregion
 

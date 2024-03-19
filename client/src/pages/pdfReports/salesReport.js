@@ -14,8 +14,6 @@ import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
 import { Table, TableCell, TableHeader, TableRow } from "./Table";
 
-import dayjs from "dayjs";
-
 Font.register({
   family: "Roboto",
   fonts: [
@@ -137,90 +135,98 @@ const styles = StyleSheet.create({
   },
 });
 
-const BusesReport = (props) => {
+const SalesReport = (props) => {
   const { data, startDate, endDate } = props;
 
-  //Select only vehicles data
-  const vehiclesData = data
-    ?.map((e) => {
-      let info;
-      if (!e.use_farmout) {
-        info = {
-          vehicle_id: e.vehicle_id,
-          vehicle_name: e.vehicle_name,
-          vehicle_model: e.vehicle_model,
-          end_time: e.end_time,
-          end_location: e.return_location ? e.return_location : e.to_location,
-          end_address: e.return_location ? e.return_address : e.to_address,
-          end_city: e.return_location ? e.return_city : e.to_city,
-        };
-      }
-      return info;
-    })
-    ?.filter((e) => e);
-
-  //Sort by name
-  vehiclesData.sort((a, b) => {
-    return a.vehicle_name - b.vehicle_name;
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
   });
 
-  //create a unique list of vehicles
-  const uniqueVehicles = [
-    ...new Map(vehiclesData.map((e) => [e?.vehicle_id, e])).values(),
-  ];
+  const percentFormater = new Intl.NumberFormat("en-US", {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
+  //sum all sales up
+  let totalSales = data.reduce((sum, cur) => {
+    return sum + Number(cur.total_sales);
+  }, 0);
+
+  //calculate the percentual of sales for each client and add it to data
+  let sales = data.map((e) => {
+    return {
+      agency: e.agency,
+      total: e.total_sales,
+      percent: e.total_sales / totalSales,
+    };
+  });
+
+  totalSales = currencyFormatter.format(totalSales);
+
+  //get total farmout
+  let totalFarmout = currencyFormatter.format(data[0]?.total_farmout);
 
   return (
     <Document>
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Buses Report</Text>
+            <Text style={styles.title}>Total Sales By Client</Text>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
         <Text style={styles.h2}>
-          {startDate === endDate
-            ? startDate
-            : startDate.concat(" to ", endDate)}
+          FROM {startDate} TO {endDate}
         </Text>
 
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="15%" align="left">
-                Bus
+              <TableCell width="40%" align="left">
+                Agency
               </TableCell>
-              <TableCell width="20%" align="left">
-                Model
+              <TableCell width="30%" align="right">
+                Total Sales
               </TableCell>
-              <TableCell width="15%" align="left">
-                End Time
-              </TableCell>
-              <TableCell width="50%" align="left">
-                End Location
+              <TableCell width="30%" align="right">
+                Sales%
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {uniqueVehicles?.map((row) => {
+              {sales?.map((row) => {
                 return (
                   <TableRow key={row.vehicle_id}>
-                    <TableCell width="15%" align="left">
-                      {row?.vehicle_name}
+                    <TableCell width="40%" align="left">
+                      {row?.agency}
                     </TableCell>
-                    <TableCell width="20%" align="left">
-                      {row?.vehicle_model}
+                    <TableCell width="30%" align="right">
+                      {currencyFormatter.format(row?.total)}
                     </TableCell>
-                    <TableCell width="15%" align="left">
-                      {dayjs(row?.end_time).format("HH:mm")}
-                    </TableCell>
-                    <TableCell width="50%" align="left">
-                      {row?.end_location} - {row?.end_address}, {row?.end_city}
+                    <TableCell width="30%" align="right">
+                      {percentFormater.format(row?.percent)}
                     </TableCell>
                   </TableRow>
                 );
               })}
             </View>
           </Table>
+        </View>
+
+        <View style={styles.totalsSection}>
+          <Text style={{ fontSize: 16, marginTop: 10 }}>
+            Summary for the period
+          </Text>
+          <View style={[styles.textBold, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>Total Sales</Text>
+            <Text>Total Farmout</Text>
+          </View>
+          <View style={[styles.text, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>{totalSales}</Text>
+            <Text>{totalFarmout}</Text>
+          </View>
         </View>
 
         <View style={styles.footer} fixed>
@@ -240,4 +246,4 @@ const BusesReport = (props) => {
   );
 };
 
-export default BusesReport;
+export default SalesReport;

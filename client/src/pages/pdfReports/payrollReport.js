@@ -137,44 +137,33 @@ const styles = StyleSheet.create({
   },
 });
 
-const BusesReport = (props) => {
+const PayrollReport = (props) => {
   const { data, startDate, endDate } = props;
 
-  //Select only vehicles data
-  const vehiclesData = data
-    ?.map((e) => {
-      let info;
-      if (!e.use_farmout) {
-        info = {
-          vehicle_id: e.vehicle_id,
-          vehicle_name: e.vehicle_name,
-          vehicle_model: e.vehicle_model,
-          end_time: e.end_time,
-          end_location: e.return_location ? e.return_location : e.to_location,
-          end_address: e.return_location ? e.return_address : e.to_address,
-          end_city: e.return_location ? e.return_city : e.to_city,
-        };
-      }
-      return info;
-    })
-    ?.filter((e) => e);
-
-  //Sort by name
-  vehiclesData.sort((a, b) => {
-    return a.vehicle_name - b.vehicle_name;
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
   });
 
-  //create a unique list of vehicles
-  const uniqueVehicles = [
-    ...new Map(vehiclesData.map((e) => [e?.vehicle_id, e])).values(),
-  ];
+  let totalPayment = data.reduce((sum, cur) => {
+    return sum + Number(cur.payment);
+  }, 0);
+
+  totalPayment = currencyFormatter.format(totalPayment);
+
+  let totalGratuity = data.reduce((sum, cur) => {
+    return sum + Number(cur.gratuity);
+  }, 0);
+
+  totalGratuity = currencyFormatter.format(totalGratuity);
 
   return (
     <Document>
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Buses Report</Text>
+            <Text style={styles.title}>Drivers' Payroll</Text>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
@@ -187,40 +176,54 @@ const BusesReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="15%" align="left">
-                Bus
+              <TableCell width="25%" align="left">
+                Name
               </TableCell>
-              <TableCell width="20%" align="left">
-                Model
+              <TableCell width="25%" align="right">
+                Payment
               </TableCell>
-              <TableCell width="15%" align="left">
-                End Time
+              <TableCell width="25%" align="right">
+                Gratuity
               </TableCell>
-              <TableCell width="50%" align="left">
-                End Location
+              <TableCell width="25%" align="right">
+                Total
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {uniqueVehicles?.map((row) => {
+              {data?.map((row) => {
                 return (
                   <TableRow key={row.vehicle_id}>
-                    <TableCell width="15%" align="left">
-                      {row?.vehicle_name}
+                    <TableCell width="25%" align="left">
+                      {row?.driver}
                     </TableCell>
-                    <TableCell width="20%" align="left">
-                      {row?.vehicle_model}
+                    <TableCell width="25%" align="right">
+                      {currencyFormatter.format(row?.payment)}
                     </TableCell>
-                    <TableCell width="15%" align="left">
-                      {dayjs(row?.end_time).format("HH:mm")}
+                    <TableCell width="25%" align="right">
+                      {currencyFormatter.format(row?.gratuity)}
                     </TableCell>
-                    <TableCell width="50%" align="left">
-                      {row?.end_location} - {row?.end_address}, {row?.end_city}
+                    <TableCell width="25%" align="right">
+                      {currencyFormatter.format(row?.total)}
                     </TableCell>
                   </TableRow>
                 );
               })}
             </View>
           </Table>
+        </View>
+
+        <View style={styles.totalsSection}>
+          <Text style={{ fontSize: 16, marginTop: 10 }}>
+            Summary for the period
+          </Text>
+          <View style={[styles.textBold, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>Total Payment</Text>
+            <Text>Total Gratuity</Text>
+          </View>
+          <View style={[styles.text, styles.innerBoard]}>
+            <Text style={{ marginBottom: 10 }}>{totalPayment}</Text>
+            <Text>{totalGratuity}</Text>
+          </View>
         </View>
 
         <View style={styles.footer} fixed>
@@ -240,4 +243,4 @@ const BusesReport = (props) => {
   );
 };
 
-export default BusesReport;
+export default PayrollReport;

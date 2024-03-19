@@ -1,10 +1,11 @@
 import useAuth from "../hooks/useAuth";
+import logo from "../images/phoenix_logo.png";
 
 export const HomePage = () => {
   const { auth } = useAuth();
   return (
     <div>
-      <h1>Home Page</h1>
+      <img src={logo} alt="Phoenix Logo" />
       {auth?.userName ? (
         <>
           <h4>Welcome {auth.userName}</h4>

@@ -506,7 +506,7 @@ const Contract = (props) => {
         </View>
         <View style={styles.footer} fixed>
           <Text>
-            5387 L.B. MCLEOD RD * ORLANDO * FL * 32811 * PH: 888-755-5398 * FAX:
+            3220 37TH ST * ORLANDO * FL * 32839 * PH: 888-755-5398 * FAX:
             407-517-4788
           </Text>
           <Text>contact@phoenixbusorlando.com - www.phoenixbusorlando.com</Text>

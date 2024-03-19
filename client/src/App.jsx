@@ -23,6 +23,7 @@ import { Bookings } from "./pages/bookings.jsx";
 import RequireAuth from "./Authentication/RequireAuth.js";
 import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
+import { Sales } from "./pages/sales.jsx";
 
 const App = () => {
   const ROLES = {
@@ -74,6 +75,7 @@ const App = () => {
                 <Route path="/driverpayroll" element={<DriverPayroll />} />
                 <Route path="/farmout" element={<FarmOut />} />
                 <Route path="/employee" element={<Employee />} />
+                <Route path="/sales" element={<Sales />} />
               </Route>
             </Route>
           </Route>

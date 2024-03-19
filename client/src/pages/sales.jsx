@@ -13,11 +13,11 @@ import dayjs from "dayjs";
 import { UsePrivateGet } from "../hooks/useFetchServer";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import PayrollReport from "./pdfReports/payrollReport";
+import SalesReport from "./pdfReports/salesReport";
 import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 
-export const DriverPayroll = () => {
+export const Sales = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ export const DriverPayroll = () => {
     setOpenSnakbar(false);
   };
 
-  const handleGetPayroll = async () => {
+  const handleGetSales = async () => {
     try {
       //set the start and end hours to 00:00 and 23:59
       let start = new Date(startDate);
@@ -58,7 +58,7 @@ export const DriverPayroll = () => {
       });
 
       //fetch data
-      const response = await getServer(`/getdriverpayroll/${dates}`);
+      const response = await getServer(`/getsales/${dates}`);
       if (response.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
@@ -70,8 +70,8 @@ export const DriverPayroll = () => {
       //no error
       else {
         const responseData = await response.data;
-        generatePayroll(
-          `Payroll_${
+        generateSalesReport(
+          `Sales_${
             startDate === endDate
               ? new Date(startDate).toLocaleDateString()
               : new Date(startDate)
@@ -86,11 +86,11 @@ export const DriverPayroll = () => {
     }
   };
 
-  //function to generate contract PDF
-  const generatePayroll = async (filename, data) => {
+  //function to generate Sales report PDF
+  const generateSalesReport = async (filename, data) => {
     try {
       const blob = await pdf(
-        <PayrollReport
+        <SalesReport
           data={data}
           startDate={new Date(startDate).toLocaleDateString()}
           endDate={new Date(endDate).toLocaleDateString()}
@@ -108,7 +108,7 @@ export const DriverPayroll = () => {
   return (
     <Fragment>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
-        Drivers' Payroll
+        Sales By Client
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "center", margin: "1em" }}>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
@@ -142,11 +142,11 @@ export const DriverPayroll = () => {
         </LocalizationProvider>
       </Box>
       <Button
-        onClick={handleGetPayroll}
+        onClick={handleGetSales}
         disabled={buttonDisabled}
         variant="contained"
       >
-        Create Payroll
+        Create Sales Report
       </Button>
 
       <Snackbar
