@@ -141,14 +141,23 @@ const BusesReport = (props) => {
   const { data, startDate, endDate } = props;
 
   //Select only vehicles data
-  const vehiclesData = data?.map((e) => {
-    return {
-      vehicle_id: e.vehicle_id,
-      vehicle_name: e.vehicle_name,
-      vehicle_model: e.vehicle_model,
-      tag: e.tag,
-    };
-  });
+  const vehiclesData = data
+    ?.map((e) => {
+      let info;
+      if (!e.use_farmout) {
+        info = {
+          vehicle_id: e.vehicle_id,
+          vehicle_name: e.vehicle_name,
+          vehicle_model: e.vehicle_model,
+          end_time: e.end_time,
+          end_location: e.return_location ? e.return_location : e.to_location,
+          end_address: e.return_location ? e.return_address : e.to_address,
+          end_city: e.return_location ? e.return_city : e.to_city,
+        };
+      }
+      return info;
+    })
+    ?.filter((e) => e);
 
   //Sort by name
   vehiclesData.sort((a, b) => {
@@ -157,7 +166,7 @@ const BusesReport = (props) => {
 
   //create a unique list of vehicles
   const uniqueVehicles = [
-    ...new Map(vehiclesData.map((e) => [e["vehicle_id"], e])).values(),
+    ...new Map(vehiclesData.map((e) => [e?.vehicle_id, e])).values(),
   ];
 
   return (
@@ -178,28 +187,34 @@ const BusesReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="33%" align="left">
+              <TableCell width="15%" align="left">
                 Bus
               </TableCell>
-              <TableCell width="33%" align="left">
+              <TableCell width="20%" align="left">
                 Model
               </TableCell>
-              <TableCell width="33%" align="left">
-                Tag
+              <TableCell width="15%" align="left">
+                End Time
+              </TableCell>
+              <TableCell width="50%" align="left">
+                End Location
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
               {uniqueVehicles?.map((row) => {
                 return (
                   <TableRow key={row.vehicle_id}>
-                    <TableCell width="33%" align="left">
+                    <TableCell width="15%" align="left">
                       {row?.vehicle_name}
                     </TableCell>
-                    <TableCell width="33%" align="left">
+                    <TableCell width="20%" align="left">
                       {row?.vehicle_model}
                     </TableCell>
-                    <TableCell width="33%" align="left">
-                      {row?.tag}
+                    <TableCell width="15%" align="left">
+                      {dayjs(row?.end_time).format("HH:mm")}
+                    </TableCell>
+                    <TableCell width="50%" align="left">
+                      {row?.end_location} - {row?.end_address}, {row?.end_city}
                     </TableCell>
                   </TableRow>
                 );
