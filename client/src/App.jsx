@@ -24,6 +24,7 @@ import RequireAuth from "./Authentication/RequireAuth.js";
 import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
 import { Sales } from "./pages/sales.jsx";
+import Payment from "./pages/payment.jsx";
 
 const App = () => {
   const ROLES = {
@@ -73,6 +74,7 @@ const App = () => {
               >
                 <Route path="/sales" element={<Sales />} />
                 <Route path="/driverpayroll" element={<DriverPayroll />} />
+                <Route path="/payments" element={<Payment />} />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.admin]} />}>
                 <Route path="/signup" element={<Register />} exact />

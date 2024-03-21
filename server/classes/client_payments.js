@@ -29,13 +29,13 @@ class Payments {
       await pool.query(
         `CALL create_payment_transaction(
         invoice => $1::TEXT,
-        client_id => $2::TEXT,
-	    amount => $3,
-	    transaction_date => $4::TEXT,
-	    transaction_type => $5::character,
-	    payment_type => $6::TEXT,
-	    doc_number => $7::TEXT
-       )`,
+        clientId => $2::TEXT,
+        amount => $3::NUMERIC,
+        transaction_date => $4::TEXT,
+        transaction_type => $5::character,
+        payment_type => $6::TEXT,
+        doc_number => $7::TEXT
+        )`,
         [
           payment.invoice,
           payment.clientId,

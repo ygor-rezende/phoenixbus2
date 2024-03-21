@@ -197,3 +197,21 @@
   .lineVertical {
     transform: rotate(90deg);
   }
+
+  .payments-box{
+    margin: 2em auto;
+    width: 50%;
+  }
+
+  .invoice-box{
+    padding: 1em;
+    margin-bottom: 2em;
+    display: inline-flex;
+    width: 90%;
+    justify-content: space-around;
+  }
+
+  .payments-fields{
+    width: 90%;
+    margin: 10px 10px !important;
+  }

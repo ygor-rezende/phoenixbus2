@@ -260,6 +260,13 @@ const APPBar = () => {
               >
                 Sales
               </MenuItem>
+              <MenuItem
+                component={NavLink}
+                to="/payments"
+                onClick={handleCloseAccounting}
+              >
+                Payments
+              </MenuItem>
             </Menu>
 
             {userType === ROLES.admin ? (
