@@ -24,6 +24,9 @@ import useAuth from "../hooks/useAuth";
 import dayjs from "dayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import PendingPaymentsReport from "./pdfReports/pendingPayments";
+import { pdf } from "@react-pdf/renderer";
+import * as FileSaver from "file-saver";
 
 const Payment = () => {
   const [data, setData] = useState([]);
@@ -111,6 +114,49 @@ const Payment = () => {
       setSuccess(false);
       setError(response.error);
       setOpenSnakbar(true);
+    }
+  }; //handleSubmit
+
+  const handleGetPendingPayments = async () => {
+    try {
+      //fetch data
+      const response = await getServer(`/getpendingpayments`);
+      if (response.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+        //other errors
+      } else if (response.error) {
+        setError(response.error);
+        setOpenSnakbar(true);
+      }
+      //no error
+      else {
+        const responseData = await response.data;
+        generateReport(
+          `Pending-Payments_${new Date().toLocaleDateString()}`,
+          responseData
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  //function to generate Sales report PDF
+  const generateReport = async (filename, data) => {
+    try {
+      const blob = await pdf(
+        <PendingPaymentsReport
+          data={data}
+          date={new Date().toLocaleDateString()}
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
     }
   };
 
@@ -281,14 +327,19 @@ const Payment = () => {
             Reports
           </Typography>
           <Stack>
-            <Button variant="outlined" size="small" style={{ margin: "auto" }}>
+            <Button
+              variant="outlined"
+              size="small"
+              style={{ margin: "auto" }}
+              onClick={handleGetPendingPayments}
+            >
               Pending Payments
             </Button>
           </Stack>
         </Paper>
       </Box>
       <Snackbar
-        open={error && openSnakbar}
+        open={error.length > 0 && openSnakbar}
         autoHideDuration={5000}
         onClose={handleClose}
       >

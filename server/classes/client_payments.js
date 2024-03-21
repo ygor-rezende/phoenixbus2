@@ -54,6 +54,16 @@ class Payments {
       return res.status(500).json({ message: err.message });
     }
   } //processPayment
+
+  static async getPendingPayments() {
+    try {
+      const result = await pool.query(`SELECT * FROM get_pending_payments()`);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getPendingPayments
 }
 
 module.exports = { Payments };

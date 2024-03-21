@@ -708,6 +708,15 @@ app.post(
     return response;
   }
 );
+
+app.get(
+  "/getpendingpayments",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payments.getPendingPayments();
+    res.json(response);
+  }
+);
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
