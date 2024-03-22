@@ -291,7 +291,7 @@ export const ScheduledRoutes = () => {
                     </Typography>
                     <Box sx={{ display: "inline-flex" }}>
                       <Typography>
-                        Service Time:{" "}
+                        Start Time:{" "}
                         {dayjs(todaysTrip?.startTime).format(
                           "MMMM D, YYYY HH:mm"
                         )}{" "}
