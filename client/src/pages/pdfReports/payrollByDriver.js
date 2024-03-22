@@ -13,6 +13,7 @@ import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
 import { Table, TableCell, TableHeader, TableRow } from "./Table";
+
 import dayjs from "dayjs";
 
 Font.register({
@@ -64,6 +65,10 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto",
     fontSize: 10,
   },
+  textBig: {
+    fontFamily: "Roboto",
+    fontSize: 14,
+  },
   paragraph: {
     marginBottom: 5,
     textAlign: "justify",
@@ -85,7 +90,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   innerBoard: {
-    marginLeft: 10,
+    marginLeft: 15,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
   },
   contentSection: {
     marginTop: 20,
@@ -118,11 +126,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   totalsSection: {
-    marginTop: 20,
     paddingTop: 10,
-    borderTop: 1,
+    borderBottom: 1,
     display: "flex",
-    justifyContent: "space-around",
+    justifyContent: "flex-end",
     flexDirection: "row",
   },
   footer: {
@@ -136,8 +143,8 @@ const styles = StyleSheet.create({
   },
 });
 
-const PendingPaymentsReport = (props) => {
-  const { data, date } = props;
+const PayrollByDriver = (props) => {
+  const { data, startDate, endDate } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -145,141 +152,135 @@ const PendingPaymentsReport = (props) => {
     minimumFractionDigits: 2,
   });
 
-  const cliData = data?.map((e) => {
+  //Group drivers and sum total payment and gratuity for each
+  const empData = data?.map((e) => {
+    const totalPay = data
+      ?.filter((item) => item.employee_id === e.employee_id)
+      ?.reduce((sum, cur) => {
+        return sum + Number(cur.payment);
+      }, 0);
+    const totalGrat = data
+      ?.filter((item) => item.employee_id === e.employee_id)
+      ?.reduce((sum, cur) => {
+        return sum + Number(cur.gratuity);
+      }, 0);
     return {
-      clientId: e.client_id,
-      agency: e.agency,
-      balance: e.balance,
-      received: e.received,
+      empId: e.employee_id,
+      driver: e.driver,
+      totPay: totalPay,
+      totGrat: totalGrat,
     };
   });
 
-  const uniqueClients = [
-    ...new Map(cliData.map((e) => [e.clientId, e])).values(),
+  //creates an unique list
+  const uniqueEmployees = [
+    ...new Map(empData.map((e) => [e.empId, e])).values(),
   ];
-
-  //sum all sales up
-  let totalSales = data.reduce((sum, cur) => {
-    return sum + Number(cur.cost);
-  }, 0);
-
-  let totalReceived = uniqueClients.reduce((sum, cur) => {
-    return sum + Number(cur.received);
-  }, 0);
-
-  let totalBalance = uniqueClients.reduce((sum, cur) => {
-    return sum + Number(cur.balance);
-  }, 0);
-
-  //calculate the percentual of sales for each client and add it to data
-
-  totalSales = currencyFormatter.format(totalSales);
-  totalReceived = currencyFormatter.format(totalReceived);
-  totalBalance = currencyFormatter.format(totalBalance);
 
   return (
     <Document>
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Pending Invoices</Text>
+            <Text style={styles.title}>Drivers' Payroll</Text>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
-        <Text style={styles.h2}>{date}</Text>
+        <Text style={styles.h2}>
+          {startDate === endDate
+            ? startDate
+            : startDate.concat(" to ", endDate)}
+        </Text>
 
         <View style={styles.tableSection}>
           <Table>
-            <TableHeader>
-              <TableCell width="29%" align="left">
-                Agency
-              </TableCell>
-              <TableCell width="15%" align="left">
-                Invoice
-              </TableCell>
-              <TableCell width="10%" align="left">
-                Date
-              </TableCell>
-              <TableCell width="10%" align="right">
-                Age
-              </TableCell>
-              <TableCell width="12%" align="right">
-                Amount
-              </TableCell>
-              <TableCell width="12%" align="right">
-                Received
-              </TableCell>
-              <TableCell width="12%" align="right">
-                Balance
-              </TableCell>
-            </TableHeader>
             <View>
-              {uniqueClients?.map((row) => {
+              {uniqueEmployees?.map((row) => {
                 const services = data?.filter(
-                  (e) => e.client_id === row.clientId
+                  (e) => e.employee_id === row.empId
                 );
                 return (
-                  <View>
-                    <View style={{ borderBottom: 0.5, marginTop: 10 }}>
-                      <TableRow key={row.clientId}>
-                        <TableCell width="76%" align="left">
-                          {row?.agency}
+                  <View style={{ marginTop: 10 }}>
+                    <Text style={styles.textBig}>Driver: {row?.driver}</Text>
+                    <View>
+                      <TableHeader>
+                        <TableCell width="10%" align="left">
+                          Date
+                        </TableCell>
+                        <TableCell width="8%" align="left">
+                          Start
+                        </TableCell>
+                        <TableCell width="8%" align="left">
+                          End
+                        </TableCell>
+                        <TableCell width="21%" align="left">
+                          From
+                        </TableCell>
+                        <TableCell width="21%" align="left">
+                          To
                         </TableCell>
                         <TableCell width="12%" align="right">
-                          {currencyFormatter.format(row?.received)}
+                          Invoice
                         </TableCell>
-                        <TableCell width="12%" align="right">
-                          {currencyFormatter.format(row?.balance)}
+                        <TableCell width="10%" align="right">
+                          Payment
                         </TableCell>
-                      </TableRow>
+                        <TableCell width="10%" align="right">
+                          Gratuity
+                        </TableCell>
+                      </TableHeader>
                     </View>
                     <View>
                       {services?.map((serv, index) => {
                         return (
                           <TableRow key={index}>
-                            <TableCell width="29%" align="left">
-                              {serv.service_name}
-                            </TableCell>
-                            <TableCell width="15%" align="left">
-                              {serv.invoice}
-                            </TableCell>
                             <TableCell width="10%" align="left">
                               {dayjs(serv.service_date).format("l")}
                             </TableCell>
-                            <TableCell width="10%" align="right">
-                              {dayjs(new Date()).diff(
-                                serv.service_date,
-                                "days"
-                              )}
+                            <TableCell width="8%" align="left">
+                              {dayjs(serv.start_time).format("HH:mm")}
+                            </TableCell>
+                            <TableCell width="8%" align="left">
+                              {dayjs(serv.end_time).format("HH:mm")}
+                            </TableCell>
+                            <TableCell width="21%" align="left">
+                              {serv.location_from}
+                            </TableCell>
+                            <TableCell width="21%" align="left">
+                              {serv.location_to}
                             </TableCell>
                             <TableCell width="12%" align="right">
-                              {currencyFormatter.format(serv.cost)}
+                              {serv.invoice}
                             </TableCell>
-                            <TableCell width="12%" align="right"></TableCell>
-                            <TableCell width="12%" align="right"></TableCell>
+                            <TableCell width="10%" align="right">
+                              {currencyFormatter.format(serv.payment)}
+                            </TableCell>
+                            <TableCell width="10%" align="right">
+                              {currencyFormatter.format(serv.gratuity)}
+                            </TableCell>
                           </TableRow>
                         );
                       })}
+                    </View>
+                    <View style={styles.totalsSection}>
+                      <View style={[styles.textBold, styles.innerBoard]}>
+                        <Text>Payments:</Text>
+                        <Text>Gratuities:</Text>
+                        <Text>Total:</Text>
+                      </View>
+                      <View style={[styles.text, styles.innerBoard]}>
+                        <Text>{currencyFormatter.format(row.totPay)}</Text>
+                        <Text>{currencyFormatter.format(row.totGrat)}</Text>
+                        <Text>
+                          {currencyFormatter.format(row.totGrat + row.totPay)}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 );
               })}
             </View>
           </Table>
-        </View>
-
-        <View style={styles.totalsSection}>
-          <Text style={{ fontSize: 16, marginTop: 10 }}>Summary</Text>
-          <View style={[styles.textBold, styles.innerBoard]}>
-            <Text>Total Sales</Text>
-            <Text>Total Received</Text>
-            <Text>Total Balance</Text>
-          </View>
-          <View style={[styles.text, styles.innerBoard]}>
-            <Text>{totalSales}</Text>
-            <Text>{totalReceived}</Text>
-            <Text>{totalBalance}</Text>
-          </View>
         </View>
 
         <View style={styles.footer} fixed>
@@ -299,4 +300,4 @@ const PendingPaymentsReport = (props) => {
   );
 };
 
-export default PendingPaymentsReport;
+export default PayrollByDriver;

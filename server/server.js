@@ -681,6 +681,15 @@ app.get(
 );
 
 app.get(
+  "/getpayrollbydriver/:dates",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payroll.getPayrollByDriver(req, res);
+    return response;
+  }
+);
+
+app.get(
   "/getsales/:dates",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
   async (req, res) => {

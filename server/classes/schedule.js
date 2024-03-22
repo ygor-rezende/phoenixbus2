@@ -64,7 +64,7 @@ class Schedule {
         join locations lt on lt.location_id = d.to_location_id
         full outer join locations lr on lr.location_id = d.return_location_id
         full outer join companies c on c.company_id = d.company_id
-        WHERE s.service_date >= $1 AND s.service_date < $2
+        WHERE b.is_quote = false AND s.service_date >= $1 AND s.service_date < $2
         ORDER BY s.service_date, d.start_time`,
         [newDates.startDate, newEndDate]
       );
