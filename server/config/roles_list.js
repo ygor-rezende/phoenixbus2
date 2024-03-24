@@ -3,6 +3,7 @@ const ROLES_LIST = {
   dispatch: 8259,
   sales: 4174,
   driver: 6935,
+  financial: 3845,
 };
 
 module.exports = ROLES_LIST;

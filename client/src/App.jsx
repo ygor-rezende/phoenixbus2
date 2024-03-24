@@ -24,6 +24,7 @@ import RequireAuth from "./Authentication/RequireAuth.js";
 import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
 import { Sales } from "./pages/sales.jsx";
+import Payment from "./pages/payment.jsx";
 
 const App = () => {
   const ROLES = {
@@ -32,6 +33,7 @@ const App = () => {
     dispatch: 8259,
     sales: 4174,
     driver: 6935,
+    financial: 3845,
   };
 
   return (
@@ -59,23 +61,24 @@ const App = () => {
                 <Route path="/servicelocations" element={<ServiceLocation />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/schedule" element={<Schedule />} />
+                <Route path="/farmout" element={<FarmOut />} />
+                <Route path="/addvehicle" element={<AddVehicle />} exact />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.driver]} />}>
                 <Route path="/driverpage" element={<ScheduledRoutes />} />
               </Route>
               <Route
                 element={
-                  <RequireAuth allowedRoles={[ROLES.admin, ROLES.dispatch]} />
+                  <RequireAuth allowedRoles={[ROLES.admin, ROLES.financial]} />
                 }
               >
-                <Route path="/addvehicle" element={<AddVehicle />} exact />
+                <Route path="/sales" element={<Sales />} />
+                <Route path="/driverpayroll" element={<DriverPayroll />} />
+                <Route path="/payments" element={<Payment />} />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.admin]} />}>
                 <Route path="/signup" element={<Register />} exact />
-                <Route path="/driverpayroll" element={<DriverPayroll />} />
-                <Route path="/farmout" element={<FarmOut />} />
                 <Route path="/employee" element={<Employee />} />
-                <Route path="/sales" element={<Sales />} />
               </Route>
             </Route>
           </Route>

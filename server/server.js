@@ -27,6 +27,7 @@ const verifyRoles = require("./middleware/verifyRoles");
 const { onRequest } = require("firebase-functions/v2/https");
 const allowedOrigins = require("./config/allowedOrigins");
 const { Sales } = require("./classes/sales");
+const { Payments } = require("./classes/client_payments");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -672,18 +673,59 @@ app.get(
 //#region reports
 app.get(
   "/getdriverpayroll/:dates",
-  verifyRoles(ROLES_LIST.admin),
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
   async (req, res) => {
     let response = await Payroll.getDriverPayroll(req, res);
     return response;
   }
 );
 
-app.get("/getsales/:dates", verifyRoles(ROLES_LIST.admin), async (req, res) => {
-  let response = await Sales.getSales(req, res);
-  return response;
-});
+app.get(
+  "/getpayrollbydriver/:dates",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payroll.getPayrollByDriver(req, res);
+    return response;
+  }
+);
 
+app.get(
+  "/getsales/:dates",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Sales.getSales(req, res);
+    return response;
+  }
+);
+//#endregion
+
+//#region payments
+app.get(
+  "/getinvoicestopay",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payments.getInvoices();
+    res.json(response);
+  }
+);
+
+app.post(
+  "/processpayment",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payments.processPayment(req, res);
+    return response;
+  }
+);
+
+app.get(
+  "/getpendingpayments",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await Payments.getPendingPayments();
+    res.json(response);
+  }
+);
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)

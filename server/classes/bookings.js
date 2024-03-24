@@ -48,7 +48,7 @@ class Booking {
       } else invoice = booking.invoice;
 
       //insert the new Booking
-      const newBooking = await pool.query(
+      await pool.query(
         `CALL create_booking(invoice => $1::TEXT, 
           client_id => $2::TEXT, 
           employee_id => $3::TEXT, 
@@ -93,7 +93,7 @@ class Booking {
           booking.changeUser,
         ]
       );
-      console.log(newBooking.rowCount);
+
       //send the reponse to booking
       return res.status(201).json(`Booking/Quote ${invoice} created`);
     } catch (err) {

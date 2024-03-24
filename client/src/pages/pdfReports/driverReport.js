@@ -242,7 +242,7 @@ const DriverReport = (props) => {
                   Spot Time: {dayjs(data?.spot_time).format("HH:mm")}
                 </Text>
                 <Text style={styles.text}>
-                  Service time: {dayjs(data?.start_time).format("HH:mm")}
+                  Start time: {dayjs(data?.start_time).format("HH:mm")}
                 </Text>
               </View>
 

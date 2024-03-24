@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Snackbar,
+  Stack,
   Typography,
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -14,6 +15,7 @@ import { UsePrivateGet } from "../hooks/useFetchServer";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import PayrollReport from "./pdfReports/payrollReport";
+import PayrollByDriver from "./pdfReports/payrollByDriver";
 import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 
@@ -43,7 +45,7 @@ export const DriverPayroll = () => {
     setOpenSnakbar(false);
   };
 
-  const handleGetPayroll = async () => {
+  const handleGetPayroll = async (byDriver) => {
     try {
       //set the start and end hours to 00:00 and 23:59
       let start = new Date(startDate);
@@ -58,7 +60,13 @@ export const DriverPayroll = () => {
       });
 
       //fetch data
-      const response = await getServer(`/getdriverpayroll/${dates}`);
+      let response;
+      if (byDriver) {
+        response = await getServer(`/getpayrollbydriver/${dates}`);
+      } else {
+        response = await getServer(`/getdriverpayroll/${dates}`);
+      }
+
       if (response.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
@@ -71,14 +79,15 @@ export const DriverPayroll = () => {
       else {
         const responseData = await response.data;
         generatePayroll(
-          `Payroll_${
+          `Payroll_${byDriver ? "byDriver_" : ""}${
             startDate === endDate
               ? new Date(startDate).toLocaleDateString()
               : new Date(startDate)
                   .toLocaleDateString()
                   .concat("_", new Date(endDate).toLocaleDateString())
           }`,
-          responseData
+          responseData,
+          byDriver
         );
       }
     } catch (err) {
@@ -87,15 +96,26 @@ export const DriverPayroll = () => {
   };
 
   //function to generate contract PDF
-  const generatePayroll = async (filename, data) => {
+  const generatePayroll = async (filename, data, byDriver) => {
     try {
-      const blob = await pdf(
-        <PayrollReport
-          data={data}
-          startDate={new Date(startDate).toLocaleDateString()}
-          endDate={new Date(endDate).toLocaleDateString()}
-        />
-      ).toBlob();
+      let blob;
+      if (byDriver)
+        blob = await pdf(
+          <PayrollByDriver
+            data={data}
+            startDate={new Date(startDate).toLocaleDateString()}
+            endDate={new Date(endDate).toLocaleDateString()}
+          />
+        ).toBlob();
+      else
+        blob = await pdf(
+          <PayrollReport
+            data={data}
+            startDate={new Date(startDate).toLocaleDateString()}
+            endDate={new Date(endDate).toLocaleDateString()}
+          />
+        ).toBlob();
+
       FileSaver.saveAs(blob, filename);
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, "_blank");
@@ -141,13 +161,27 @@ export const DriverPayroll = () => {
           />
         </LocalizationProvider>
       </Box>
-      <Button
-        onClick={handleGetPayroll}
-        disabled={buttonDisabled}
-        variant="contained"
+      <Stack
+        direction="row"
+        spacing={2}
+        marginBottom={2}
+        justifyContent="center"
       >
-        Create Payroll
-      </Button>
+        <Button
+          onClick={() => handleGetPayroll(false)}
+          disabled={buttonDisabled}
+          variant="contained"
+        >
+          Payroll
+        </Button>
+        <Button
+          onClick={() => handleGetPayroll(true)}
+          disabled={buttonDisabled}
+          variant="contained"
+        >
+          Payroll By Driver
+        </Button>
+      </Stack>
 
       <Snackbar
         open={openSnakbar}
