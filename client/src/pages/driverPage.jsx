@@ -79,6 +79,7 @@ export const ScheduledRoutes = () => {
             spotTime: item.spot_time,
             startTime: item.start_time,
             endTime: item.end_time,
+            returnTime: item.return_time,
             instructions: item.instructions,
             fromLocationName: item.from_location_name,
             fromAddress: item.from_address,
@@ -117,7 +118,7 @@ export const ScheduledRoutes = () => {
 
       //set upcoming trips
       const upcoming = tripsData?.filter(
-        (trip) => dayjs(trip.serviceDate).format("l") > today
+        (trip) => dayjs(trip.serviceDate).diff(dayjs(today)) > 0
       );
       setUpcomingTrips(upcoming);
     }; //refineData
@@ -341,6 +342,14 @@ export const ScheduledRoutes = () => {
                       ).format("MMMM D, YYYY HH:mm")}
                     </Typography>
                     <Typography>Estimated Distance: {distance.text}</Typography>
+                    {todaysTrip?.returnTime && (
+                      <Typography>
+                        Return Time:{" "}
+                        {dayjs(todaysTrip?.returnTime).format(
+                          "MMMM D, YYYY HH:mm"
+                        )}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Box>

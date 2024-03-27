@@ -39,16 +39,19 @@ const initialState = {
   companyId: null,
   fromLocationId: "",
   toLocationId: "",
+  returnLocationId: "",
   serviceDate: "",
   spotTime: null,
   startTime: null,
   endTime: null,
+  returnTime: null,
   driver: null,
   vehicle: null,
   company: null,
   payment: 0.0,
   from: null,
   to: null,
+  return: null,
   instructions: "",
   charge: 0.0,
   openModal: false,
@@ -96,10 +99,12 @@ export const ScheduleModal = (props) => {
         companyId: rowData?.company_id,
         fromLocationId: rowData?.from_location_id,
         toLocationId: rowData?.to_location_id,
+        returnLocationId: rowData?.return_location_id,
         serviceDate: rowData?.service_date,
         spotTime: dayjs(rowData?.spot_time),
         startTime: dayjs(rowData?.start_time),
         endTime: dayjs(rowData?.end_time),
+        returnTime: dayjs(rowData?.return_time),
         driver: rowData?.firstname
           ? `${rowData?.firstname} ${rowData?.lastname}`
           : null,
@@ -108,6 +113,7 @@ export const ScheduleModal = (props) => {
         payment: rowData?.payment,
         from: rowData?.from_location,
         to: rowData?.to_location,
+        return: rowData?.return_location,
         instructions: rowData?.instructions,
         charge: rowData?.charge,
         useFarmout: rowData?.use_farmout,
@@ -192,6 +198,7 @@ export const ScheduleModal = (props) => {
         spotTime: state.spotTime,
         startTime: state.startTime,
         endTime: state.endTime,
+        returnTime: state.returnTime,
         instructions: state.instructions,
         payment: state.payment,
         employeeId: state.employeeId,
@@ -199,6 +206,7 @@ export const ScheduleModal = (props) => {
         companyId: state.companyId,
         fromLocationId: state.fromLocationId,
         toLocationId: state.toLocationId,
+        returnLocationId: state.returnLocationId,
         useFarmout: state.useFarmout,
         changeUser: auth.userName,
       },
@@ -237,15 +245,18 @@ export const ScheduleModal = (props) => {
       companyId: null,
       fromLocationId: "",
       toLocationId: "",
+      returnLocationId: "",
       spotTime: null,
       startTime: null,
       endTime: null,
+      returnTime: null,
       driver: null,
       vehicle: null,
       company: null,
       payment: 0.0,
       from: null,
       to: null,
+      return: null,
       instructions: "",
       charge: 0.0,
       openModal: false,
@@ -346,6 +357,16 @@ export const ScheduleModal = (props) => {
       setState({
         toLocationId: newValue.locationId,
         to: newValue.locationName,
+      });
+    }
+  };
+
+  //handle changes on Return Location autocomplete
+  const handleReturnLocationChange = (e, newValue) => {
+    if (newValue) {
+      setState({
+        returnLocationId: newValue.locationId,
+        return: newValue.locationName,
       });
     }
   };
@@ -697,6 +718,57 @@ export const ScheduleModal = (props) => {
                 )}
               />
             </div>
+
+            {rowData?.service_code === "RT" && (
+              <div
+                id="return-box"
+                className="modalField"
+                style={{ display: "inline-block" }}
+              >
+                <Autocomplete
+                  id="return"
+                  className="autocomplete"
+                  value={state.return}
+                  onChange={handleReturnLocationChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.locationName === value
+                  }
+                  options={
+                    locData?.map((element) => {
+                      const location = {
+                        locationId: element.location_id,
+                        locationName: element.location_name,
+                      };
+                      return location;
+                    }) ?? []
+                  }
+                  sx={{ width: 200 }}
+                  getOptionLabel={(option) => option.locationName ?? option}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Return location" />
+                  )}
+                />
+              </div>
+            )}
+
+            {rowData?.service_code === "RT" && (
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="en"
+              >
+                <DateTimePicker
+                  label="Return time"
+                  className="modalField"
+                  id="returnTime"
+                  ampm={false}
+                  timezone="America/New_York"
+                  value={state.returnTime}
+                  onChange={(newValue) =>
+                    setState({ returnTime: dayjs(newValue) })
+                  }
+                />
+              </LocalizationProvider>
+            )}
 
             <TextField
               id="instructions"

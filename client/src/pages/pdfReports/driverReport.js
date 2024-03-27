@@ -252,12 +252,17 @@ const DriverReport = (props) => {
                 <Text style={styles.text}>
                   {data?.to_city}, {data?.to_state}
                 </Text>
+                {data?.return_location ? (
+                  <Text style={styles.text}>
+                    Return time: {dayjs(data?.return_time).format("HH:mm")}
+                  </Text>
+                ) : null}
               </View>
 
               {data?.return_location ? (
                 <View style={styles.innerBoard}>
                   <Text style={styles.textBold}>
-                    Return: {data?.return_location}
+                    End: {data?.return_location}
                   </Text>
                   <Text style={styles.text}>{data?.return_address}</Text>
                   <Text style={styles.text}>

@@ -61,6 +61,7 @@ const initialState = {
   spotTime: null,
   startTime: null,
   endTime: null,
+  returnTime: null,
   instructions: "",
   payment: 0.0,
   gratuity: 0.0,
@@ -202,6 +203,7 @@ export const DetailModal = (props) => {
           spotTime: dayjs(data.spot_time),
           startTime: dayjs(data.start_time),
           endTime: dayjs(data.end_time),
+          returnTime: dayjs(data.return_time),
           instructions: data.instructions,
           payment: data.payment,
           gratuity: data.gratuity,
@@ -310,6 +312,7 @@ export const DetailModal = (props) => {
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
+          returnTime: state.returnTime,
           instructions: state.instructions,
           payment: state.payment,
           gratuity: state.gratuity,
@@ -334,11 +337,14 @@ export const DetailModal = (props) => {
       }
     } //if !onEditMode
     else {
-      //check if service code is != RT to set null to service location
-      const returnLocation =
-        serviceData?.service_code !== "RT"
-          ? null
-          : state.returnServiceLocationId;
+      //check if service code is != RT to set null to return location and return time
+
+      let returnLocation = state.returnServiceLocationId;
+      let returnTime = state.returnTime;
+      if (serviceData?.service_code !== "RT") {
+        returnLocation = null;
+        returnTime = null;
+      }
 
       const tripLength =
         serviceData?.service_code !== "CH" ? 0 : state.tripLength;
@@ -356,6 +362,7 @@ export const DetailModal = (props) => {
           spotTime: state.spotTime,
           startTime: state.startTime,
           endTime: state.endTime,
+          returnTime: returnTime,
           instructions: state.instructions,
           payment: state.payment,
           gratuity: state.gratuity,
@@ -509,6 +516,7 @@ export const DetailModal = (props) => {
       spotTime: null,
       startTime: null,
       endTime: null,
+      returnTime: null,
       instructions: "",
       payment: 0.0,
       gratuity: 0.0,
@@ -900,6 +908,21 @@ export const DetailModal = (props) => {
                   setState({ startTime: dayjs(newValue) })
                 }
               />
+
+              {serviceData?.service_code === "RT" && (
+                <DateTimePicker
+                  label="Return time"
+                  className="modalField"
+                  ampm={false}
+                  id="returnTime"
+                  value={state.returnTime}
+                  timezone="America/New_York"
+                  onChange={(newValue) =>
+                    setState({ returnTime: dayjs(newValue) })
+                  }
+                />
+              )}
+
               <DateTimePicker
                 label="End time"
                 className="modalField"
@@ -930,19 +953,20 @@ export const DetailModal = (props) => {
               value={state.gratuity}
               onChange={(e) => setState({ gratuity: e.target.value })}
             />
-
-            <TextField
-              id="instructions"
-              className="modalField"
-              label="Instructions"
-              type="text"
-              multiline
-              rows={3}
-              placeholder="Instructions"
-              value={state.instructions}
-              onChange={(e) => setState({ instructions: e.target.value })}
-            />
           </Box>
+        </Box>
+        <Box>
+          <TextField
+            id="instructions"
+            className="textfield90"
+            label="Instructions"
+            type="text"
+            multiline
+            rows={2}
+            placeholder="Instructions"
+            value={state.instructions}
+            onChange={(e) => setState({ instructions: e.target.value })}
+          />
         </Box>
         <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
           <Button variant="contained" onClick={validateSave}>
