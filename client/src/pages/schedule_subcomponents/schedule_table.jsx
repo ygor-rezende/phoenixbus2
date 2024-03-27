@@ -210,7 +210,7 @@ export const ScheduleTable = (props) => {
                     bgcolor: row?.use_farmout ? "aquamarine" : "whitesmoke",
                   }}
                 >
-                  <TableCell>{row?.invoice?.slice(0, 8)}</TableCell>
+                  <TableCell>{row?.invoice}</TableCell>
                   <TableCell>
                     <Box>
                       <Typography
@@ -230,10 +230,36 @@ export const ScheduleTable = (props) => {
                         variant="body2"
                         bgcolor="white"
                         className="scheduleFromTo"
+                        gutterBottom
                       >
                         <PlaceIcon color="primary" /> {row?.from_location} /{" "}
                         {row?.from_city}
                       </Typography>
+                      {row?.service_code === "RT" && (
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            bgcolor="white"
+                            className="scheduleFromTo"
+                            gutterBottom
+                          >
+                            <AccessAlarmIcon color="primary" />
+                            {dayjs(row?.return_time).format("HH:mm")}
+                            {" | "}
+                            {new Date(row?.service_date)
+                              ?.toLocaleDateString()
+                              .slice(0, 10)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            bgcolor="white"
+                            className="scheduleFromTo"
+                          >
+                            <PlaceIcon color="primary" /> {row?.to_location} /{" "}
+                            {row?.to_city}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   </TableCell>
                   <TableCell>
@@ -245,8 +271,9 @@ export const ScheduleTable = (props) => {
                         gutterBottom
                       >
                         <AccessAlarmIcon color="success" />{" "}
-                        {dayjs(row?.end_time).format("HH:mm")}
-                        {" | "}
+                        {row?.service_code !== "RT"
+                          ? dayjs(row?.end_time).format("HH:mm") + " | "
+                          : ""}
                         {new Date(row?.service_date)
                           ?.toLocaleDateString()
                           .slice(0, 10)}
@@ -255,10 +282,36 @@ export const ScheduleTable = (props) => {
                         variant="body2"
                         bgcolor="white"
                         className="scheduleFromTo"
+                        gutterBottom
                       >
                         <PlaceIcon color="success" /> {row?.to_location} /{" "}
                         {row?.to_city}
                       </Typography>
+                      {row?.service_code === "RT" && (
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            bgcolor="white"
+                            className="scheduleFromTo"
+                            gutterBottom
+                          >
+                            <AccessAlarmIcon color="success" />
+                            {dayjs(row?.end_time).format("HH:mm")}
+                            {" | "}
+                            {new Date(row?.service_date)
+                              ?.toLocaleDateString()
+                              .slice(0, 10)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            bgcolor="white"
+                            className="scheduleFromTo"
+                          >
+                            <PlaceIcon color="success" /> {row?.return_location}{" "}
+                            / {row?.return_city}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   </TableCell>
                   <TableCell>

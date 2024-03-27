@@ -96,6 +96,11 @@
     margin: 10px 10px !important;
   }
 
+  .textfield90{
+    width: 96% !important;
+    margin: 0 10px 10px 10px !important;
+  }
+
   .autocomplete{
     width: auto !important;
   }
