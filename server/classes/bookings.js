@@ -11,8 +11,14 @@ class Booking {
       "SELECT invoice from invoices ORDER BY invoice DESC LIMIT 1"
     );
 
-    //strip the sequential part (last 5 digits)
-    let digits = lastInvoice.rows[0]?.invoice.substring(5, 10);
+    let digits;
+    if (!lastInvoice) {
+      digits = "00000";
+    } else {
+      //strip the sequential part (last 5 digits)
+      digits = lastInvoice.rows[0]?.invoice.substring(5, 10);
+    }
+
     digits = parseInt(digits) + 1;
 
     //find the number of digits and add zeros before until length = 5

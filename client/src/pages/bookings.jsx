@@ -63,6 +63,7 @@ import Invoice from "./pdfReports/invoice";
 import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
 import QuoteReport from "./pdfReports/quote";
+import { Calendar, DateObject } from "react-multi-date-picker";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -141,6 +142,8 @@ const initialState = {
   accordionTitle: "",
   openInvoiceDialog: false,
   openHistoryDialog: false,
+  openCalendarDialog: false,
+  dates: [],
   historyDetailData: [],
 };
 
@@ -461,6 +464,8 @@ export const Bookings = () => {
       isDataUpdated: !state.isDataUpdated,
       showAccordion: false,
       accordionTitle: "",
+      dates: [],
+      openCalendarDialog: false,
     });
   }; //clearState
 
@@ -496,6 +501,7 @@ export const Bookings = () => {
       internalComments: "",
       showAccordion: false,
       accordionTitle: "",
+      dates: [],
     });
   }; //cancelEditing
 
@@ -723,7 +729,7 @@ export const Bookings = () => {
 
   //fech details for the services in a booking
   const getDetailsData = async (services) => {
-    let serviceIds = services.map((service) => service.service_id);
+    let serviceIds = services?.map((service) => service.service_id);
     serviceIds = JSON.stringify(serviceIds);
     const response = await getServer(`/getdetailsforservices/${serviceIds}`);
     if (response?.data) {
@@ -1091,6 +1097,49 @@ export const Bookings = () => {
     setState({ openInvoiceDialog: false, invoice: "" });
   };
 
+  const handleCloseCalendar = () => {
+    setState({ openCalendarDialog: false, dates: [] });
+  };
+
+  //open dialog to show calendar to select dates of services
+  const handleDuplicateDialog = (serviceId) => {
+    //open dialog
+    setState({ openCalendarDialog: true, serviceId: serviceId });
+  };
+
+  const handleDuplicateService = async () => {
+    //convert dates to utc (iso)
+    let isoDates = state.dates?.map((e) => dayjs(e).toISOString());
+    isoDates = JSON.stringify(isoDates);
+
+    const controller = new AbortController();
+
+    let response = await postServer(
+      `/duplicateservice`,
+      {
+        serviceId: state.serviceId,
+        dates: isoDates,
+        changeUser: auth.userName,
+      },
+      controller.signal
+    );
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
+      setState({
+        success: false,
+        error: response.error,
+        openSnakbar: true,
+        openCalendarDialog: false,
+      });
+    } else {
+      clearState(response.data);
+    }
+  };
+
   const handleOpenHistoryDialog = async (detailId) => {
     const controller = new AbortController();
 
@@ -1223,7 +1272,7 @@ export const Bookings = () => {
                       isOptionEqualToValue={(option, value) =>
                         option.agency === value
                       }
-                      options={state.clientsData.map((element) => {
+                      options={state.clientsData?.map((element) => {
                         const client = {
                           clientId: element.client_id,
                           agency: element.agency,
@@ -1641,6 +1690,8 @@ export const Bookings = () => {
                       <Tabs
                         value={state.tabService}
                         onChange={handleServiceClick}
+                        variant="scrollable"
+                        scrollButtons="auto"
                       >
                         {state.servicesData?.length > 0 &&
                           state.servicesData?.map((service) => {
@@ -1875,14 +1926,25 @@ export const Bookings = () => {
                                 </Box>
                               )}
                               <p></p>
-                              <Button
-                                variant="outlined"
-                                onClick={() =>
-                                  handleDetailModal(service.service_id)
-                                }
-                              >
-                                Add details
-                              </Button>
+                              <Stack direction="row" justifyContent="center">
+                                <Button
+                                  variant="outlined"
+                                  onClick={() =>
+                                    handleDetailModal(service.service_id)
+                                  }
+                                >
+                                  Add details
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  style={{ marginLeft: "1em" }}
+                                  onClick={() =>
+                                    handleDuplicateDialog(service.service_id)
+                                  }
+                                >
+                                  Duplicate Service
+                                </Button>
+                              </Stack>
                             </CustomTabPanel>
                           );
                         })}
@@ -2058,6 +2120,33 @@ export const Bookings = () => {
                 <DialogContentText>No log history found.</DialogContentText>
               )}
             </DialogContent>
+          </Dialog>
+
+          <Dialog open={state.openCalendarDialog} onClose={handleCloseCalendar}>
+            <DialogTitle>Duplicate Service</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Please select the dates for the services you want to create
+              </DialogContentText>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "1em",
+                }}
+              >
+                <Calendar
+                  multiple
+                  value={state.dates}
+                  onChange={(dateArray) => setState({ dates: dateArray })}
+                  format="YYYY-MM-DDTHH:mm:ss"
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseCalendar}>Cancel</Button>
+              <Button onClick={handleDuplicateService}>OK</Button>
+            </DialogActions>
           </Dialog>
         </div>
       </div>

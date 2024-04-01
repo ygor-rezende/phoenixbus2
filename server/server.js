@@ -539,6 +539,15 @@ app.delete(
     return response;
   }
 );
+
+app.post(
+  "/duplicateservice",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Service.duplicateService(req, res);
+    return response;
+  }
+);
 //#endregion
 
 //#region ServiceDetails
