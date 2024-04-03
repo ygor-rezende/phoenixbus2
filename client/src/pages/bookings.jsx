@@ -27,6 +27,10 @@ import {
   DialogActions,
   Tooltip,
   IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -63,6 +67,7 @@ import Invoice from "./pdfReports/invoice";
 import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
 import QuoteReport from "./pdfReports/quote";
+import { Calendar } from "react-multi-date-picker";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -91,6 +96,7 @@ const initialState = {
   agencyEmail: "",
   agencyContact: "",
   curClient: {},
+  curBooking: {},
   employeeId: "",
   salesPerson: null,
   responsibleName: "",
@@ -108,6 +114,7 @@ const initialState = {
   clientComments: "",
   intineraryDetails: "",
   internalComments: "",
+  status: "new",
   openSnakbar: false,
   error: null,
   success: false,
@@ -141,7 +148,11 @@ const initialState = {
   accordionTitle: "",
   openInvoiceDialog: false,
   openHistoryDialog: false,
+  openCalendarDialog: false,
+  openCancelDialog: false,
+  dates: [],
   historyDetailData: [],
+  transactionsData: [],
 };
 
 export const Bookings = () => {
@@ -156,6 +167,12 @@ export const Bookings = () => {
   const postServer = UsePrivatePost();
   const putServer = UsePrivatePut();
   const deleteServer = UsePrivateDelete();
+
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -183,6 +200,9 @@ export const Bookings = () => {
 
       response = await getServer("/getallcompanynames", controller.signal);
       const companiesRespData = response?.data;
+
+      response = await getServer("/getamountduebyinvoice", controller.signal);
+      const transactionsRespData = response?.data;
 
       response = await getServer("/getallquotes", controller.signal);
       let quotesRespData = response?.data;
@@ -225,6 +245,7 @@ export const Bookings = () => {
           clientComments: item.client_comments,
           intineraryDetails: item.intinerary_details,
           internalComents: item.internal_coments,
+          status: item.status,
         };
         return quote;
       });
@@ -242,28 +263,32 @@ export const Bookings = () => {
         let bookingsRespData = response.data;
 
         bookingsRespData = bookingsRespData?.map((item) => {
+          const amountDue = transactionsRespData?.find(
+            (e) => e.invoice === item.invoice
+          )?.amount_due;
+
           const booking = {
             id: item.invoice,
             isQuote: item.is_quote,
             clientId: item.client_id,
-            agencyName: clientsRespData.find(
+            agencyName: clientsRespData?.find(
               (client) => client.client_id === item.client_id
-            ).agency,
-            agencyContact: clientsRespData.find(
+            )?.agency,
+            agencyContact: clientsRespData?.find(
               (client) => client.client_id === item.client_id
-            ).contact,
-            agencyEmail: clientsRespData.find(
+            )?.contact,
+            agencyEmail: clientsRespData?.find(
               (client) => client.client_id === item.client_id
-            ).email,
+            )?.email,
             employeeId: item.employee_id,
             salesPerson: `${
-              employeesRespData.find(
+              employeesRespData?.find(
                 (employee) => employee.employee_id === item.employee_id
-              ).firstname
+              )?.firstname
             } ${
-              employeesRespData.find(
+              employeesRespData?.find(
                 (employee) => employee.employee_id === item.employee_id
-              ).lastname
+              )?.lastname
             }`,
             responsibleName: item.responsible_name,
             responsibleEmail: item.responsible_email,
@@ -280,6 +305,8 @@ export const Bookings = () => {
             clientComments: item.client_comments,
             intineraryDetails: item.intinerary_details,
             internalComents: item.internal_coments,
+            status: item.status,
+            amountDue: amountDue ? currencyFormatter.format(amountDue) : "",
           };
           return booking;
         });
@@ -295,6 +322,7 @@ export const Bookings = () => {
             salesPeople: salesPeopleRespData,
             drivers: driversRespData,
             companiesData: companiesRespData,
+            transactionsData: transactionsRespData,
           });
       }
     }; //getAllData
@@ -411,6 +439,7 @@ export const Bookings = () => {
         intineraryDetails: state.intineraryDetails,
         internalComments: state.internalComments,
         changeUser: auth.userName,
+        status: state.status,
       },
     });
 
@@ -435,6 +464,7 @@ export const Bookings = () => {
       isQuote: false,
       clientId: "",
       curClient: {},
+      curBooking: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -455,12 +485,15 @@ export const Bookings = () => {
       clientComments: "",
       intineraryDetails: "",
       internalComments: "",
+      status: "new",
       expandPanel: false,
       expandBookings: false,
       onEditMode: false,
       isDataUpdated: !state.isDataUpdated,
       showAccordion: false,
       accordionTitle: "",
+      dates: [],
+      openCalendarDialog: false,
     });
   }; //clearState
 
@@ -474,6 +507,7 @@ export const Bookings = () => {
       isQuote: false,
       clientId: "",
       curClient: {},
+      curBooking: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -494,8 +528,10 @@ export const Bookings = () => {
       clientComments: "",
       intineraryDetails: "",
       internalComments: "",
+      status: "new",
       showAccordion: false,
       accordionTitle: "",
+      dates: [],
     });
   }; //cancelEditing
 
@@ -534,6 +570,7 @@ export const Bookings = () => {
       intineraryDetails: state.intineraryDetails,
       internalComments: state.internalComments,
       changeUser: auth.userName,
+      status: state.status,
     };
 
     const response = await putServer("/updatebooking", {
@@ -552,6 +589,8 @@ export const Bookings = () => {
 
   //Delete one or more records from the database
   const handleDelete = async (itemsSelected) => {
+    //Do nothing *** Removed option to delete - Changing to canceled status
+
     //Before deleting a booking it must delete the service and details first
     //Find the services for the bookings
     if (state.servicesData?.length > 0) {
@@ -647,6 +686,9 @@ export const Bookings = () => {
     const isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
     const curClient = state.clientsData?.find((e) => e.client_id === clientId);
 
+    //find current booking
+    const curBooking = state.bookingsData?.find((e) => e.id === id);
+
     setState({
       onEditMode: true,
       expandPanel: true,
@@ -663,38 +705,26 @@ export const Bookings = () => {
       employeeId: employeeId,
       salesPerson: state.salesPeople?.find((e) => e.employee_id === employeeId)
         ?.fullname,
-      responsibleName: state.bookingsData?.find((e) => e.id === id)
-        ?.responsibleName,
-      responsibleEmail: state.bookingsData?.find((e) => e.id === id)
-        ?.responsibleEmail,
-      responsiblePhone: state.bookingsData?.find((e) => e.id === id)
-        ?.responsiblePhone,
-      bookingDate: dayjs(
-        state.bookingsData?.find((e) => e.id === id)?.bookingDate
-      ),
-      quoteDate:
-        dayjs(state.bookingsData?.find((e) => e.id === id)?.quoteDate) ?? null,
-      category: state.bookingsData?.find((e) => e.id === id)?.category,
-      numPeople: state.bookingsData?.find((e) => e.id === id)?.numPeople,
-      tripStartDate: dayjs(
-        state.bookingsData?.find((e) => e.id === id)?.tripStartDate
-      ),
-      tripEndDate: dayjs(
-        state.bookingsData?.find((e) => e.id === id)?.tripEndDate
-      ),
-      deposit: state.bookingsData?.find((e) => e.id === id)?.deposit,
-      quotedCost: state.bookingsData?.find((e) => e.id === id)?.cost,
-      numHoursQuoteValid: state.bookingsData?.find((e) => e.id === id)
-        ?.numHoursQuoteValid,
-      clientComments: state.bookingsData?.find((e) => e.id === id)
-        ?.clientComments,
-      intineraryDetails: state.bookingsData?.find((e) => e.id === id)
-        ?.intineraryDetails,
-      internalComments: state.bookingsData?.find((e) => e.id === id)
-        ?.internalComents,
+      responsibleName: curBooking?.responsibleName,
+      responsibleEmail: curBooking?.responsibleEmail,
+      responsiblePhone: curBooking?.responsiblePhone,
+      bookingDate: dayjs(curBooking?.bookingDate),
+      quoteDate: dayjs(curBooking?.quoteDate) ?? null,
+      category: curBooking?.category,
+      numPeople: curBooking?.numPeople,
+      tripStartDate: dayjs(curBooking?.tripStartDate),
+      tripEndDate: dayjs(curBooking?.tripEndDate),
+      deposit: curBooking?.deposit,
+      quotedCost: curBooking?.cost,
+      numHoursQuoteValid: curBooking?.numHoursQuoteValid,
+      clientComments: curBooking?.clientComments,
+      intineraryDetails: curBooking?.intineraryDetails,
+      internalComments: curBooking?.internalComents,
+      status: curBooking?.status,
       servicesData: services,
       tabService: 0,
       detailsData: details,
+      curBooking: curBooking,
     });
 
     //scroll to the invoice field
@@ -723,7 +753,7 @@ export const Bookings = () => {
 
   //fech details for the services in a booking
   const getDetailsData = async (services) => {
-    let serviceIds = services.map((service) => service.service_id);
+    let serviceIds = services?.map((service) => service.service_id);
     serviceIds = JSON.stringify(serviceIds);
     const response = await getServer(`/getdetailsforservices/${serviceIds}`);
     if (response?.data) {
@@ -795,6 +825,7 @@ export const Bookings = () => {
         ?.intineraryDetails,
       internalComments: state.quotesData.find((e) => e.id === id)
         ?.internalComents,
+      status: state.quotesData.find((e) => e.id === id)?.status,
       servicesData: services,
       tabService: 0,
       detailsData: details,
@@ -813,6 +844,12 @@ export const Bookings = () => {
       isNumeric: false,
       isPaddingDisabled: false,
       label: "Invoice",
+    },
+    {
+      id: "status",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Status",
     },
     {
       id: "agencyName",
@@ -843,6 +880,12 @@ export const Bookings = () => {
       isNumeric: false,
       isPaddingDisabled: false,
       label: "E-Mail",
+    },
+    {
+      id: "amountDue",
+      isNumeric: true,
+      isPaddingDisabled: false,
+      label: "Amount Due",
     },
   ];
 
@@ -909,6 +952,9 @@ export const Bookings = () => {
 
   //when a service row is clicked to edit a service
   const handleEditService = (event, serviceId) => {
+    //if booking is canceled do not open modal
+    if (state.curBooking?.status === "canceled") return;
+
     //find the service
     const service = state.servicesData?.find(
       (item) => item.service_id === serviceId
@@ -931,6 +977,10 @@ export const Bookings = () => {
       event.target.localName === "button"
     )
       return;
+
+    //if booking is canceled do not open modal
+    if (state.curBooking?.status === "canceled") return;
+
     //find the service
     const service = state.servicesData?.find(
       (item) => item.service_id === detail?.service_id
@@ -1091,6 +1141,53 @@ export const Bookings = () => {
     setState({ openInvoiceDialog: false, invoice: "" });
   };
 
+  const handleCloseCalendar = () => {
+    setState({ openCalendarDialog: false, dates: [] });
+  };
+
+  const handleCloseCancelDiag = () => {
+    setState({ openCancelDialog: false });
+  };
+
+  //open dialog to show calendar to select dates of services
+  const handleDuplicateDialog = (serviceId) => {
+    //open dialog
+    setState({ openCalendarDialog: true, serviceId: serviceId });
+  };
+
+  const handleDuplicateService = async () => {
+    //convert dates to utc (iso)
+    let isoDates = state.dates?.map((e) => dayjs(e).toISOString());
+    isoDates = JSON.stringify(isoDates);
+
+    const controller = new AbortController();
+
+    let response = await postServer(
+      `/duplicateservice`,
+      {
+        serviceId: state.serviceId,
+        dates: isoDates,
+        changeUser: auth.userName,
+      },
+      controller.signal
+    );
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
+      setState({
+        success: false,
+        error: response.error,
+        openSnakbar: true,
+        openCalendarDialog: false,
+      });
+    } else {
+      clearState(response.data);
+    }
+  };
+
   const handleOpenHistoryDialog = async (detailId) => {
     const controller = new AbortController();
 
@@ -1128,6 +1225,14 @@ export const Bookings = () => {
       });
       setState({ openHistoryDialog: true, historyDetailData: responseData });
     }
+  };
+
+  const handleStatusChange = (e) => {
+    const value = e.target.value;
+
+    //if value is canceled display dialog
+    if (value === "canceled") setState({ openCancelDialog: true });
+    else setState({ status: value });
   };
 
   return (
@@ -1194,6 +1299,34 @@ export const Bookings = () => {
                 )}
               </AccordionSummary>
               <AccordionDetails>
+                {!state.isQuote && state.onEditMode && (
+                  <FormControl size="small">
+                    <InputLabel
+                      id="status-label"
+                      color={state.status === "canceled" ? "error" : "success"}
+                    >
+                      Status
+                    </InputLabel>
+                    <Select
+                      id="status-select"
+                      value={state.status}
+                      onChange={handleStatusChange}
+                      label="Status"
+                      color={state.status === "canceled" ? "error" : "success"}
+                      style={{
+                        width: "130px",
+                        color: state.status === "canceled" ? "red" : "green",
+                      }}
+                    >
+                      <MenuItem value="new">New</MenuItem>
+                      <MenuItem value="confirmed">Confirmed</MenuItem>
+                      <MenuItem value="canceled" style={{ color: "red" }}>
+                        Canceled
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+
                 <Box className="fieldsbox1">
                   <TextField
                     className="textfield"
@@ -1223,7 +1356,7 @@ export const Bookings = () => {
                       isOptionEqualToValue={(option, value) =>
                         option.agency === value
                       }
-                      options={state.clientsData.map((element) => {
+                      options={state.clientsData?.map((element) => {
                         const client = {
                           clientId: element.client_id,
                           agency: element.agency,
@@ -1558,6 +1691,7 @@ export const Bookings = () => {
                       onClick={() => handleSaveChanges(state.isQuote)}
                       size="small"
                       color={state.isQuote ? "success" : "primary"}
+                      disabled={state.curBooking?.status === "canceled"}
                     >
                       Save Changes
                     </Button>
@@ -1600,6 +1734,7 @@ export const Bookings = () => {
                         variant="contained"
                         onClick={handleDownloadInvoice}
                         size="small"
+                        disabled={state.curBooking?.status === "canceled"}
                       >
                         <ReceiptIcon />
                         Invoice
@@ -1612,6 +1747,7 @@ export const Bookings = () => {
                         variant="contained"
                         onClick={handleDowloadContract}
                         size="small"
+                        disabled={state.curBooking?.status === "canceled"}
                       >
                         <GavelIcon />
                         Contract
@@ -1624,6 +1760,7 @@ export const Bookings = () => {
                       variant="contained"
                       onClick={handleServiceModal}
                       size="small"
+                      disabled={state.curBooking?.status === "canceled"}
                     >
                       Create new Service
                     </Button>
@@ -1641,6 +1778,8 @@ export const Bookings = () => {
                       <Tabs
                         value={state.tabService}
                         onChange={handleServiceClick}
+                        variant="scrollable"
+                        scrollButtons="auto"
                       >
                         {state.servicesData?.length > 0 &&
                           state.servicesData?.map((service) => {
@@ -1875,14 +2014,31 @@ export const Bookings = () => {
                                 </Box>
                               )}
                               <p></p>
-                              <Button
-                                variant="outlined"
-                                onClick={() =>
-                                  handleDetailModal(service.service_id)
-                                }
-                              >
-                                Add details
-                              </Button>
+                              <Stack direction="row" justifyContent="center">
+                                <Button
+                                  variant="outlined"
+                                  onClick={() =>
+                                    handleDetailModal(service.service_id)
+                                  }
+                                  disabled={
+                                    state.curBooking?.status === "canceled"
+                                  }
+                                >
+                                  Add details
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  style={{ marginLeft: "1em" }}
+                                  onClick={() =>
+                                    handleDuplicateDialog(service.service_id)
+                                  }
+                                  disabled={
+                                    state.curBooking?.status === "canceled"
+                                  }
+                                >
+                                  Duplicate Service
+                                </Button>
+                              </Stack>
                             </CustomTabPanel>
                           );
                         })}
@@ -1954,7 +2110,7 @@ export const Bookings = () => {
                 dataUpdated={state.isDataUpdated}
                 editData={handleItemClick}
                 boxChecked={handleBoxChecked}
-                onDelete={handleDelete}
+                disableDelete={true}
                 filterOption="agencyName"
               />
             </AccordionDetails>
@@ -2058,6 +2214,53 @@ export const Bookings = () => {
                 <DialogContentText>No log history found.</DialogContentText>
               )}
             </DialogContent>
+          </Dialog>
+
+          <Dialog open={state.openCalendarDialog} onClose={handleCloseCalendar}>
+            <DialogTitle>Duplicate Service</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Please select the dates for the services you want to create
+              </DialogContentText>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "1em",
+                }}
+              >
+                <Calendar
+                  multiple
+                  value={state.dates}
+                  onChange={(dateArray) => setState({ dates: dateArray })}
+                  format="YYYY-MM-DDTHH:mm:ss"
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseCalendar}>Cancel</Button>
+              <Button onClick={handleDuplicateService}>OK</Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={state.openCancelDialog} onClose={handleCloseCancelDiag}>
+            <DialogTitle>Cancel Booking?</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Do you want to cancel this booking? It won't be possible to
+                revert the action after you save.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseCancelDiag}>Go Back</Button>
+              <Button
+                onClick={() =>
+                  setState({ status: "canceled", openCancelDialog: false })
+                }
+              >
+                Proceed
+              </Button>
+            </DialogActions>
           </Dialog>
         </div>
       </div>

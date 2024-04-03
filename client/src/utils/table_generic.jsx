@@ -128,7 +128,7 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, onFilter, onDelete } = props;
+  const { numSelected, onFilter, onDelete, disableDelete } = props;
 
   //Logic to display delete and edit buttons
   let buttons;
@@ -136,7 +136,10 @@ function EnhancedTableToolbar(props) {
     buttons = (
       <Box sx={{ display: "flex" }}>
         <Tooltip title="Delete">
-          <IconButton onClick={onDelete}>
+          <IconButton
+            onClick={onDelete}
+            disabled={disableDelete ? disableDelete : false}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -145,7 +148,10 @@ function EnhancedTableToolbar(props) {
   } else if (numSelected > 0) {
     buttons = (
       <Tooltip title="Delete">
-        <IconButton onClick={onDelete}>
+        <IconButton
+          onClick={onDelete}
+          disabled={disableDelete ? disableDelete : false}
+        >
           <DeleteIcon />
         </IconButton>
       </Tooltip>
@@ -222,6 +228,7 @@ const EnhancedTable = (props) => {
     editData,
     boxChecked,
     onDelete,
+    disableDelete,
     filterOption,
     bgcolor,
   } = props;
@@ -352,6 +359,12 @@ const EnhancedTable = (props) => {
     [order, orderBy, page, rowsPerPage, filteredData]
   );
 
+  const colorLine = (data) => {
+    if (data?.status === "canceled") return "red";
+    else if (data?.amountDue === "$0.00") return "green";
+    else return "";
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -359,6 +372,7 @@ const EnhancedTable = (props) => {
           numSelected={selected?.length}
           onFilter={filterBySearch}
           onDelete={handleOpenDialog}
+          disableDelete={disableDelete}
         />
         <TableContainer>
           <Table
@@ -406,9 +420,12 @@ const EnhancedTable = (props) => {
                     {headCells?.map((cell) => {
                       return (
                         <TableCell
-                          align={cell.isNumeric ? "right" : "left"}
-                          padding={cell.isPaddingDisabled}
+                          align={cell.numeric ? "right" : "left"}
+                          padding={cell.disablePadding ? "none" : "normal"}
                           key={cell.id}
+                          style={{
+                            color: colorLine(row),
+                          }}
                         >
                           {row[`${cell.id}`]}
                         </TableCell>

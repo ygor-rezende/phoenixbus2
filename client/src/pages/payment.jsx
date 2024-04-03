@@ -162,7 +162,7 @@ const Payment = () => {
 
   const clearState = (msg) => {
     setMsg(msg);
-    setError(null);
+    setError("");
     setSuccess(true);
     setOpenSnakbar(true);
     setInvoice(null);
@@ -312,6 +312,7 @@ const Payment = () => {
               </RadioGroup>
             </FormControl>
           </Box>
+          <p></p>
           <Button
             variant="contained"
             disabled={isDisabled}
@@ -321,6 +322,7 @@ const Payment = () => {
           </Button>
         </Paper>
       </Box>
+
       <Box id="reports-box" className="payments-box">
         <Paper elevation={2} style={{ padding: "2em" }}>
           <Typography variant="h5" component="h2" color="primary" gutterBottom>

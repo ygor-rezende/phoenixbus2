@@ -11,8 +11,14 @@ class Booking {
       "SELECT invoice from invoices ORDER BY invoice DESC LIMIT 1"
     );
 
-    //strip the sequential part (last 5 digits)
-    let digits = lastInvoice.rows[0]?.invoice.substring(5, 10);
+    let digits;
+    if (!lastInvoice) {
+      digits = "00000";
+    } else {
+      //strip the sequential part (last 5 digits)
+      digits = lastInvoice.rows[0]?.invoice.substring(5, 10);
+    }
+
     digits = parseInt(digits) + 1;
 
     //find the number of digits and add zeros before until length = 5
@@ -68,7 +74,8 @@ class Booking {
           intinerary_details => $17::TEXT, 
           internal_coments => $18::TEXT, 
           is_quote => $19::BOOLEAN, 
-          change_user => $20::TEXT)
+          change_user => $20::TEXT,
+          status => $21::TEXT)
           `,
         [
           invoice,
@@ -91,6 +98,7 @@ class Booking {
           booking.internalComments,
           booking.isQuote,
           booking.changeUser,
+          booking.status,
         ]
       );
 
@@ -161,7 +169,8 @@ class Booking {
           internalcoments => $17::TEXT, 
           isquote => $18::BOOLEAN,
           changeuser => $19::TEXT,
-          invoice1 => $20::TEXT)`,
+          invoice1 => $20::TEXT,
+          status1 => $21::TEXT)`,
         [
           booking.clientId,
           booking.employeeId,
@@ -183,6 +192,7 @@ class Booking {
           booking.isQuote,
           booking.changeUser,
           booking.invoice,
+          booking.status,
         ]
       );
       return res.json(`Booking/Quote ${booking.invoice} updated`);

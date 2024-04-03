@@ -9,7 +9,7 @@ class Payments {
           b.client_id,
           ac.balance
           FROM bookings b JOIN accounts ac ON ac.client_id = b.client_id
-          WHERE is_quote = false`
+          WHERE is_quote = false AND b.status != 'canceled'`
       );
       return result.rows;
     } catch (err) {
@@ -64,6 +64,18 @@ class Payments {
       return { message: err.message };
     }
   } //getPendingPayments
+
+  static async getAmountDueByInvoice() {
+    try {
+      const result = await pool.query(
+        `SELECT * FROM get_amount_due_by_invoice()`
+      );
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getAmountDueByInvoice
 }
 
 module.exports = { Payments };

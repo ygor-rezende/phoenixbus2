@@ -154,15 +154,15 @@ export const ScheduleModal = (props) => {
 
     //if server responded
     if (driverResponse?.data && vehicleResponse?.data) {
-      if (driverResponse?.data?.length > 0) {
+      if (driverResponse?.data[0]?.foundit > 0) {
         //Display alert saying driver is booked to another trip in the same day
         setState({
-          vehicleValidationData: vehicleResponse?.data,
+          vehicleValidationData: vehicleResponse?.data[0],
           openValidationDialog: true,
           validationDialogType: "driver",
         });
         return;
-      } else if (vehicleResponse?.data?.length > 0) {
+      } else if (vehicleResponse?.data[0]?.foundit > 0) {
         //Display alert saying driver is booked to another trip in the same day
         setState({
           openValidationDialog: true,
@@ -181,7 +181,7 @@ export const ScheduleModal = (props) => {
   }; //validateSave
 
   const validateVehicle = async () => {
-    if (state.vehicleValidationData?.length > 0) {
+    if (state.vehicleValidationData?.foundit > 0) {
       //Display alert saying driver is booked to another trip in the same day
       setState({ openValidationDialog: true, validationDialogType: "vehicle" });
       return;

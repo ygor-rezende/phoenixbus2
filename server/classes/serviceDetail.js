@@ -232,11 +232,10 @@ class ServiceDetail {
           message: "Bad request: Missing driver Id or service date",
         });
 
-      const result = await pool.query("Select has_driver_trip($1, $2, $3)", [
-        detailId,
-        driverId,
-        serviceDate,
-      ]);
+      const result = await pool.query(
+        "Select * FROM has_driver_trip($1, $2, $3)",
+        [detailId, driverId, serviceDate?.substring(0, 10)]
+      );
 
       return res.json(result.rows);
     } catch (err) {
@@ -253,11 +252,10 @@ class ServiceDetail {
           message: "Bad request: Missing vehicle Id or service date",
         });
 
-      const result = await pool.query("Select has_vehicle_trip($1, $2, $3)", [
-        detailId,
-        vehicleId,
-        serviceDate,
-      ]);
+      const result = await pool.query(
+        "Select * FROM has_vehicle_trip($1, $2, $3)",
+        [detailId, vehicleId, serviceDate?.substring(0, 10)]
+      );
 
       return res.json(result.rows);
     } catch (err) {
