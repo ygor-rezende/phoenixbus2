@@ -300,4 +300,54 @@ END;
 $BODY$;
 
 
+CREATE OR REPLACE FUNCTION public.has_driver_trip(
+	detailid integer,
+	employeeid character varying,
+	servicedate character varying)
+    RETURNS TABLE(foundit integer) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN 
+	return query
+	SELECT CASE WHEN counter > 0 THEN 1 ELSE 0 END AS foundit
+	FROM (select COUNT(sd.detail_id) AS counter from service_details sd 
+		join services s ON s.service_id = sd.service_id 
+		join bookings b ON b.invoice = s.booking_id
+		where sd.employee_id = employeeId
+		AND sd.detail_id != detailid
+		AND b.is_quote = false
+	  	AND b.status != 'canceled'
+		AND s.service_date LIKE serviceDate || '%') AS details;
+END
+$BODY$;
+
+CREATE OR REPLACE FUNCTION public.has_vehicle_trip(
+	detailid integer,
+	vehicleid character varying,
+	servicedate character varying)
+    RETURNS TABLE(foundit integer) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN 
+	return query
+		SELECT CASE WHEN counter > 0 THEN 1 ELSE 0 END AS foundit
+		FROM (select COUNT(sd.detail_id) AS counter from service_details sd 
+			join services s ON s.service_id = sd.service_id 
+			join bookings b ON b.invoice = s.booking_id
+			where sd.vehicle_id = vehicleId
+			AND sd.detail_id != detailId
+			AND b.is_quote = false
+	  		AND b.status != 'canceled'
+			AND s.service_date LIKE serviceDate || '%') AS details;
+END
+$BODY$;
+
 
