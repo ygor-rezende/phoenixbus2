@@ -735,6 +735,15 @@ app.get(
     res.json(response);
   }
 );
+
+app.get(
+  "/getamountduebyinvoice",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Payments.getAmountDueByInvoice();
+    res.json(response);
+  }
+);
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
