@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cell: {
-    //width: "17%",
+    paddingRight: 2,
   },
 });
 

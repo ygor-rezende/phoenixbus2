@@ -147,7 +147,6 @@ const Invoice = (props) => {
         <View style={styles.header}>
           <View style={styles.text}>
             <Text>To: {client.agency}</Text>
-            <Text>Account #: {client.client_id?.substring(0, 8)}</Text>
             <Text>Attn: {client.contact}</Text>
             <Text>{client.address1}</Text>
             <Text>

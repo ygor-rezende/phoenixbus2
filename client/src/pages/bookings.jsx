@@ -1019,7 +1019,7 @@ export const Bookings = () => {
     try {
       const blob = await pdf(
         <Invoice
-          date={new Date().toLocaleDateString("en-US")}
+          date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           invoiceNum={state.invoice}
           client={state.curClient}
           passengers={state.numPeople}
