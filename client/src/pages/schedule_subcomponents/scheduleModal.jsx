@@ -577,7 +577,7 @@ export const ScheduleModal = (props) => {
                       empData?.map((element) => {
                         const employee = {
                           employeeId: element.employee_id,
-                          driver: `${element.firstname} ${element.lastname}`,
+                          driver: element.fullname,
                         };
                         return employee;
                       }) ?? []

@@ -1235,6 +1235,19 @@ export const Bookings = () => {
     else setState({ status: value });
   };
 
+  const getServiceName = (type) => {
+    const services = [
+      { code: "OW", name: "ONE-WAY" },
+      { code: "RT", name: "ROUND-TRIP" },
+      { code: "CH", name: "CHARTER" },
+      { code: "DH", name: "DEAD-HEAD" },
+    ];
+
+    const isCodeFound = services.find((e) => e.code === type);
+    if (isCodeFound) return services.find((e) => e.code === type)?.name;
+    else return type;
+  };
+
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
@@ -1852,7 +1865,7 @@ export const Bookings = () => {
                                     }
                                   >
                                     <TableCell>
-                                      {service.service_code}
+                                      {getServiceName(service.service_code)}
                                     </TableCell>
                                     <TableCell>
                                       {dayjs(service.service_date).format(

@@ -141,12 +141,15 @@ const Contract = (props) => {
     minimumFractionDigits: 2,
   });
 
+  //Exclude services that are Dead-Head
+  const filteredServices = services.filter((e) => e.service_code !== "DH");
+
   //Total invoice
-  let totalCharges = services?.reduce((sum, current) => {
+  let totalCharges = filteredServices?.reduce((sum, current) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
-  let totalTax = services
+  let totalTax = filteredServices
     ?.map((service) => {
       return {
         tax: service.sales_tax,
@@ -167,7 +170,7 @@ const Contract = (props) => {
 
   //Create a unique array with services and details
   //Return an array with an array of services and its details
-  const allData = services?.map((service) => {
+  const allData = filteredServices?.map((service) => {
     let thisDetails = details
       ?.flat()
       .filter((detail) => detail.service_id === service.service_id);

@@ -114,6 +114,12 @@ export const ScheduleTable = (props) => {
     createDriverPDF(detailId);
   };
 
+  const getBgColor = (rowData) => {
+    if (rowData?.use_farmout) return "aquamarine";
+    else if (rowData?.service_code === "DH") return "beige";
+    else return "whitesmoke";
+  };
+
   return (
     <Fragment>
       <Box
@@ -207,7 +213,7 @@ export const ScheduleTable = (props) => {
                 <TableRow
                   key={index}
                   sx={{
-                    bgcolor: row?.use_farmout ? "aquamarine" : "whitesmoke",
+                    bgcolor: getBgColor(row),
                   }}
                 >
                   <TableCell>{row?.invoice}</TableCell>

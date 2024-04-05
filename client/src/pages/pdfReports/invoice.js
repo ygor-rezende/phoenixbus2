@@ -109,12 +109,15 @@ const Invoice = (props) => {
     minimumFractionDigits: 2,
   });
 
+  //Exclude services that are Dead-Head
+  const filteredServices = services.filter((e) => e.service_code !== "DH");
+
   //Total invoice
-  let totalInvoice = services?.reduce((sum, current) => {
+  let totalInvoice = filteredServices?.reduce((sum, current) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
-  let totalTax = services
+  let totalTax = filteredServices
     ?.map((service) => {
       return {
         tax: service.sales_tax,
@@ -192,7 +195,7 @@ const Invoice = (props) => {
                 Total
               </TableCell>
             </TableHeader>
-            {services?.map((service) => (
+            {filteredServices?.map((service) => (
               <TableRow>
                 <TableCell align="left" width="17%">
                   {dayjs(service.service_date).format("MM/DD/YYYY")}

@@ -160,6 +160,7 @@ const DriverReport = (props) => {
     { type: "RT", name: "ROUND-TRIP" },
     { type: "CH", name: "CHARTER" },
     { type: "OW", name: "ONE-WAY" },
+    { code: "DH", name: "DEAD-HEAD" },
   ];
 
   function formatPhoneNumber(phoneNumberString) {
