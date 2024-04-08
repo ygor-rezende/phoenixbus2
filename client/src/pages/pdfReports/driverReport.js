@@ -269,11 +269,15 @@ const DriverReport = (props) => {
                 <View style={{ width: "17%" }}>
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Spot Time: </Text>
-                    {dayjs(data?.spot_time).format("HH:mm")}
+                    {data?.spot_time
+                      ? dayjs(data?.spot_time).format("HH:mm")
+                      : ""}
                   </Text>
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Start time: </Text>
-                    {dayjs(data?.start_time).format("HH:mm")}
+                    {data?.start_time
+                      ? dayjs(data?.start_time).format("HH:mm")
+                      : ""}
                   </Text>
                 </View>
                 <View style={{ width: "75%" }}>
@@ -295,12 +299,16 @@ const DriverReport = (props) => {
                   {data?.return_location ? (
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>Return time: </Text>
-                      {dayjs(data?.return_time).format("HH:mm")}
+                      {data?.return_time
+                        ? dayjs(data?.return_time).format("HH:mm")
+                        : ""}
                     </Text>
                   ) : (
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>Return time: </Text>
-                      {dayjs(data?.end_time).format("HH:mm")}
+                      {data?.end_time
+                        ? dayjs(data?.end_time).format("HH:mm")
+                        : ""}
                     </Text>
                   )}
                 </View>
@@ -323,7 +331,9 @@ const DriverReport = (props) => {
                   <View style={{ width: "17%" }}>
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>End time: </Text>
-                      {dayjs(data?.end_time).format("HH:mm")}
+                      {data?.end_time
+                        ? dayjs(data?.end_time).format("HH:mm")
+                        : ""}
                     </Text>
                   </View>
                   <View style={{ width: "75%" }}>

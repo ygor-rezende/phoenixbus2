@@ -53,7 +53,6 @@ const initialState = {
   to: null,
   return: null,
   instructions: "",
-  charge: 0.0,
   openModal: false,
   invalidField: "",
   useFarmout: false,
@@ -115,7 +114,6 @@ export const ScheduleModal = (props) => {
         to: rowData?.to_location,
         return: rowData?.return_location,
         instructions: rowData?.instructions,
-        charge: rowData?.charge,
         useFarmout: rowData?.use_farmout,
         openModal: true,
       });
@@ -192,7 +190,6 @@ export const ScheduleModal = (props) => {
 
   const handleUpdate = async () => {
     const response = await putServer("/updateSchedule", {
-      service: { serviceId: state.serviceId, charge: state.charge },
       detail: {
         detailId: state.detailId,
         spotTime: state.spotTime,
@@ -258,7 +255,6 @@ export const ScheduleModal = (props) => {
       to: null,
       return: null,
       instructions: "",
-      charge: 0.0,
       openModal: false,
       invalidField: "",
       useFarmout: false,
@@ -492,17 +488,6 @@ export const ScheduleModal = (props) => {
                 </FormHelperText>
               </FormControl>
             </LocalizationProvider>
-
-            <TextField
-              id="charge"
-              className="modalField"
-              label="Charge $"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Charge $"
-              value={state.charge}
-              onChange={(e) => setState({ charge: e.target.value })}
-            />
 
             <TextField
               id="payment"

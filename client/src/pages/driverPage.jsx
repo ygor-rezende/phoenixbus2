@@ -288,23 +288,33 @@ export const ScheduledRoutes = () => {
                     </Typography>
                     <Typography>
                       Spot Time:{" "}
-                      {dayjs(todaysTrip?.spotTime).format("MMMM D, YYYY HH:mm")}
+                      {todaysTrip?.spotTime
+                        ? dayjs(todaysTrip?.spotTime).format(
+                            "MMMM D, YYYY HH:mm"
+                          )
+                        : ""}
                     </Typography>
                     <Box sx={{ display: "inline-flex" }}>
                       <Typography>
                         Start Time:{" "}
-                        {dayjs(todaysTrip?.startTime).format(
-                          "MMMM D, YYYY HH:mm"
-                        )}{" "}
-                        {new Date(todaysTrip.startTime).getHours() < 12
-                          ? "(in the morning) "
-                          : "(in the afternoon) "}
+                        {todaysTrip?.startTime
+                          ? dayjs(todaysTrip?.startTime).format(
+                              "MMMM D, YYYY HH:mm"
+                            )
+                          : ""}{" "}
+                        {todaysTrip.startTime
+                          ? new Date(todaysTrip.startTime).getHours() < 12
+                            ? "(in the morning) "
+                            : "(in the afternoon) "
+                          : ""}
                       </Typography>
-                      {new Date(todaysTrip.startTime).getHours() < 12 ? (
-                        <WbSunnyIcon color="warning" />
-                      ) : (
-                        <WbTwilightIcon color="warning" />
-                      )}
+                      {todaysTrip.startTime ? (
+                        new Date(todaysTrip.startTime).getHours() < 12 ? (
+                          <WbSunnyIcon color="warning" />
+                        ) : (
+                          <WbTwilightIcon color="warning" />
+                        )
+                      ) : null}
                     </Box>
                   </Box>
                 </Box>
@@ -336,10 +346,12 @@ export const ScheduledRoutes = () => {
                     </Typography>
                     <Typography>
                       Estimated Arrival:{" "}
-                      {dayjs(
-                        new Date(todaysTrip?.startTime).getTime() +
-                          duration.value * 1000
-                      ).format("MMMM D, YYYY HH:mm")}
+                      {todaysTrip?.startTime
+                        ? dayjs(
+                            new Date(todaysTrip?.startTime).getTime() +
+                              duration.value * 1000
+                          ).format("MMMM D, YYYY HH:mm")
+                        : ""}
                     </Typography>
                     <Typography>Estimated Distance: {distance.text}</Typography>
                     {todaysTrip?.returnTime && (

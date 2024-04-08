@@ -80,8 +80,8 @@ class Schedule {
 
   static async updateSchedule(req, res) {
     try {
-      const { service, detail } = req.body;
-      if (!service || !detail)
+      const { detail } = req.body;
+      if (!detail)
         return res.status(400).json("Bad request: Missing information");
 
       await pool.query(
@@ -100,9 +100,8 @@ class Schedule {
           usefarmout=>$12::BOOLEAN,
           companyid=>$13::TEXT,
           changeuser=>$14::TEXT,
-          detailid=>$15,
-          charge1=>$16,
-          serviceid=>$17)`,
+          detailid=>$15
+          )`,
         [
           detail.spotTime,
           detail.startTime,
@@ -119,8 +118,6 @@ class Schedule {
           detail.companyId,
           detail.changeUser,
           detail.detailId,
-          service.charge,
-          service.serviceId,
         ]
       );
 
