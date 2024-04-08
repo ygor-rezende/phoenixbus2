@@ -141,12 +141,15 @@ const Contract = (props) => {
     minimumFractionDigits: 2,
   });
 
+  //Exclude services that are Dead-Head
+  const filteredServices = services.filter((e) => e.service_code !== "DH");
+
   //Total invoice
-  let totalCharges = services?.reduce((sum, current) => {
+  let totalCharges = filteredServices?.reduce((sum, current) => {
     return sum + Number(current.gratuity) + current.charge * current.qty;
   }, 0);
 
-  let totalTax = services
+  let totalTax = filteredServices
     ?.map((service) => {
       return {
         tax: service.sales_tax,
@@ -167,7 +170,7 @@ const Contract = (props) => {
 
   //Create a unique array with services and details
   //Return an array with an array of services and its details
-  const allData = services?.map((service) => {
+  const allData = filteredServices?.map((service) => {
     let thisDetails = details
       ?.flat()
       .filter((detail) => detail.service_id === service.service_id);
@@ -179,10 +182,9 @@ const Contract = (props) => {
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Booking / Invoice</Text>
+            <Text style={styles.title}>Booking / Confirmation</Text>
             <View style={styles.text}>
               <Text>To: {client.agency}</Text>
-              <Text>Account #: {client.client_id?.substring(0, 8)}</Text>
               <Text>Attn: {client.contact}</Text>
               <Text>{client.address1}</Text>
               <Text>
@@ -299,23 +301,29 @@ const Contract = (props) => {
                           <TableRow>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
-                                From: {fromLocation?.location_name}
+                                <Text style={{ fontWeight: "semibold" }}>
+                                  From: {fromLocation?.location_name}
+                                </Text>
                               </TableCell>
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
-                                To: {toLocation?.location_name}
+                                <Text style={{ fontWeight: "semibold" }}>
+                                  To: {toLocation?.location_name}
+                                </Text>
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="33%" align="left">
-                                Return: {returnLocation?.location_name}
+                              <TableCell width="32%" align="left">
+                                <Text style={{ fontWeight: "semibold" }}>
+                                  Return: {returnLocation?.location_name}
+                                </Text>
                               </TableCell>
                             )}
                           </TableRow>
@@ -323,7 +331,7 @@ const Contract = (props) => {
                           <TableRow>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
                                 {fromLocation?.address}
@@ -331,14 +339,14 @@ const Contract = (props) => {
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
                                 {toLocation?.address}
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="33%" align="left">
+                              <TableCell width="32%" align="left">
                                 {returnLocation?.address}
                               </TableCell>
                             )}
@@ -347,7 +355,7 @@ const Contract = (props) => {
                           <TableRow>
                             {fromLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
                                 {fromLocation?.city},{" "}
@@ -356,7 +364,7 @@ const Contract = (props) => {
                             )}
                             {toLocation && (
                               <TableCell
-                                width={returnLocation ? "33%" : "50%"}
+                                width={returnLocation ? "32%" : "49%"}
                                 align="left"
                               >
                                 {toLocation?.city}, {toLocation.location_state}{" "}
@@ -364,7 +372,7 @@ const Contract = (props) => {
                               </TableCell>
                             )}
                             {returnLocation && (
-                              <TableCell width="33%" align="left">
+                              <TableCell width="32%" align="left">
                                 {returnLocation?.city},{" "}
                                 {returnLocation.location_state}{" "}
                                 {returnLocation.zip}
@@ -373,22 +381,32 @@ const Contract = (props) => {
                           </TableRow>
 
                           <TableRow>
-                            <TableCell width="25%" align="left">
-                              Spot time:{" "}
-                              {dayjs(detail.spot_time).format("HH:mm")}
+                            <TableCell width="50%" align="left">
+                              <Text style={{ fontWeight: "semibold" }}>
+                                Spot time:{" "}
+                                {dayjs(detail.spot_time).format("HH:mm")}
+                              </Text>
                             </TableCell>
-                            <TableCell width="25%" align="left">
-                              Start Time:{" "}
-                              {dayjs(detail.start_time).format("HH:mm")}
+                          </TableRow>
+                          <TableRow>
+                            <TableCell width="50%" align="left">
+                              <Text style={{ fontWeight: "semibold" }}>
+                                Start Time:{" "}
+                                {dayjs(detail.start_time).format("HH:mm")}
+                              </Text>
                             </TableCell>
                           </TableRow>
 
-                          <TableRow>
-                            <TableCell width="100%" align="left">
-                              <Text style={styles.textBold}>Instructions:</Text>{" "}
-                              {detail.instructions}
-                            </TableCell>
-                          </TableRow>
+                          <View style={{ marginTop: 10, marginBottom: 5 }}>
+                            <TableRow>
+                              <TableCell width="100%" align="left">
+                                <Text style={styles.textBold}>
+                                  Instructions:
+                                </Text>{" "}
+                                {detail.instructions}
+                              </TableCell>
+                            </TableRow>
+                          </View>
                         </View>
                       );
                     })}

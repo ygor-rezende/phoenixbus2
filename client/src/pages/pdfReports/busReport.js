@@ -180,8 +180,10 @@ const BusesReport = (props) => {
         </View>
         <Text style={styles.h2}>
           {startDate === endDate
-            ? startDate
-            : startDate.concat(" to ", endDate)}
+            ? dayjs(startDate).format("dddd, MMMM D, YYYY")
+            : dayjs(startDate)
+                .format("dddd, MMMM D, YYYY")
+                .concat(" to ", dayjs(endDate).format("dddd, MMMM D, YYYY"))}
         </Text>
 
         <View style={styles.tableSection}>
@@ -190,33 +192,36 @@ const BusesReport = (props) => {
               <TableCell width="15%" align="left">
                 Bus
               </TableCell>
-              <TableCell width="20%" align="left">
-                Model
+              <TableCell width="15%" align="left">
+                Start Time
               </TableCell>
               <TableCell width="15%" align="left">
-                End Time
+                Return Time
               </TableCell>
-              <TableCell width="50%" align="left">
-                End Location
+              <TableCell width="55%" align="left">
+                Return Location
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {uniqueVehicles?.map((row) => {
+              {vehiclesData?.map((row) => {
                 return (
-                  <TableRow key={row.vehicle_id}>
-                    <TableCell width="15%" align="left">
-                      {row?.vehicle_name}
-                    </TableCell>
-                    <TableCell width="20%" align="left">
-                      {row?.vehicle_model}
-                    </TableCell>
-                    <TableCell width="15%" align="left">
-                      {dayjs(row?.end_time).format("HH:mm")}
-                    </TableCell>
-                    <TableCell width="50%" align="left">
-                      {row?.end_location} - {row?.end_address}, {row?.end_city}
-                    </TableCell>
-                  </TableRow>
+                  <View key={row.vehicle_id} style={{ marginTop: 3 }}>
+                    <TableRow>
+                      <TableCell width="15%" align="left">
+                        {row?.vehicle_name}
+                      </TableCell>
+                      <TableCell width="15%" align="left">
+                        {dayjs(row?.start_time).format("HH:mm")}
+                      </TableCell>
+                      <TableCell width="15%" align="left">
+                        {dayjs(row?.end_time).format("HH:mm")}
+                      </TableCell>
+                      <TableCell width="55%" align="left">
+                        {row?.end_location} - {row?.end_address},{" "}
+                        {row?.end_city}
+                      </TableCell>
+                    </TableRow>
+                  </View>
                 );
               })}
             </View>

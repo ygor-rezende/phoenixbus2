@@ -99,7 +99,7 @@ export const Schedule = () => {
     let controller = new AbortController();
 
     (async function getSupportData() {
-      let response = await getServer("/getallemployeenames", controller.signal);
+      let response = await getServer("/getdrivers", controller.signal);
       const empRespData = response?.data;
 
       response = await getServer("/getalllocationnames", controller.signal);

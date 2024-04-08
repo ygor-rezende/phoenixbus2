@@ -101,9 +101,10 @@ export const ServiceModal = (props) => {
 
   //service codes
   const codes = [
-    "OW",
-    "RT",
-    "CH",
+    { code: "OW", name: "ONE-WAY" },
+    { code: "RT", name: "ROUND-TRIP" },
+    { code: "CH", name: "CHARTER" },
+    { code: "DH", name: "DEAD-HEAD" },
     "N/A",
     "FEE",
     "EAT",
@@ -323,8 +324,11 @@ export const ServiceModal = (props) => {
               >
                 {codes.map((code) => {
                   return (
-                    <MenuItem key={code} value={code}>
-                      {code}
+                    <MenuItem
+                      key={code?.code ? code.code : code}
+                      value={code?.code ? code.code : code}
+                    >
+                      {code?.code ? code.name : code}
                     </MenuItem>
                   );
                 })}

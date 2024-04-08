@@ -41,6 +41,8 @@ class Schedule {
         v.vehicle_model,
         v.tag,
         cli.agency,
+        cli.contact,
+        cli.phone,
         lf.location_id as from_location_id,
         lf.location_name as from_location,
         lf.city as from_city,

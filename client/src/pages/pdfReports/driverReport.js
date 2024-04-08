@@ -51,7 +51,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
-    alignItems: "center",
+    marginBottom: 10,
+    alignItems: "baseline",
   },
   header2: {
     display: "flex",
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     marginTop: 10,
-    alignItems: "center",
+    alignItems: "baseline",
   },
   text: {
     fontFamily: "Roboto",
@@ -155,17 +156,34 @@ const DriverReport = (props) => {
     minimumFractionDigits: 2,
   });
 
+  const serviceTypes = [
+    { type: "RT", name: "ROUND-TRIP" },
+    { type: "CH", name: "CHARTER" },
+    { type: "OW", name: "ONE-WAY" },
+    { code: "DH", name: "DEAD-HEAD" },
+  ];
+
+  function formatPhoneNumber(phoneNumberString) {
+    var cleaned = ("" + phoneNumberString).replace(/\D/g, "");
+    var match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      var intlCode = match[1] ? "+1 " : "";
+      return [intlCode, "(", match[2], ") ", match[3], "-", match[4]].join("");
+    }
+    return null;
+  }
+
   return (
     <Document>
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Driver Report</Text>
+            <Text style={styles.title}>Driver Order</Text>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
         <Text style={styles.h2}>
-          Service Date: {dayjs(data?.service_date).format("l")}
+          {dayjs(data?.service_date).format("dddd, MMMM D, YYYY")}
         </Text>
         <Text
           style={[styles.textBold, { textAlign: "center", marginBottom: 10 }]}
@@ -178,32 +196,45 @@ const DriverReport = (props) => {
               <TableCell width="50%" align="left">
                 Client: {data?.agency}
               </TableCell>
-              <TableCell width="50%" align="right">
-                Invoice: {data?.invoice}
+              <TableCell width="50%" align="left">
+                <Text style={{ fontWeight: 100 }}>
+                  Contact: {data?.contact} {formatPhoneNumber(data?.phone)}
+                </Text>
               </TableCell>
             </TableHeader>
-            <View style={{ marginTop: 10 }}>
+            <View style={{ marginTop: 10, marginLeft: 80 }}>
               <TableRow>
-                <TableCell width="50%" align="center">
+                <TableCell width="50%" align="left">
                   {data?.use_farmout
                     ? `Farmout Company: ${data?.company_name}`
                     : `Driver: ${data?.firstname} ${data?.lastname}`}
                 </TableCell>
-                <TableCell width="50%" align="center">
-                  {data?.use_farmout
-                    ? "Vehicle: Farm-out"
-                    : `Vehicle: ${data?.vehicle_name}`}
+                <TableCell width="50%" align="left">
+                  Service Type:{" "}
+                  {serviceTypes.find((e) => e.type === data?.service_code)
+                    ?.name || data?.service_code}
                 </TableCell>
               </TableRow>
             </View>
-            <TableRow>
-              <TableCell width="50%" align="center">
-                Service Type: {data?.service_code}
-              </TableCell>
-              <TableCell width="50%" align="center">
-                Payment: {currencyFormatter.format(data?.payment)}
-              </TableCell>
-            </TableRow>
+            <View style={{ marginLeft: 80 }}>
+              <TableRow>
+                <TableCell width="50%" align="left">
+                  Payment: {currencyFormatter.format(data?.payment)}
+                </TableCell>
+                <TableCell width="50%" align="left">
+                  {data?.use_farmout
+                    ? "Vehicle: Farm-out"
+                    : `Vehicle # ${data?.vehicle_name}`}
+                </TableCell>
+              </TableRow>
+            </View>
+            <View style={{ marginLeft: 80 }}>
+              <TableRow>
+                <TableCell width="50%" align="left">
+                  Invoice: {data?.invoice}
+                </TableCell>
+              </TableRow>
+            </View>
           </Table>
         </View>
 
@@ -220,9 +251,11 @@ const DriverReport = (props) => {
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
+              <Text style={[styles.text, { color: "blue" }]}>.</Text>
               <Image src={PlaceIcon} style={styles.image2} />
               {data?.return_location ? (
                 <View style={{ alignItems: "center" }}>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
                   <Text style={[styles.text, { color: "blue" }]}>.</Text>
                   <Text style={[styles.text, { color: "blue" }]}>.</Text>
                   <Text style={[styles.text, { color: "blue" }]}>.</Text>
@@ -232,45 +265,81 @@ const DriverReport = (props) => {
             </View>
 
             <View style={styles.innerBoard}>
-              <View style={styles.innerBoard}>
-                <Text style={styles.textBold}>From: {data?.from_location}</Text>
-                <Text style={styles.text}>{data?.from_address}</Text>
-                <Text style={styles.text}>
-                  {data?.from_city}, {data?.from_state}
-                </Text>
-                <Text style={styles.text}>
-                  Spot Time: {dayjs(data?.spot_time).format("HH:mm")}
-                </Text>
-                <Text style={styles.text}>
-                  Start time: {dayjs(data?.start_time).format("HH:mm")}
-                </Text>
+              <View style={styles.header}>
+                <View style={{ width: "17%" }}>
+                  <Text style={styles.text}>
+                    <Text style={styles.textBold}>Spot Time: </Text>
+                    {dayjs(data?.spot_time).format("HH:mm")}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.textBold}>Start time: </Text>
+                    {dayjs(data?.start_time).format("HH:mm")}
+                  </Text>
+                </View>
+                <View style={{ width: "75%" }}>
+                  <Text style={styles.text}>
+                    PICK UP LOCATION:{" "}
+                    <Text style={styles.textBold}>{data?.from_location}</Text>
+                  </Text>
+                  <Text style={[styles.text, { marginLeft: 90 }]}>
+                    {data?.from_address}
+                  </Text>
+                  <Text style={[styles.text, { marginLeft: 90 }]}>
+                    {data?.from_city}, {data?.from_state}
+                  </Text>
+                </View>
               </View>
 
-              <View style={styles.innerBoard}>
-                <Text style={styles.textBold}>To: {data?.to_location}</Text>
-                <Text style={styles.text}>{data?.to_address}</Text>
-                <Text style={styles.text}>
-                  {data?.to_city}, {data?.to_state}
-                </Text>
-                {data?.return_location ? (
+              <View style={[styles.header, { marginTop: 20 }]}>
+                <View style={{ width: "17%" }}>
+                  {data?.return_location ? (
+                    <Text style={styles.text}>
+                      <Text style={styles.textBold}>Return time: </Text>
+                      {dayjs(data?.return_time).format("HH:mm")}
+                    </Text>
+                  ) : (
+                    <Text style={styles.text}>
+                      <Text style={styles.textBold}>Return time: </Text>
+                      {dayjs(data?.end_time).format("HH:mm")}
+                    </Text>
+                  )}
+                </View>
+                <View style={{ width: "75%" }}>
                   <Text style={styles.text}>
-                    Return time: {dayjs(data?.return_time).format("HH:mm")}
+                    DROP OFF LOCATION:{" "}
+                    <Text style={styles.textBold}>{data?.to_location}</Text>
                   </Text>
-                ) : null}
+                  <Text style={[styles.text, { marginLeft: 99 }]}>
+                    {data?.to_address}
+                  </Text>
+                  <Text style={[styles.text, { marginLeft: 99 }]}>
+                    {data?.to_city}, {data?.to_state}
+                  </Text>
+                </View>
               </View>
 
               {data?.return_location ? (
-                <View style={styles.innerBoard}>
-                  <Text style={styles.textBold}>
-                    End: {data?.return_location}
-                  </Text>
-                  <Text style={styles.text}>{data?.return_address}</Text>
-                  <Text style={styles.text}>
-                    {data?.return_city}, {data?.return_state}
-                  </Text>
-                  <Text style={styles.text}>
-                    End time: {dayjs(data?.end_time).format("HH:mm")}
-                  </Text>
+                <View style={[styles.header, { marginTop: 20 }]}>
+                  <View style={{ width: "17%" }}>
+                    <Text style={styles.text}>
+                      <Text style={styles.textBold}>End time: </Text>
+                      {dayjs(data?.end_time).format("HH:mm")}
+                    </Text>
+                  </View>
+                  <View style={{ width: "75%" }}>
+                    <Text style={styles.text}>
+                      END LOCATION:{" "}
+                      <Text style={styles.textBold}>
+                        {data?.return_location}
+                      </Text>
+                    </Text>
+                    <Text style={[styles.text, { marginLeft: 75 }]}>
+                      {data?.return_address}
+                    </Text>
+                    <Text style={[styles.text, { marginLeft: 75 }]}>
+                      {data?.return_city}, {data?.return_state}
+                    </Text>
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -280,9 +349,21 @@ const DriverReport = (props) => {
           </Text>
 
           <View style={styles.header2}>
-            <Text style={styles.textBold}>PLEASE FUEL THE BUS</Text>
-            <Text style={styles.textBold}>PARK THE CAR ON BUS SPOT</Text>
-            <Text style={styles.textBold}>LOG IN SAMSARA</Text>
+            <Text
+              style={[styles.textBold, { width: "30%", textAlign: "center" }]}
+            >
+              PLEASE FUEL THE BUS: MINIMUM OF 3/4 TANK
+            </Text>
+            <Text
+              style={[styles.textBold, { width: "30%", textAlign: "center" }]}
+            >
+              PARK THE CAR ON BUS SPOT
+            </Text>
+            <Text
+              style={[styles.textBold, { width: "30%", textAlign: "center" }]}
+            >
+              LOG IN SAMSARA: COMPLETE PRE-TRIP WITH PICTURES
+            </Text>
           </View>
         </View>
 
