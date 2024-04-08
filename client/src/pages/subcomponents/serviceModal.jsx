@@ -255,7 +255,7 @@ export const ServiceModal = (props) => {
       return;
     }
 
-    if (!serviceDate) {
+    if (!dayjs(serviceDate).isValid()) {
       setInvalidField("serviceDate");
       return;
     }

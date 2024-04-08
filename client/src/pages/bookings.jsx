@@ -395,6 +395,11 @@ export const Bookings = () => {
       return;
     }
 
+    if (!state.quotedCost) {
+      setState({ invalidField: "quotedCost" });
+      return;
+    }
+
     setState({ invalidField: "" });
     return true;
   }; //isFormValid
@@ -1640,6 +1645,7 @@ export const Bookings = () => {
 
                   <TextField
                     className="textfieldSmall"
+                    required
                     id="quotedCost"
                     label="Quoted Cost $"
                     type="text"
@@ -1647,6 +1653,12 @@ export const Bookings = () => {
                     placeholder="Quoted Cost $"
                     value={state.quotedCost}
                     onChange={handleOnChange}
+                    error={state.invalidField === "quotedCost"}
+                    helperText={
+                      state.invalidField === "quotedCost"
+                        ? "Information required"
+                        : ""
+                    }
                   />
 
                   <TextField
@@ -1992,19 +2004,25 @@ export const Bookings = () => {
                                               {locationTo?.location_name}
                                             </TableCell>
                                             <TableCell>
-                                              {dayjs(detail?.spot_time).format(
-                                                "HH:mm"
-                                              )}
+                                              {detail?.spot_time
+                                                ? dayjs(
+                                                    detail?.spot_time
+                                                  ).format("HH:mm")
+                                                : ""}
                                             </TableCell>
                                             <TableCell>
-                                              {dayjs(detail?.start_time).format(
-                                                "HH:mm"
-                                              )}
+                                              {detail?.start_time
+                                                ? dayjs(
+                                                    detail?.start_time
+                                                  ).format("HH:mm")
+                                                : ""}
                                             </TableCell>
                                             <TableCell>
-                                              {dayjs(detail?.end_time).format(
-                                                "HH:mm"
-                                              )}
+                                              {detail?.end_time
+                                                ? dayjs(
+                                                    detail?.end_time
+                                                  ).format("HH:mm")
+                                                : ""}
                                             </TableCell>
                                             <TableCell>
                                               <Tooltip title="View History">

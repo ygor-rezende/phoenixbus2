@@ -195,12 +195,15 @@ export const ScheduleTable = (props) => {
           <TableHead>
             <TableRow sx={{ backgroundColor: "primary.main" }}>
               <BoldTableCell>Invoice</BoldTableCell>
-              <BoldTableCell>Start/PickUp</BoldTableCell>
-              <BoldTableCell>End/Drop Off</BoldTableCell>
-              <BoldTableCell>Driver</BoldTableCell>
-              <BoldTableCell>Vehicle</BoldTableCell>
+              <BoldTableCell>Client</BoldTableCell>
               <BoldTableCell>Type</BoldTableCell>
-              <BoldTableCell align="right">Charge</BoldTableCell>
+              <BoldTableCell>Spot</BoldTableCell>
+              <BoldTableCell>Start</BoldTableCell>
+              <BoldTableCell>Return</BoldTableCell>
+              <BoldTableCell>Pick-Up</BoldTableCell>
+              <BoldTableCell>Drop-Off</BoldTableCell>
+              <BoldTableCell>Bus #</BoldTableCell>
+              <BoldTableCell>Driver</BoldTableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
@@ -217,6 +220,21 @@ export const ScheduleTable = (props) => {
                   }}
                 >
                   <TableCell>{row?.invoice}</TableCell>
+                  <TableCell>{row?.agency}</TableCell>
+                  <TableCell>{row?.service_code}</TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                      gutterBottom
+                    >
+                      <AccessAlarmIcon color="primary" />
+                      {row?.spot_time
+                        ? dayjs(row?.spot_time).format("MM/DD/YYYY HH:mm")
+                        : ""}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     <Box>
                       <Typography
@@ -226,21 +244,11 @@ export const ScheduleTable = (props) => {
                         gutterBottom
                       >
                         <AccessAlarmIcon color="primary" />
-                        {dayjs(row?.start_time).format("HH:mm")}
-                        {" | "}
-                        {new Date(row?.service_date)
-                          ?.toLocaleDateString()
-                          .slice(0, 10)}
+                        {row?.start_time
+                          ? dayjs(row?.start_time).format("MM/DD/YYYY HH:mm")
+                          : ""}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        bgcolor="white"
-                        className="scheduleFromTo"
-                        gutterBottom
-                      >
-                        <PlaceIcon color="primary" /> {row?.from_location} /{" "}
-                        {row?.from_city}
-                      </Typography>
+
                       {row?.service_code === "RT" && (
                         <Box>
                           <Typography
@@ -250,19 +258,11 @@ export const ScheduleTable = (props) => {
                             gutterBottom
                           >
                             <AccessAlarmIcon color="primary" />
-                            {dayjs(row?.return_time).format("HH:mm")}
-                            {" | "}
-                            {new Date(row?.service_date)
-                              ?.toLocaleDateString()
-                              .slice(0, 10)}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            bgcolor="white"
-                            className="scheduleFromTo"
-                          >
-                            <PlaceIcon color="primary" /> {row?.to_location} /{" "}
-                            {row?.to_city}
+                            {row?.return_time
+                              ? dayjs(row?.return_time).format(
+                                  "MM/DD/YYYY HH:mm"
+                                )
+                              : ""}
                           </Typography>
                         </Box>
                       )}
@@ -270,29 +270,22 @@ export const ScheduleTable = (props) => {
                   </TableCell>
                   <TableCell>
                     <Box>
-                      <Typography
-                        variant="body2"
-                        bgcolor="white"
-                        className="scheduleFromTo"
-                        gutterBottom
-                      >
-                        <AccessAlarmIcon color="success" />{" "}
-                        {row?.service_code !== "RT"
-                          ? dayjs(row?.end_time).format("HH:mm") + " | "
-                          : ""}
-                        {new Date(row?.service_date)
-                          ?.toLocaleDateString()
-                          .slice(0, 10)}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        bgcolor="white"
-                        className="scheduleFromTo"
-                        gutterBottom
-                      >
-                        <PlaceIcon color="success" /> {row?.to_location} /{" "}
-                        {row?.to_city}
-                      </Typography>
+                      {row?.service_code !== "RT" ? (
+                        <Typography
+                          variant="body2"
+                          bgcolor="white"
+                          className="scheduleFromTo"
+                          gutterBottom
+                        >
+                          <AccessAlarmIcon color="success" />{" "}
+                          {row?.end_time
+                            ? dayjs(row?.end_time).format("MM/DD/YYYY HH:mm")
+                            : ""}
+                        </Typography>
+                      ) : (
+                        ""
+                      )}
+
                       {row?.service_code === "RT" && (
                         <Box>
                           <Typography
@@ -302,26 +295,55 @@ export const ScheduleTable = (props) => {
                             gutterBottom
                           >
                             <AccessAlarmIcon color="success" />
-                            {dayjs(row?.end_time).format("HH:mm")}
-                            {" | "}
-                            {new Date(row?.service_date)
-                              ?.toLocaleDateString()
-                              .slice(0, 10)}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            bgcolor="white"
-                            className="scheduleFromTo"
-                          >
-                            <PlaceIcon color="success" /> {row?.return_location}{" "}
-                            / {row?.return_city}
+                            {row?.end_time
+                              ? dayjs(row?.end_time).format("MM/DD/YYYY HH:mm")
+                              : ""}
                           </Typography>
                         </Box>
                       )}
                     </Box>
                   </TableCell>
                   <TableCell>
-                    {row?.use_farmout ? row?.company_name : `${row?.firstname}`}
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                      gutterBottom
+                    >
+                      <PlaceIcon color="primary" /> {row?.from_location} /{" "}
+                      {row?.from_city}
+                    </Typography>
+                    {row?.service_code === "RT" && (
+                      <Typography
+                        variant="body2"
+                        bgcolor="white"
+                        className="scheduleFromTo"
+                      >
+                        <PlaceIcon color="primary" /> {row?.to_location} /{" "}
+                        {row?.to_city}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      bgcolor="white"
+                      className="scheduleFromTo"
+                      gutterBottom
+                    >
+                      <PlaceIcon color="success" /> {row?.to_location} /{" "}
+                      {row?.to_city}
+                    </Typography>
+                    {row?.service_code === "RT" && (
+                      <Typography
+                        variant="body2"
+                        bgcolor="white"
+                        className="scheduleFromTo"
+                      >
+                        <PlaceIcon color="success" /> {row?.return_location} /{" "}
+                        {row?.return_city}
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Box style={{ display: "flex", alignItems: "center" }}>
@@ -329,10 +351,10 @@ export const ScheduleTable = (props) => {
                       {row?.use_farmout ? "Farm-out" : row?.vehicle_name}
                     </Box>
                   </TableCell>
+                  <TableCell>
+                    {row?.use_farmout ? row?.company_name : `${row?.firstname}`}
+                  </TableCell>
 
-                  <TableCell>{row?.service_code}</TableCell>
-
-                  <TableCell align="right">${row?.charge}</TableCell>
                   <TableCell padding="none">
                     <Tooltip title="Edit">
                       <IconButton
@@ -370,16 +392,15 @@ export const ScheduleTable = (props) => {
 
                 {extendLine === index ? (
                   <TableRow key={"r" + index}>
-                    <TableCell colSpan="9">
+                    <TableCell colSpan="13">
                       <Table size="small">
                         <TableHead>
                           <TableRow>
+                            <SmallBoldCell>Charge</SmallBoldCell>
                             <SmallBoldCell>Driver</SmallBoldCell>
                             <SmallBoldCell>Instructions</SmallBoldCell>
                             <SmallBoldCell>Driver Payment</SmallBoldCell>
-                            {row?.service_code === "RT" && (
-                              <SmallBoldCell>Return Location</SmallBoldCell>
-                            )}
+
                             {row?.additional_stop && (
                               <SmallBoldCell>Additional Stop</SmallBoldCell>
                             )}
@@ -390,6 +411,11 @@ export const ScheduleTable = (props) => {
                         </TableHead>
                         <TableBody>
                           <TableRow>
+                            <SmallBoldCell
+                              style={{ color: "black", fontWeight: "normal" }}
+                            >
+                              ${row?.charge}
+                            </SmallBoldCell>
                             <SmallBoldCell
                               style={{ color: "black", fontWeight: "normal" }}
                             >
@@ -407,13 +433,6 @@ export const ScheduleTable = (props) => {
                             >
                               ${row?.payment}
                             </SmallBoldCell>
-                            {row?.service_code === "RT" && (
-                              <SmallBoldCell
-                                style={{ color: "black", fontWeight: "normal" }}
-                              >
-                                {row?.return_location} / {row?.return_city}
-                              </SmallBoldCell>
-                            )}
                             {row?.additional_stop && (
                               <SmallBoldCell
                                 style={{ color: "black", fontWeight: "normal" }}
