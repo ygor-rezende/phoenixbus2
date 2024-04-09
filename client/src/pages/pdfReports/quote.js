@@ -12,6 +12,9 @@ import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
+import { Table, TableCell, TableHeader, TableRow } from "./Table";
+
+import dayjs from "dayjs";
 
 Font.register({
   family: "Roboto",
@@ -52,6 +55,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  header2: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   contactBoard: {
     display: "flex",
@@ -134,6 +142,18 @@ const styles = StyleSheet.create({
     color: "grey",
     fontSize: "9",
   },
+
+  serviceRow: {
+    marginBottom: 3,
+    fontWeight: "semibold",
+    borderBottom: 0.5,
+  },
+  detailsSection: {
+    marginBottom: 10,
+  },
+  detailsRow: {
+    marginBottom: 5,
+  },
 });
 
 const QuoteReport = (props) => {
@@ -148,6 +168,9 @@ const QuoteReport = (props) => {
     tripStart,
     tripEnd,
     quoteExp,
+    services,
+    details,
+    locations,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -155,6 +178,9 @@ const QuoteReport = (props) => {
     currency: "USD",
     minimumFractionDigits: 2,
   });
+
+  //Exclude services that are Dead-Head
+  const filteredServices = services.filter((e) => e.service_code !== "DH");
 
   //Deposit
   let depositCost = (quotedCost * deposit) / 100;
@@ -164,6 +190,15 @@ const QuoteReport = (props) => {
   depositCost = currencyFormatter.format(depositCost);
   dividedCost = currencyFormatter.format(dividedCost);
 
+  //Create a unique array with services and details
+  //Return an array with an array of services and its details
+  const allData = filteredServices?.map((service) => {
+    let thisDetails = details
+      ?.flat()
+      .filter((detail) => detail.service_id === service.service_id);
+    return [service, thisDetails];
+  });
+
   return (
     <Document>
       <Page style={styles.body}>
@@ -171,7 +206,9 @@ const QuoteReport = (props) => {
           <View>
             <Text style={styles.title}>Quote</Text>
             <View style={styles.text}>
-              <Text>Reference #: {invoiceNum}</Text>
+              <Text>
+                Reference #: <Text style={styles.textBold}>{invoiceNum}</Text>
+              </Text>
               <Text>Sales Representative: {salesPerson}</Text>
               <Text>Quote Date: {date}</Text>
             </View>
@@ -182,7 +219,7 @@ const QuoteReport = (props) => {
         <View style={styles.contentSection}>
           <View style={styles.innerBoard}>
             <Text style={styles.textBold}>Dear Mr./Ms. {client.contact},</Text>
-            <Text style={styles.textItalic}>
+            <Text style={styles.textBold}>
               Greetings from Phoenix Bus, Inc.!
             </Text>
             <Text style={styles.textItalic}>
@@ -193,15 +230,185 @@ const QuoteReport = (props) => {
           </View>
           <View style={styles.contactBoard}>
             <View style={styles.text}>
-              <Text>Email: {client.email}</Text>
-              <Text>Phone: {client.phone}</Text>
+              <View style={styles.header2}>
+                <View style={styles.text}>
+                  <Text>
+                    Email: <Text style={styles.textBold}>{client.email}</Text>
+                  </Text>
+                  <Text>
+                    Phone: <Text style={styles.textBold}>{client.phone}</Text>
+                  </Text>
+                </View>
+                <View style={styles.text}>
+                  <Text>
+                    From: <Text style={styles.textBold}>{tripStart}</Text>
+                  </Text>
+                  <Text>
+                    Through: <Text style={styles.textBold}>{tripEnd}</Text>
+                  </Text>
+                </View>
+              </View>
+              <View>
+                <Table>
+                  <TableHeader>
+                    <TableCell width="20%" align="left">
+                      Date
+                    </TableCell>
+                    <TableCell width="50%" align="left">
+                      Service
+                    </TableCell>
+                    <TableCell width="30%" align="right">
+                      No. Buses
+                    </TableCell>
+                  </TableHeader>
+                  {allData?.map((service) => (
+                    <View key={service[0]?.service_id}>
+                      <View style={styles.serviceRow}>
+                        <TableRow>
+                          <TableCell width="20%" align="left">
+                            {dayjs(service[0]?.service_date).format(
+                              "MM/DD/YYYY"
+                            )}
+                          </TableCell>
+                          <TableCell width="50%" align="left">
+                            {service[0]?.service_name}
+                          </TableCell>
+                          <TableCell width="30%" align="right">
+                            {service[0]?.qty}
+                          </TableCell>
+                        </TableRow>
+                      </View>
+                      <View style={styles.detailsSection}>
+                        {service[1]?.map((detail) => {
+                          const fromLocation = locations?.find(
+                            (e) => e.location_id === detail.from_location_id
+                          );
+                          const toLocation = locations?.find(
+                            (e) => e.location_id === detail.to_location_id
+                          );
+                          const returnLocation = locations?.find(
+                            (e) => e.location_id === detail.return_location_id
+                          );
+                          return (
+                            <View
+                              key={detail.detail_id}
+                              style={styles.detailsRow}
+                            >
+                              <TableRow>
+                                {fromLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      Pick-Up: {fromLocation?.location_name}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {toLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      Drop-Off: {toLocation?.location_name}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {returnLocation && (
+                                  <TableCell width="32%" align="left">
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      Return: {returnLocation?.location_name}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+
+                              <TableRow>
+                                {fromLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {fromLocation?.address}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {toLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {toLocation?.address}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {returnLocation && (
+                                  <TableCell width="32%" align="left">
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {returnLocation?.address}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+
+                              <TableRow>
+                                {fromLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {fromLocation?.city},{" "}
+                                      {fromLocation.location_state}{" "}
+                                      {fromLocation.zip}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {toLocation && (
+                                  <TableCell
+                                    width={returnLocation ? "32%" : "49%"}
+                                    align="left"
+                                  >
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {toLocation?.city},{" "}
+                                      {toLocation.location_state}{" "}
+                                      {toLocation.zip}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                                {returnLocation && (
+                                  <TableCell width="32%" align="left">
+                                    <Text style={{ fontWeight: "semibold" }}>
+                                      {returnLocation?.city},{" "}
+                                      {returnLocation.location_state}{" "}
+                                      {returnLocation.zip}
+                                    </Text>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+
+                              <TableRow>
+                                <TableCell width="50%" align="left">
+                                  <Text style={{ fontWeight: "semibold" }}>
+                                    Start Time:{" "}
+                                    {dayjs(detail.start_time).format("HH:mm")}
+                                  </Text>
+                                </TableCell>
+                              </TableRow>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ))}
+                </Table>
+              </View>
               <Text style={[styles.textBold, { marginTop: 10 }]}>
                 *Quote may be subject to change after {quoteExp} hrs
               </Text>
-            </View>
-            <View style={styles.text}>
-              <Text>From: {tripStart}</Text>
-              <Text>Through: {tripEnd}</Text>
             </View>
           </View>
           <View style={styles.innerBoard}>
@@ -233,24 +440,37 @@ const QuoteReport = (props) => {
             <View style={styles.bulletPoints}>
               <Text style={styles.textBold}>{"\u2022"}</Text>
               <Text style={[{ marginLeft: 10 }, styles.textItalic]}>
-                If divided by the the {passengers} passengers, the cost per
-                person would only be{" "}
+                If divided by the the{" "}
+              </Text>
+              <Text style={styles.textBold}>{passengers}</Text>
+              <Text style={styles.textItalic}>
+                {" "}
+                passengers, the cost per person would only be{" "}
               </Text>
               <Text style={styles.textBold}>{dividedCost}</Text>
             </View>
             <View style={styles.bulletPoints}>
               <Text style={styles.textBold}>{"\u2022"}</Text>
-              <Text style={[{ marginLeft: 10 }, styles.textItalic]}>
-                All we need to reserve this booking is a deposit of {deposit}%
-                or {depositCost} and we’ll send you booking confirmation! (if
-                you are a public school no deposit is required)
-              </Text>
+              <View style={{ marginLeft: 10 }}>
+                <Text>
+                  <Text style={styles.textItalic}>
+                    All we need to reserve this booking is a deposit of{" "}
+                  </Text>
+                  <Text style={styles.textBold}>{deposit}%</Text>
+                  <Text style={styles.textItalic}> or </Text>
+                  <Text style={styles.textBold}>{depositCost}</Text>
+                  <Text style={styles.textItalic}>
+                    {" "}
+                    and we’ll send you booking confirmation! (if you are a
+                    public school no deposit is required)
+                  </Text>
+                </Text>
+              </View>
             </View>
             <View style={styles.bulletPoints}>
               <Text style={styles.textBold}>{"\u2022"}</Text>
-              <Text style={[{ marginLeft: 10 }, styles.textItalic]}>
-                Sales Tax waived! Above industry standard $7 million insurance
-                policy!
+              <Text style={[{ marginLeft: 10 }, styles.textBold]}>
+                Sales Tax waived!
               </Text>
             </View>
           </View>
@@ -277,6 +497,8 @@ const QuoteReport = (props) => {
               Orlando Theme Parks, Orlando Magic Authorized Ticket Reseller and
               Experience Kissimmee.
             </Text>
+
+            <Text style={styles.h3}>THANK YOU AND HAVE A GREAT DAY!</Text>
           </View>
         </View>
 
@@ -297,23 +519,8 @@ const QuoteReport = (props) => {
       <Page style={styles.body}>
         <Image style={styles.imageSmall} src={PhoenixLogo} />
 
-        <Text style={styles.h3}>THANK YOU AND HAVE A GREAT DAY!</Text>
-
         <View>
-          <Text style={styles.h4}>Included in the Quote</Text>
-          <Text style={styles.textCenter}>
-            THIS QUOTE IS ONLY VALID AFTER APPROVED BY PHOENIX BUS, INC AND THE
-            CLIENT.
-          </Text>
-          <Text style={styles.textCenter}>
-            FUEL AND ANY FUEL SURCHAGE •• ANY DEADHEAD MILES •• LUGGAGE STORAGE
-          </Text>
-          <Text style={styles.textCenter}>
-            FULLY EQUIPPED ONBOARD RESTROOM • • BASIC BUS CLEANING
-          </Text>
-          <Text style={styles.textCenter}>
-            ANY RELAY DRIVER •• WIFI DEVICE (Free of Charge)
-          </Text>
+          <Text style={styles.h4}></Text>
           <View style={styles.terms}>
             <Text style={[styles.textBold, { marginBottom: 10 }]}>
               PAYMENT AND DEPOSIT TERMS
