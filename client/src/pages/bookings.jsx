@@ -688,11 +688,12 @@ export const Bookings = () => {
     //get client id and employee id from bookings data
     const clientId = state.bookingsData?.find((e) => e.id === id)?.clientId;
     const employeeId = state.bookingsData?.find((e) => e.id === id)?.employeeId;
-    const isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
     const curClient = state.clientsData?.find((e) => e.client_id === clientId);
 
     //find current booking
     const curBooking = state.bookingsData?.find((e) => e.id === id);
+
+    let isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
 
     setState({
       onEditMode: true,
@@ -1084,6 +1085,9 @@ export const Bookings = () => {
           tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
           tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
           quoteExp={state.numHoursQuoteValid}
+          services={state.servicesData}
+          details={state.detailsData}
+          locations={state.locationsData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -2166,7 +2170,7 @@ export const Bookings = () => {
             invoice={state.invoice}
             data={state.currentService}
             onEditMode={state.editingService}
-            onSave={handleItemClick}
+            onSave={state.isQuote ? handleQuoteClick : handleItemClick}
           />
           <DetailModal
             modalTitle={state.detailTitle}
@@ -2178,7 +2182,7 @@ export const Bookings = () => {
             invoice={state.invoice}
             data={state.currentDetail}
             onEditMode={state.editingDetail}
-            onSave={handleItemClick}
+            onSave={state.isQuote ? handleQuoteClick : handleItemClick}
           />
 
           <Dialog open={state.openInvoiceDialog} onClose={handleCloseInvoice}>
