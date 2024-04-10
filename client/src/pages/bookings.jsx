@@ -677,7 +677,7 @@ export const Bookings = () => {
   }; //handleDelete
 
   //Show services information when clicking on a table row
-  const handleItemClick = async (id) => {
+  const handleItemClick = async (id, tab = 0) => {
     //load services for this booking
     const services = await getServicesData(id);
 
@@ -728,7 +728,7 @@ export const Bookings = () => {
       internalComments: curBooking?.internalComents,
       status: curBooking?.status,
       servicesData: services,
-      tabService: 0,
+      tabService: tab,
       detailsData: details,
       curBooking: curBooking,
     });
@@ -775,7 +775,7 @@ export const Bookings = () => {
   }; //getDetailsData
 
   //Show information when clicking on quotes table row
-  const handleQuoteClick = async (id) => {
+  const handleQuoteClick = async (id, tab = 0) => {
     const services = await getServicesData(id);
 
     //load service details for this booking
@@ -833,7 +833,7 @@ export const Bookings = () => {
         ?.internalComents,
       status: state.quotesData.find((e) => e.id === id)?.status,
       servicesData: services,
-      tabService: 0,
+      tabService: tab,
       detailsData: details,
     });
   }; //handleQuoteClick
@@ -2168,6 +2168,7 @@ export const Bookings = () => {
             onSuccess={handleOnSuccess}
             open={state.triggerModal}
             invoice={state.invoice}
+            tabService={state.tabService}
             data={state.currentService}
             onEditMode={state.editingService}
             onSave={state.isQuote ? handleQuoteClick : handleItemClick}
@@ -2180,6 +2181,7 @@ export const Bookings = () => {
             serviceId={state.serviceId}
             serviceData={state.currentService}
             invoice={state.invoice}
+            tabService={state.tabService}
             data={state.currentDetail}
             onEditMode={state.editingDetail}
             onSave={state.isQuote ? handleQuoteClick : handleItemClick}

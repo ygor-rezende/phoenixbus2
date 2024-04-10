@@ -425,7 +425,9 @@ const EnhancedTable = (props) => {
                           key={cell.id}
                           style={{
                             color: colorLine(row),
+                            textTransform: "uppercase"
                           }}
+                          
                         >
                           {row[`${cell.id}`]}
                         </TableCell>
