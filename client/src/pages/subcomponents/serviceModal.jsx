@@ -43,6 +43,7 @@ export const ServiceModal = (props) => {
     onSuccess,
     open,
     invoice,
+    tabService,
     data,
     onEditMode,
     onSave,
@@ -179,7 +180,7 @@ export const ServiceModal = (props) => {
     } //else
 
     //call onSave to re-render the services table in the bookings component
-    onSave(invoice);
+    onSave(invoice, tabService);
   }; //handleSaveNewService
 
   const handleDeleteService = async () => {

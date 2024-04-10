@@ -39,6 +39,7 @@ class Booking {
   }
 
   static async newBooking(req, res) {
+    const client = await pool.connect();
     try {
       const { booking } = req.body;
       if (!booking)
@@ -53,8 +54,11 @@ class Booking {
         invoice = await Booking.createInvoice(booking.isQuote);
       } else invoice = booking.invoice;
 
+      //start transaction
+      await client.query("BEGIN");
+
       //insert the new Booking
-      await pool.query(
+      await client.query(
         `CALL create_booking(invoice => $1::TEXT, 
           client_id => $2::TEXT, 
           employee_id => $3::TEXT, 
@@ -102,9 +106,117 @@ class Booking {
         ]
       );
 
+      //Check if it's a booking and then find if there is a quote for that booking
+      let servicesAndDetails = null;
+      if (booking.isQuote === false) {
+        //Get the services
+        let result = await client.query(
+          `SELECT * FROM services WHERE booking_id = '${invoice}Q'`
+        );
+        let services = result.rows;
+
+        //get the details for each service
+        servicesAndDetails = services?.map(async (service) => {
+          const detail = await client.query(
+            `SELECT * FROM service_details WHERE service_id = ${service.service_id}`
+          );
+          return [service, detail.rows];
+        });
+        servicesAndDetails = await Promise.all(servicesAndDetails);
+      }
+
+      //Create services if any
+      if (servicesAndDetails) {
+        for (let array of servicesAndDetails) {
+          await client.query(
+            `CALL create_service(booking_id => $1::TEXT, 
+          service_name => $2::TEXT, 
+          service_code => $3::TEXT, 
+          service_date => $4::TEXT, 
+          qty => $5, 
+          charge => $6, 
+          sales_tax => $7, 
+          gratuity => $8, 
+          change_user => $9::TEXT)
+          `,
+            [
+              invoice,
+              array[0]?.service_name,
+              array[0]?.service_code,
+              array[0]?.service_date,
+              array[0]?.qty,
+              array[0]?.charge,
+              array[0]?.sales_tax,
+              array[0]?.gratuity,
+              booking.changeUser,
+            ]
+          );
+
+          //get the last service id created
+          if (array[1]?.length > 0) {
+            let response = await client.query(
+              "SELECT service_id FROM services ORDER BY service_id DESC LIMIT 1"
+            );
+            let lastService = response.rows?.at(0);
+
+            //create the details for this service
+            for (let detail of array[1]) {
+              await client.query(
+                `CALL create_detail(service_id => $1,
+              employee_id => $2::TEXT,
+              company_id => $3::TEXT,
+              vehicle_id => $4::TEXT,
+              from_location_id => $5::TEXT,
+              to_location_id => $6::TEXT,
+              return_location_id => $7::TEXT,
+              use_farmout => $8::BOOLEAN,
+              spot_time => $9::TEXT,
+              start_time => $10::TEXT,
+              end_time => $11::TEXT,
+              return_time => $12::TEXT,
+              instructions => $13::TEXT,
+              payment => $14,
+              gratuity => $15,
+              additional_stop => $16::BOOLEAN,
+              additional_stop_info => $17::TEXT,
+              additional_stop_detail => $18::TEXT,
+              trip_length => $19,
+              change_user => $20::TEXT)`,
+                [
+                  lastService.service_id,
+                  detail.employee_id,
+                  detail.company_id,
+                  detail.vehicle_id,
+                  detail.from_location_id,
+                  detail.to_location_id,
+                  detail.return_location_id,
+                  detail.use_farmout,
+                  detail.spot_time,
+                  detail.start_time,
+                  detail.end_time,
+                  detail.return_time,
+                  detail.instructions,
+                  detail.payment,
+                  detail.gratuity,
+                  detail.additional_stop,
+                  detail.additional_stop_info,
+                  detail.additional_stop_detail,
+                  detail.trip_length,
+                  booking.changeUser,
+                ]
+              );
+            } //end details for
+          } //end if details exist
+        } //end services for
+      } //end if servicesAndDetails exist
+
+      //End transaction
+      await client.query("COMMIT");
+
       //send the reponse to booking
       return res.status(201).json(`Booking/Quote ${invoice} created`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       if (err.code === "23505")
         return res.status(409).json({
@@ -112,6 +224,8 @@ class Booking {
         });
 
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //newBooking
 

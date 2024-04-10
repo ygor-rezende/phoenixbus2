@@ -90,6 +90,7 @@ export const DetailModal = (props) => {
     serviceId,
     serviceData,
     invoice,
+    tabService,
     data,
     onEditMode,
     onSave,
@@ -388,7 +389,7 @@ export const DetailModal = (props) => {
     } //else
 
     //call onSave to re-render the details table in the bookings component
-    onSave(invoice);
+    onSave(invoice, tabService);
   }; //handleSaveNewDetail
 
   const handleConfirmDialog = async () => {
