@@ -676,6 +676,32 @@ export const Bookings = () => {
     }
   }; //handleDelete
 
+  //Calculate total cost of a booking based on the services
+  const calcTotCost = (services) => {
+    //Total invoice
+    let totalInvoice = services?.reduce((sum, current) => {
+      return sum + Number(current.gratuity) + current.charge * current.qty;
+    }, 0);
+
+    //Total tax
+    let totalTax = services
+      ?.map((service) => {
+        return {
+          tax: service.sales_tax,
+          charge: service.charge,
+          qty: service.qty,
+        };
+      })
+      ?.reduce((sum, service) => {
+        return sum + Number(service.tax * service.charge * service.qty) / 100;
+      }, 0);
+
+    //Total amount: total charges + tax
+    let totalAmount = totalInvoice + totalTax;
+
+    return totalAmount;
+  };
+
   //Show services information when clicking on a table row
   const handleItemClick = async (id, tab = 0) => {
     //load services for this booking
@@ -694,6 +720,9 @@ export const Bookings = () => {
     const curBooking = state.bookingsData?.find((e) => e.id === id);
 
     let isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
+
+    //calculate total cost for the booking
+    let totalCost = calcTotCost(services);
 
     setState({
       onEditMode: true,
@@ -721,7 +750,7 @@ export const Bookings = () => {
       tripStartDate: dayjs(curBooking?.tripStartDate),
       tripEndDate: dayjs(curBooking?.tripEndDate),
       deposit: curBooking?.deposit,
-      quotedCost: curBooking?.cost,
+      quotedCost: totalCost,
       numHoursQuoteValid: curBooking?.numHoursQuoteValid,
       clientComments: curBooking?.clientComments,
       intineraryDetails: curBooking?.intineraryDetails,
@@ -1034,6 +1063,7 @@ export const Bookings = () => {
           departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           services={state.servicesData}
           deposit={state.deposit}
+          transactions={state.transactionsData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1059,6 +1089,7 @@ export const Bookings = () => {
           details={state.detailsData}
           locations={state.locationsData}
           deposit={state.deposit}
+          transactions={state.transactionsData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1088,6 +1119,7 @@ export const Bookings = () => {
           services={state.servicesData}
           details={state.detailsData}
           locations={state.locationsData}
+          quoteDetails={state.intineraryDetails}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1651,10 +1683,11 @@ export const Bookings = () => {
                     className="textfieldSmall"
                     required
                     id="quotedCost"
-                    label="Quoted Cost $"
+                    disabled={!state.isQuote}
+                    label={state.isQuote ? "Quoted Cost $" : "Total Cost"}
                     type="text"
                     inputProps={{ inputMode: "decimal", step: "0.01" }}
-                    placeholder="Quoted Cost $"
+                    placeholder={state.isQuote ? "Quoted Cost $" : "Total Cost"}
                     value={state.quotedCost}
                     onChange={handleOnChange}
                     error={state.invalidField === "quotedCost"}
@@ -1677,41 +1710,49 @@ export const Bookings = () => {
                     onChange={handleOnChange}
                   />
 
-                  <TextField
-                    className="textfield"
-                    id="clientComments"
-                    label="Client Comments"
-                    type="text"
-                    multiline
-                    rows={4}
-                    placeholder="Client Comments"
-                    value={state.clientComments}
-                    onChange={handleOnChange}
-                  />
+                  {state.isQuote === false && (
+                    <TextField
+                      className="textfield"
+                      id="clientComments"
+                      label="Client Comments"
+                      type="text"
+                      multiline
+                      rows={4}
+                      placeholder="Client Comments"
+                      value={state.clientComments}
+                      onChange={handleOnChange}
+                    />
+                  )}
 
                   <TextField
                     className="textfield"
                     id="intineraryDetails"
-                    label="Intinerary Details"
+                    label={
+                      state.isQuote ? "Quote Details" : "Itinerary Details"
+                    }
                     type="text"
                     multiline
                     rows={4}
-                    placeholder="Intinerary Details"
+                    placeholder={
+                      state.isQuote ? "Quote Details" : "Itinerary Details"
+                    }
                     value={state.intineraryDetails}
                     onChange={handleOnChange}
                   />
 
-                  <TextField
-                    className="textfield"
-                    id="internalComments"
-                    label="Internal Comments"
-                    type="text"
-                    multiline
-                    rows={4}
-                    placeholder="Internal Comments"
-                    value={state.internalComments}
-                    onChange={handleOnChange}
-                  />
+                  {state.isQuote === false && (
+                    <TextField
+                      className="textfield"
+                      id="internalComments"
+                      label="Internal Comments"
+                      type="text"
+                      multiline
+                      rows={4}
+                      placeholder="Internal Comments"
+                      value={state.internalComments}
+                      onChange={handleOnChange}
+                    />
+                  )}
                 </Box>
                 {state.onEditMode ? (
                   <Box>

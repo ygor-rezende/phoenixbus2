@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     fontWeight: "semibold",
     borderBottom: 0.5,
+    borderTop: 0.5,
   },
   detailsRow: {
     marginBottom: 5,
@@ -133,7 +134,15 @@ const Contract = (props) => {
     details,
     locations,
     deposit,
+    transactions,
   } = props;
+
+  const serviceTypes = [
+    { type: "RT", name: "ROUND-TRIP" },
+    { type: "CH", name: "CHARTER" },
+    { type: "OW", name: "ONE-WAY" },
+    { code: "DH", name: "DEAD-HEAD" },
+  ];
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -143,6 +152,10 @@ const Contract = (props) => {
 
   //Exclude services that are Dead-Head
   const filteredServices = services.filter((e) => e.service_code !== "DH");
+
+  //Get total payment from transactions
+  const totPay =
+    transactions?.find((e) => e.invoice === invoiceNum)?.total_pay || 0.0;
 
   //Total invoice
   let totalCharges = filteredServices?.reduce((sum, current) => {
@@ -161,10 +174,10 @@ const Contract = (props) => {
       return sum + Number(service.tax * service.charge * service.qty) / 100;
     }, 0);
 
-  let credit = (totalCharges * deposit) / 100;
-  let totalAmount = totalCharges - credit + totalTax;
+  //let credit = (totalCharges * deposit) / 100;
+  let totalAmount = totalCharges - totPay + totalTax;
 
-  credit = currencyFormatter.format(credit);
+  let credit = currencyFormatter.format(totPay);
   totalAmount = currencyFormatter.format(totalAmount);
   totalCharges = currencyFormatter.format(totalCharges);
 
@@ -242,11 +255,11 @@ const Contract = (props) => {
                 <TableCell width="15%" align="left">
                   Date
                 </TableCell>
-                <TableCell width="19%" align="left">
+                <TableCell width="25%" align="left">
                   Service
                 </TableCell>
-                <TableCell width="17%" align="right">
-                  No. Buses
+                <TableCell width="11%" align="right">
+                  QTY
                 </TableCell>
                 <TableCell width="17%" align="right">
                   Charge
@@ -265,10 +278,14 @@ const Contract = (props) => {
                       <TableCell width="15%" align="left">
                         {dayjs(service[0]?.service_date).format("MM/DD/YYYY")}
                       </TableCell>
-                      <TableCell width="19%" align="left">
-                        {service[0]?.service_name}
+                      <TableCell width="25%" align="left">
+                        {`${service[0]?.service_name} (${
+                          serviceTypes.find(
+                            (e) => e.type === service[0]?.service_code
+                          )?.name || service[0]?.service_code
+                        })`}
                       </TableCell>
-                      <TableCell width="17%" align="right">
+                      <TableCell width="11%" align="right">
                         {service[0]?.qty}
                       </TableCell>
                       <TableCell width="17%" align="right">
