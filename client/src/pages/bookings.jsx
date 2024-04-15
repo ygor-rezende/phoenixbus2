@@ -2401,7 +2401,10 @@ export const Bookings = () => {
                 editData={handleItemClick}
                 boxChecked={handleBoxChecked}
                 disableDelete={true}
-                filterOption="agencyName"
+                filterOptions={[
+                  { id: "agencyName", name: "Agency" },
+                  { id: "id", name: "Invoice" },
+                ]}
               />
             </AccordionDetails>
           </Accordion>

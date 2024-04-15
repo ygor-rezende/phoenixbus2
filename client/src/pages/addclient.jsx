@@ -791,7 +791,7 @@ export const AddClient = () => {
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
-            filterOption="agency"
+            filterOptions={[{ id: "agency", name: "Agency" }]}
           />
         </div>
 

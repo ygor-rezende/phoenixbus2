@@ -102,7 +102,10 @@ export const QuotesView = (props) => {
           editData={handleRowClick}
           boxChecked={handleBoxChecked}
           onDelete={handleDelete}
-          filterOption="agencyName"
+          filterOptions={[
+            { id: "agencyName", name: "Agency" },
+            { id: "id", name: "Invoice" },
+          ]}
           bgcolor="green"
         />
       </AccordionDetails>

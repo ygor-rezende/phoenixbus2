@@ -28,6 +28,8 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 
 function descendingComparator(a, b, orderBy) {
@@ -128,7 +130,14 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, onFilter, onDelete, disableDelete } = props;
+  const { numSelected, onFilter, onDelete, disableDelete, searchOptions } =
+    props;
+
+  const [searchOpt, setSearchOpt] = useState(searchOptions?.at(0).id);
+
+  const handleChangeSearch = (event, newValue) => {
+    if (newValue !== null) setSearchOpt(newValue);
+  };
 
   //Logic to display delete and edit buttons
   let buttons;
@@ -190,16 +199,39 @@ function EnhancedTableToolbar(props) {
           {numSelected} selected
         </Typography>
       ) : (
-        <div id="table-header" style={{ margin: "auto", display: "flex" }}>
+        <div style={{ margin: "auto" }}>
           <Typography
             sx={{ flex: "1 1 100%" }}
             variant="h6"
             id="tableTitle"
             component="div"
+            color="primary"
           >
-            Search by name:
+            Search
           </Typography>
-          <TextField size="small" onChange={onFilter} />
+
+          <div
+            id="table-header"
+            style={{ marginBottom: "1em", display: "flex" }}
+          >
+            <ToggleButtonGroup
+              value={searchOpt}
+              color="primary"
+              onChange={handleChangeSearch}
+              aria-label="Search"
+              exclusive
+              size="small"
+              style={{ marginRight: "1em" }}
+            >
+              {searchOptions?.map((option) => {
+                return (
+                  <ToggleButton value={option.id}>{option.name}</ToggleButton>
+                );
+              })}
+            </ToggleButtonGroup>
+
+            <TextField size="small" onChange={(e) => onFilter(e, searchOpt)} />
+          </div>
         </div>
       )}
       {buttons}
@@ -229,7 +261,7 @@ const EnhancedTable = (props) => {
     boxChecked,
     onDelete,
     disableDelete,
-    filterOption,
+    filterOptions,
     bgcolor,
   } = props;
 
@@ -311,13 +343,15 @@ const EnhancedTable = (props) => {
   };
 
   //filter table content
-  const filterBySearch = (event) => {
+  const filterBySearch = (event, selectedOption) => {
     const query = event.target.value;
 
     let updatedList = [...data];
 
     updatedList = updatedList.filter((e) => {
-      return e[filterOption].toLowerCase().indexOf(query.toLowerCase()) !== -1;
+      return (
+        e[selectedOption].toLowerCase().indexOf(query.toLowerCase()) !== -1
+      );
     });
 
     setFilteredData(updatedList);
@@ -371,6 +405,7 @@ const EnhancedTable = (props) => {
         <EnhancedTableToolbar
           numSelected={selected?.length}
           onFilter={filterBySearch}
+          searchOptions={filterOptions}
           onDelete={handleOpenDialog}
           disableDelete={disableDelete}
         />
@@ -425,9 +460,8 @@ const EnhancedTable = (props) => {
                           key={cell.id}
                           style={{
                             color: colorLine(row),
-                            textTransform: "uppercase"
+                            textTransform: "uppercase",
                           }}
-                          
                         >
                           {row[`${cell.id}`]}
                         </TableCell>
