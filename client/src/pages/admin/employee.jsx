@@ -1126,7 +1126,7 @@ export const Employee = () => {
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
-            filterOption="firstname"
+            filterOptions={[{ id: "firstname", name: "First Name" }]}
           />
         </div>
       </div>

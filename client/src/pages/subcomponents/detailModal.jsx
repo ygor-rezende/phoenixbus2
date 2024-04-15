@@ -218,6 +218,13 @@ export const DetailModal = (props) => {
       } else {
         setState({
           openModal: true,
+          spotTime: dayjs(serviceData.service_date),
+          startTime: dayjs(serviceData.service_date),
+          endTime: dayjs(serviceData.service_date),
+          returnTime:
+            serviceData.service_code === "RT"
+              ? dayjs(serviceData.service_date)
+              : null,
         });
       }
     }
@@ -244,7 +251,7 @@ export const DetailModal = (props) => {
     }
 
     //find the service date
-    const serviceDate = serviceData?.service_date;
+    const serviceDate = dayjs(serviceData?.service_date).toISOString();
 
     //check if driver has another booking for the same day
     const driverResponse = await getServer(

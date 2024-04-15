@@ -214,7 +214,7 @@ class Booking {
       await client.query("COMMIT");
 
       //send the reponse to booking
-      return res.status(201).json(`Booking/Quote ${invoice} created`);
+      return res.status(201).json(invoice);
     } catch (err) {
       await client.query("ROLLBACK");
       console.error(err);

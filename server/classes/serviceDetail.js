@@ -283,6 +283,83 @@ class ServiceDetail {
       return res.status(500).json({ message: err.message });
     }
   } //getLogDetail
+
+  //Duplicates one detail
+  static async duplicateDetail(req, res) {
+    const client = await pool.connect();
+    try {
+      let { detailId, changeUser } = req.body;
+
+      if (!detailId || !changeUser)
+        return res
+          .status(400)
+          .json({ message: "Bad request: Missing detail id" });
+
+      //start transaction
+      await client.query("BEGIN");
+      //get current service detail data
+      let response = await client.query(
+        `SELECT * FROM service_details WHERE detail_id = ${detailId}`
+      );
+      const detail = response.rows?.at(0);
+
+      //create a new detail
+      await client.query(
+        `CALL create_detail(service_id => $1,
+      employee_id => $2::TEXT,
+      company_id => $3::TEXT,
+      vehicle_id => $4::TEXT,
+      from_location_id => $5::TEXT,
+      to_location_id => $6::TEXT,
+      return_location_id => $7::TEXT,
+      use_farmout => $8::BOOLEAN,
+      spot_time => $9::TEXT,
+      start_time => $10::TEXT,
+      end_time => $11::TEXT,
+      return_time => $12::TEXT,
+      instructions => $13::TEXT,
+      payment => $14,
+      gratuity => $15,
+      additional_stop => $16::BOOLEAN,
+      additional_stop_info => $17::TEXT,
+      additional_stop_detail => $18::TEXT,
+      trip_length => $19,
+      change_user => $20::TEXT)`,
+        [
+          detail.service_id,
+          null,
+          null,
+          null,
+          detail.from_location_id,
+          detail.to_location_id,
+          detail.return_location_id,
+          detail.use_farmout,
+          detail.spot_time,
+          detail.start_time,
+          detail.end_time,
+          detail.return_time,
+          detail.instructions,
+          detail.payment,
+          detail.gratuity,
+          detail.additional_stop,
+          detail.additional_stop_info,
+          detail.additional_stop_detail,
+          detail.trip_length,
+          changeUser,
+        ]
+      );
+
+      //End transaction
+      await client.query("COMMIT");
+      return res.json(`Details duplicated.`);
+    } catch (err) {
+      await client.query("ROLLBACK");
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
+    }
+  } //duplicateDetail
 }
 
 module.exports = { ServiceDetail };

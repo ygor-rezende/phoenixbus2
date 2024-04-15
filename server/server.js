@@ -633,6 +633,15 @@ app.get(
     return response;
   }
 );
+
+app.post(
+  "/duplicatedetail",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await ServiceDetail.duplicateDetail(req, res);
+    return response;
+  }
+);
 //#endregion
 
 //#region schedule

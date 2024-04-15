@@ -101,6 +101,7 @@ const Invoice = (props) => {
     departure,
     services,
     deposit,
+    transactions,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -111,6 +112,10 @@ const Invoice = (props) => {
 
   //Exclude services that are Dead-Head
   const filteredServices = services.filter((e) => e.service_code !== "DH");
+
+  //Get total payment from transactions
+  const totPay =
+    transactions?.find((e) => e.invoice === invoiceNum)?.total_pay || 0.0;
 
   //Total invoice
   let totalInvoice = filteredServices?.reduce((sum, current) => {
@@ -129,10 +134,10 @@ const Invoice = (props) => {
       return sum + Number(service.tax * service.charge * service.qty) / 100;
     }, 0);
 
-  let credit = (totalInvoice * deposit) / 100;
-  let totalAmount = totalInvoice - credit + totalTax;
+  //let credit = (totalInvoice * deposit) / 100;
+  let totalAmount = totalInvoice - totPay + totalTax;
 
-  credit = currencyFormatter.format(credit);
+  let credit = currencyFormatter.format(totPay);
   totalAmount = currencyFormatter.format(totalAmount);
   totalInvoice = currencyFormatter.format(totalInvoice);
 

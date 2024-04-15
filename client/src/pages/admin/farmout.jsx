@@ -786,7 +786,7 @@ export const FarmOut = () => {
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
-            filterOption="name"
+            filterOptions={[{ id: "name", name: "Name" }]}
           />
         </div>
       </div>

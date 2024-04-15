@@ -620,7 +620,7 @@ export const ServiceLocation = () => {
             editData={handleItemClick}
             boxChecked={handleBoxChecked}
             onDelete={handleDelete}
-            filterOption="name"
+            filterOptions={[{ id: "name", name: "Name" }]}
           />
         </div>
       </div>

@@ -171,6 +171,7 @@ const QuoteReport = (props) => {
     services,
     details,
     locations,
+    quoteDetails,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -230,184 +231,34 @@ const QuoteReport = (props) => {
           </View>
           <View style={styles.contactBoard}>
             <View style={styles.text}>
-              <View style={styles.header2}>
-                <View style={styles.text}>
-                  <Text>
-                    Email: <Text style={styles.textBold}>{client.email}</Text>
-                  </Text>
-                  <Text>
-                    Phone: <Text style={styles.textBold}>{client.phone}</Text>
-                  </Text>
-                </View>
-                <View style={styles.text}>
-                  <Text>
-                    From: <Text style={styles.textBold}>{tripStart}</Text>
-                  </Text>
-                  <Text>
-                    Through: <Text style={styles.textBold}>{tripEnd}</Text>
-                  </Text>
-                </View>
+              <View style={styles.text}>
+                <Text>
+                  Email: <Text style={styles.textBold}>{client.email}</Text>
+                </Text>
+                <Text>
+                  Phone: <Text style={styles.textBold}>{client.phone}</Text>
+                </Text>
               </View>
-              <View>
-                <Table>
-                  <TableHeader>
-                    <TableCell width="20%" align="left">
-                      Date
-                    </TableCell>
-                    <TableCell width="50%" align="left">
-                      Service
-                    </TableCell>
-                    <TableCell width="30%" align="right">
-                      No. Buses
-                    </TableCell>
-                  </TableHeader>
-                  {allData?.map((service) => (
-                    <View key={service[0]?.service_id}>
-                      <View style={styles.serviceRow}>
-                        <TableRow>
-                          <TableCell width="20%" align="left">
-                            {dayjs(service[0]?.service_date).format(
-                              "MM/DD/YYYY"
-                            )}
-                          </TableCell>
-                          <TableCell width="50%" align="left">
-                            {service[0]?.service_name}
-                          </TableCell>
-                          <TableCell width="30%" align="right">
-                            {service[0]?.qty}
-                          </TableCell>
-                        </TableRow>
-                      </View>
-                      <View style={styles.detailsSection}>
-                        {service[1]?.map((detail) => {
-                          const fromLocation = locations?.find(
-                            (e) => e.location_id === detail.from_location_id
-                          );
-                          const toLocation = locations?.find(
-                            (e) => e.location_id === detail.to_location_id
-                          );
-                          const returnLocation = locations?.find(
-                            (e) => e.location_id === detail.return_location_id
-                          );
-                          return (
-                            <View
-                              key={detail.detail_id}
-                              style={styles.detailsRow}
-                            >
-                              <TableRow>
-                                {fromLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      Pick-Up: {fromLocation?.location_name}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {toLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      Drop-Off: {toLocation?.location_name}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {returnLocation && (
-                                  <TableCell width="32%" align="left">
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      Return: {returnLocation?.location_name}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                              </TableRow>
 
-                              <TableRow>
-                                {fromLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {fromLocation?.address}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {toLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {toLocation?.address}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {returnLocation && (
-                                  <TableCell width="32%" align="left">
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {returnLocation?.address}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                              </TableRow>
+              <Text
+                style={[
+                  styles.textBold,
+                  { textTransform: "uppercase", marginTop: 10 },
+                ]}
+              >
+                {quoteDetails}
+              </Text>
 
-                              <TableRow>
-                                {fromLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {fromLocation?.city},{" "}
-                                      {fromLocation.location_state}{" "}
-                                      {fromLocation.zip}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {toLocation && (
-                                  <TableCell
-                                    width={returnLocation ? "32%" : "49%"}
-                                    align="left"
-                                  >
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {toLocation?.city},{" "}
-                                      {toLocation.location_state}{" "}
-                                      {toLocation.zip}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                                {returnLocation && (
-                                  <TableCell width="32%" align="left">
-                                    <Text style={{ fontWeight: "semibold" }}>
-                                      {returnLocation?.city},{" "}
-                                      {returnLocation.location_state}{" "}
-                                      {returnLocation.zip}
-                                    </Text>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-
-                              <TableRow>
-                                <TableCell width="50%" align="left">
-                                  <Text style={{ fontWeight: "semibold" }}>
-                                    Start Time:{" "}
-                                    {dayjs(detail.start_time).format("HH:mm")}
-                                  </Text>
-                                </TableCell>
-                              </TableRow>
-                            </View>
-                          );
-                        })}
-                      </View>
-                    </View>
-                  ))}
-                </Table>
-              </View>
               <Text style={[styles.textBold, { marginTop: 10 }]}>
                 *Quote may be subject to change after {quoteExp} hrs
+              </Text>
+            </View>
+            <View style={styles.text}>
+              <Text>
+                From: <Text style={styles.textBold}>{tripStart}</Text>
+              </Text>
+              <Text>
+                Through: <Text style={styles.textBold}>{tripEnd}</Text>
               </Text>
             </View>
           </View>

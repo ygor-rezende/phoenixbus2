@@ -31,6 +31,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Menu,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -39,6 +40,8 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import GavelIcon from "@mui/icons-material/Gavel";
 import ManageSearchIcon from "@mui/icons-material/ManageSearch";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -153,6 +156,7 @@ const initialState = {
   dates: [],
   historyDetailData: [],
   transactionsData: [],
+  anchorSave: null,
 };
 
 export const Bookings = () => {
@@ -167,6 +171,8 @@ export const Bookings = () => {
   const postServer = UsePrivatePost();
   const putServer = UsePrivatePut();
   const deleteServer = UsePrivateDelete();
+
+  const openSave = Boolean(state.anchorSave);
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -395,7 +401,7 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.quotedCost) {
+    if (!state.quotedCost && state.isQuote) {
       setState({ invalidField: "quotedCost" });
       return;
     }
@@ -449,12 +455,17 @@ export const Bookings = () => {
     });
 
     if (response?.data) {
-      clearState(response.data);
+      clearState(`Booking/Quote ${response.data} created`);
     } else if (response?.disconnect) {
       setAuth({});
       navigate("/login", { state: { from: location }, replace: true });
     } else if (response?.error) {
-      setState({ error: response.error, success: false, openSnakbar: true });
+      setState({
+        error: response.error,
+        success: false,
+        openSnakbar: true,
+        anchorSave: null,
+      });
     }
   }; //handleSubmit
 
@@ -499,6 +510,7 @@ export const Bookings = () => {
       accordionTitle: "",
       dates: [],
       openCalendarDialog: false,
+      anchorSave: null,
     });
   }; //clearState
 
@@ -546,6 +558,11 @@ export const Bookings = () => {
       return;
     }
     setState({ openSnakbar: false });
+  };
+
+  //close save menu
+  const handleCloseSaveMenu = () => {
+    setState({ anchorSave: null });
   };
 
   //save data being edited
@@ -676,6 +693,32 @@ export const Bookings = () => {
     }
   }; //handleDelete
 
+  //Calculate total cost of a booking based on the services
+  const calcTotCost = (services) => {
+    //Total invoice
+    let totalInvoice = services?.reduce((sum, current) => {
+      return sum + Number(current.gratuity) + current.charge * current.qty;
+    }, 0);
+
+    //Total tax
+    let totalTax = services
+      ?.map((service) => {
+        return {
+          tax: service.sales_tax,
+          charge: service.charge,
+          qty: service.qty,
+        };
+      })
+      ?.reduce((sum, service) => {
+        return sum + Number(service.tax * service.charge * service.qty) / 100;
+      }, 0);
+
+    //Total amount: total charges + tax
+    let totalAmount = totalInvoice + totalTax;
+
+    return totalAmount;
+  };
+
   //Show services information when clicking on a table row
   const handleItemClick = async (id, tab = 0) => {
     //load services for this booking
@@ -694,6 +737,9 @@ export const Bookings = () => {
     const curBooking = state.bookingsData?.find((e) => e.id === id);
 
     let isQuote = state.bookingsData?.find((e) => e.id === id)?.isQuote;
+
+    //calculate total cost for the booking
+    let totalCost = calcTotCost(services);
 
     setState({
       onEditMode: true,
@@ -721,7 +767,7 @@ export const Bookings = () => {
       tripStartDate: dayjs(curBooking?.tripStartDate),
       tripEndDate: dayjs(curBooking?.tripEndDate),
       deposit: curBooking?.deposit,
-      quotedCost: curBooking?.cost,
+      quotedCost: totalCost,
       numHoursQuoteValid: curBooking?.numHoursQuoteValid,
       clientComments: curBooking?.clientComments,
       intineraryDetails: curBooking?.intineraryDetails,
@@ -805,7 +851,7 @@ export const Bookings = () => {
       agencyEmail: curClient?.email,
       agencyContact: curClient?.contact,
       employeeId: employeeId,
-      salesPerson: `${employeeObject.firstname} ${employeeObject.lastname}`,
+      salesPerson: `${employeeObject?.firstname} ${employeeObject?.lastname}`,
       responsibleName: state.quotesData.find((e) => e.id === id)
         ?.responsibleName,
       responsibleEmail: state.quotesData.find((e) => e.id === id)
@@ -940,9 +986,72 @@ export const Bookings = () => {
     setState({ success: false, error: msg, openSnakbar: true });
   };
 
-  //display error from Service modal child
+  //display success from Service modal child
   const handleOnSuccess = (msg) => {
-    setState({ success: true, error: null, openSnakbar: true, msg: msg });
+    setState({
+      success: true,
+      error: null,
+      openSnakbar: true,
+      msg: msg,
+      isDataUpdated: !state.isDataUpdated,
+    });
+  };
+
+  //update booking after creating, updating or deleting a service
+  const updateBooking = async (msg) => {
+    //load services for this booking
+    const services = await getServicesData(state.invoice);
+
+    //calculate total cost for the booking
+    let totalCost = calcTotCost(services);
+
+    //find current booking
+    const curBooking =
+      state.bookingsData?.find((e) => e.id === state.invoice) ||
+      state.quotesData?.find((e) => e.id === state.invoice);
+
+    const bookingToUpdate = {
+      invoice: state.invoice,
+      isQuote: curBooking?.isQuote,
+      clientId: curBooking?.clientId,
+      employeeId: curBooking?.employeeId,
+      responsibleName: curBooking?.responsibleName,
+      responsibleEmail: curBooking?.responsibleEmail,
+      responsiblePhone: curBooking?.responsiblePhone,
+      bookingDate: curBooking?.bookingDate,
+      quoteDate: curBooking?.quoteDate,
+      category: curBooking?.category,
+      numPeople: curBooking?.numPeople,
+      tripStartDate: curBooking?.tripStartDate,
+      tripEndDate: curBooking?.tripEndDate,
+      deposit: curBooking?.deposit,
+      quotedCost: curBooking?.isQuote ? curBooking.cost : totalCost,
+      numHoursQuoteValid: curBooking?.numHoursQuoteValid,
+      clientComments: curBooking?.clientComments,
+      intineraryDetails: curBooking?.intineraryDetails,
+      internalComments: curBooking?.internalComments,
+      changeUser: auth.userName,
+      status: curBooking?.status,
+    };
+
+    const response = await putServer("/updatebooking", {
+      booking: bookingToUpdate,
+    });
+
+    if (response?.data) {
+      setState({
+        success: true,
+        error: null,
+        openSnakbar: true,
+        msg: msg,
+        isDataUpdated: !state.isDataUpdated,
+      });
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
+    }
   };
 
   //display error from Service modal child
@@ -1004,10 +1113,12 @@ export const Bookings = () => {
   };
 
   //open the modal to create a service detail
-  const handleDetailModal = (serviceId) => {
-    const service = state.servicesData?.find(
-      (item) => item.service_id === serviceId
-    );
+  const handleDetailModal = (serviceId, srvData = null) => {
+    let service = srvData;
+    if (!service)
+      service = state.servicesData?.find(
+        (item) => item.service_id === serviceId
+      );
 
     //open the modal
     setState({
@@ -1034,6 +1145,7 @@ export const Bookings = () => {
           departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
           services={state.servicesData}
           deposit={state.deposit}
+          transactions={state.transactionsData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1059,6 +1171,7 @@ export const Bookings = () => {
           details={state.detailsData}
           locations={state.locationsData}
           deposit={state.deposit}
+          transactions={state.transactionsData}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1088,6 +1201,7 @@ export const Bookings = () => {
           services={state.servicesData}
           details={state.detailsData}
           locations={state.locationsData}
+          quoteDetails={state.intineraryDetails}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1137,6 +1251,57 @@ export const Bookings = () => {
 
   const handleSaveAsBooking = () => {
     handleSubmit(state.invoice?.replace("Q", ""), false);
+  };
+
+  const handleSaveAndCreateService = async () => {
+    //validate form
+    if (!isFormValid()) {
+      return;
+    }
+
+    const response = await postServer("/createbooking", {
+      booking: {
+        invoice: state.invoice,
+        clientId: state.clientId,
+        employeeId: state.employeeId,
+        responsibleName: state.responsibleName,
+        responsibleEmail: state.responsibleEmail,
+        responsiblePhone: state.responsiblePhone,
+        isQuote: state.isQuote,
+        quoteDate: state.quoteDate,
+        bookingDate: state.bookingDate,
+        category: state.category,
+        numPeople: state.numPeople,
+        tripStartDate: state.tripStartDate,
+        tripEndDate: state.tripEndDate,
+        deposit: state.deposit,
+        quotedCost: state.quotedCost,
+        numHoursQuoteValid: state.numHoursQuoteValid,
+        clientComments: state.clientComments,
+        intineraryDetails: state.intineraryDetails,
+        internalComments: state.internalComments,
+        changeUser: auth.userName,
+        status: state.status,
+      },
+    });
+
+    if (response?.data) {
+      //Set invoice state and reload data
+      setState({ invoice: response.data, isDataUpdated: !state.isDataUpdated });
+
+      //Open service modal
+      handleServiceModal();
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({
+        error: response.error,
+        success: false,
+        openSnakbar: true,
+        anchorSave: null,
+      });
+    }
   };
 
   const handleInvoiceClick = () => {
@@ -1195,7 +1360,44 @@ export const Bookings = () => {
     } else {
       clearState(response.data);
     }
-  };
+  }; //handleDuplicateService
+
+  const handleDuplicateDetail = async (detailId, serviceId) => {
+    const controller = new AbortController();
+
+    let response = await postServer(
+      `/duplicatedetail`,
+      {
+        detailId: detailId,
+        changeUser: auth.userName,
+      },
+      controller.signal
+    );
+
+    if (response.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+      //other errors
+    } else if (response.error) {
+      setState({
+        success: false,
+        error: response.error,
+        openSnakbar: true,
+      });
+    } else {
+      setState({
+        msg: response.data,
+        error: null,
+        success: true,
+        openSnakbar: true,
+      });
+
+      //Reload the data
+      state.isQuote
+        ? handleQuoteClick(state.invoice, state.tabService)
+        : handleItemClick(state.invoice, state.tabService);
+    }
+  }; //handleDuplicateDetail
 
   const handleOpenHistoryDialog = async (detailId) => {
     const controller = new AbortController();
@@ -1651,10 +1853,11 @@ export const Bookings = () => {
                     className="textfieldSmall"
                     required
                     id="quotedCost"
-                    label="Quoted Cost $"
+                    disabled={!state.isQuote}
+                    label={state.isQuote ? "Quoted Cost $" : "Total Cost"}
                     type="text"
                     inputProps={{ inputMode: "decimal", step: "0.01" }}
-                    placeholder="Quoted Cost $"
+                    placeholder={state.isQuote ? "Quoted Cost $" : "Total Cost"}
                     value={state.quotedCost}
                     onChange={handleOnChange}
                     error={state.invalidField === "quotedCost"}
@@ -1677,41 +1880,49 @@ export const Bookings = () => {
                     onChange={handleOnChange}
                   />
 
-                  <TextField
-                    className="textfield"
-                    id="clientComments"
-                    label="Client Comments"
-                    type="text"
-                    multiline
-                    rows={4}
-                    placeholder="Client Comments"
-                    value={state.clientComments}
-                    onChange={handleOnChange}
-                  />
+                  {state.isQuote === false && (
+                    <TextField
+                      className="textfield"
+                      id="clientComments"
+                      label="Client Comments"
+                      type="text"
+                      multiline
+                      rows={4}
+                      placeholder="Client Comments"
+                      value={state.clientComments}
+                      onChange={handleOnChange}
+                    />
+                  )}
 
                   <TextField
                     className="textfield"
                     id="intineraryDetails"
-                    label="Intinerary Details"
+                    label={
+                      state.isQuote ? "Quote Details" : "Itinerary Details"
+                    }
                     type="text"
                     multiline
                     rows={4}
-                    placeholder="Intinerary Details"
+                    placeholder={
+                      state.isQuote ? "Quote Details" : "Itinerary Details"
+                    }
                     value={state.intineraryDetails}
                     onChange={handleOnChange}
                   />
 
-                  <TextField
-                    className="textfield"
-                    id="internalComments"
-                    label="Internal Comments"
-                    type="text"
-                    multiline
-                    rows={4}
-                    placeholder="Internal Comments"
-                    value={state.internalComments}
-                    onChange={handleOnChange}
-                  />
+                  {state.isQuote === false && (
+                    <TextField
+                      className="textfield"
+                      id="internalComments"
+                      label="Internal Comments"
+                      type="text"
+                      multiline
+                      rows={4}
+                      placeholder="Internal Comments"
+                      value={state.internalComments}
+                      onChange={handleOnChange}
+                    />
+                  )}
                 </Box>
                 {state.onEditMode ? (
                   <Box>
@@ -1945,7 +2156,7 @@ export const Bookings = () => {
                                         </TableCell>
                                         <TableCell
                                           style={{ fontWeight: "bold" }}
-                                          colSpan={2}
+                                          colSpan={3}
                                         >
                                           End Time
                                         </TableCell>
@@ -2041,6 +2252,31 @@ export const Bookings = () => {
                                                 </IconButton>
                                               </Tooltip>
                                             </TableCell>
+                                            <TableCell>
+                                              <Tooltip title="Duplicate Detail">
+                                                <IconButton
+                                                  disabled={
+                                                    state.curBooking?.status ===
+                                                    "canceled"
+                                                  }
+                                                  onClick={() =>
+                                                    handleDuplicateDetail(
+                                                      detail?.detail_id,
+                                                      service.service_id
+                                                    )
+                                                  }
+                                                >
+                                                  <ContentCopyIcon
+                                                    color={
+                                                      state.curBooking
+                                                        ?.status === "canceled"
+                                                        ? "disabled"
+                                                        : "primary"
+                                                    }
+                                                  />
+                                                </IconButton>
+                                              </Tooltip>
+                                            </TableCell>
                                           </TableRow>
                                         );
                                       })}
@@ -2082,12 +2318,31 @@ export const Bookings = () => {
                 ) : (
                   <Box>
                     <Button
+                      id="saveBtn"
                       variant="contained"
-                      onClick={() => handleSubmit("", state.isQuote)}
+                      onClick={(e) => setState({ anchorSave: e.currentTarget })}
                       color={state.isQuote ? "success" : "primary"}
+                      endIcon={<KeyboardArrowDownIcon />}
+                      aria-controls={openSave ? "save-options" : undefined}
+                      aria-haspopup="true"
+                      aria-expanded={openSave ? "save-options" : undefined}
                     >
                       Save New {state.accordionTitle}
                     </Button>
+                    <Menu
+                      id="save-options"
+                      anchorEl={state.anchorSave}
+                      open={openSave}
+                      onClose={handleCloseSaveMenu}
+                      MenuListProps={{ "aria-labelledby": "saveBtn" }}
+                    >
+                      <MenuItem onClick={() => handleSubmit("", state.isQuote)}>
+                        Save
+                      </MenuItem>
+                      <MenuItem onClick={handleSaveAndCreateService}>
+                        Save & Add Service
+                      </MenuItem>
+                    </Menu>
                     <Button
                       variant="contained"
                       color="secondary"
@@ -2146,7 +2401,10 @@ export const Bookings = () => {
                 editData={handleItemClick}
                 boxChecked={handleBoxChecked}
                 disableDelete={true}
-                filterOption="agencyName"
+                filterOptions={[
+                  { id: "agencyName", name: "Agency" },
+                  { id: "id", name: "Invoice" },
+                ]}
               />
             </AccordionDetails>
           </Accordion>
@@ -2165,13 +2423,14 @@ export const Bookings = () => {
           <ServiceModal
             modalTitle={state.serviceTitle}
             onError={handleOnError}
-            onSuccess={handleOnSuccess}
+            onSuccess={updateBooking}
             open={state.triggerModal}
             invoice={state.invoice}
             tabService={state.tabService}
             data={state.currentService}
             onEditMode={state.editingService}
             onSave={state.isQuote ? handleQuoteClick : handleItemClick}
+            addDetails={handleDetailModal}
           />
           <DetailModal
             modalTitle={state.detailTitle}
