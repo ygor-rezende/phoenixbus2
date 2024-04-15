@@ -401,7 +401,7 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.quotedCost) {
+    if (!state.quotedCost && state.isQuote) {
       setState({ invalidField: "quotedCost" });
       return;
     }
@@ -997,6 +997,63 @@ export const Bookings = () => {
     });
   };
 
+  //update booking after creating, updating or deleting a service
+  const updateBooking = async (msg) => {
+    //load services for this booking
+    const services = await getServicesData(state.invoice);
+
+    //calculate total cost for the booking
+    let totalCost = calcTotCost(services);
+
+    //find current booking
+    const curBooking =
+      state.bookingsData?.find((e) => e.id === state.invoice) ||
+      state.quotesData?.find((e) => e.id === state.invoice);
+
+    const bookingToUpdate = {
+      invoice: state.invoice,
+      isQuote: curBooking?.isQuote,
+      clientId: curBooking?.clientId,
+      employeeId: curBooking?.employeeId,
+      responsibleName: curBooking?.responsibleName,
+      responsibleEmail: curBooking?.responsibleEmail,
+      responsiblePhone: curBooking?.responsiblePhone,
+      bookingDate: curBooking?.bookingDate,
+      quoteDate: curBooking?.quoteDate,
+      category: curBooking?.category,
+      numPeople: curBooking?.numPeople,
+      tripStartDate: curBooking?.tripStartDate,
+      tripEndDate: curBooking?.tripEndDate,
+      deposit: curBooking?.deposit,
+      quotedCost: curBooking?.isQuote ? curBooking.cost : totalCost,
+      numHoursQuoteValid: curBooking?.numHoursQuoteValid,
+      clientComments: curBooking?.clientComments,
+      intineraryDetails: curBooking?.intineraryDetails,
+      internalComments: curBooking?.internalComments,
+      changeUser: auth.userName,
+      status: curBooking?.status,
+    };
+
+    const response = await putServer("/updatebooking", {
+      booking: bookingToUpdate,
+    });
+
+    if (response?.data) {
+      setState({
+        success: true,
+        error: null,
+        openSnakbar: true,
+        msg: msg,
+        isDataUpdated: !state.isDataUpdated,
+      });
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
+    }
+  };
+
   //display error from Service modal child
   const handleQuoteDeleteSuccess = (msg) => {
     setState({
@@ -1229,12 +1286,9 @@ export const Bookings = () => {
     });
 
     if (response?.data) {
-      // //load the data of current booking or quote
-      // state.isQuote
-      //   ? await handleQuoteClick(response.data)
-      //   : await handleItemClick(response.data);
-      //Set invoice state
-      setState({ invoice: response.data });
+      //Set invoice state and reload data
+      setState({ invoice: response.data, isDataUpdated: !state.isDataUpdated });
+
       //Open service modal
       handleServiceModal();
     } else if (response?.disconnect) {
@@ -2366,7 +2420,7 @@ export const Bookings = () => {
           <ServiceModal
             modalTitle={state.serviceTitle}
             onError={handleOnError}
-            onSuccess={handleOnSuccess}
+            onSuccess={updateBooking}
             open={state.triggerModal}
             invoice={state.invoice}
             tabService={state.tabService}

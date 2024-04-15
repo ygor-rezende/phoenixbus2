@@ -143,7 +143,7 @@ export const ServiceModal = (props) => {
       });
 
       if (response?.data) {
-        onSuccess(response.data);
+        onSuccess(`Service ${response.data} created`);
         clearState();
       } else if (response?.disconnect) {
         setAuth({});
@@ -170,7 +170,7 @@ export const ServiceModal = (props) => {
       });
 
       if (response?.data) {
-        onSuccess(`Service ${response.data} created`);
+        onSuccess(response.data);
         clearState();
       } else if (response?.disconnect) {
         setAuth({});
@@ -208,7 +208,7 @@ export const ServiceModal = (props) => {
 
     if (response?.data) {
       clearState();
-
+      onSuccess(`Service ${response.data} created`);
       //open details modal passing the service id and service data
       addDetails(response.data, service);
     } else if (response?.disconnect) {

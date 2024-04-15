@@ -251,7 +251,7 @@ export const DetailModal = (props) => {
     }
 
     //find the service date
-    const serviceDate = serviceData?.service_date;
+    const serviceDate = dayjs(serviceData?.service_date).toISOString();
 
     //check if driver has another booking for the same day
     const driverResponse = await getServer(
