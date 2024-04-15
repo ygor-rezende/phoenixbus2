@@ -24,8 +24,8 @@ class Service {
         [
           service.bookingId,
           service.serviceName,
-          service.serviceCode,
-          service.serviceDate,
+          service.service_code,
+          service.service_date,
           service.qty,
           service.charge,
           service.salesTax,
@@ -33,8 +33,15 @@ class Service {
           service.changeUser,
         ]
       );
+
+      //get the latest id created
+      const response = await pool.query(
+        `SELECT service_id FROM services ORDER BY service_id DESC LIMIT 1`
+      );
+
+      let lastServiceId = response.rows?.at(0);
       //send the reponse to booking
-      return res.status(201).json(`Service ${service.serviceName} created`);
+      return res.status(201).json(lastServiceId.service_id);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });

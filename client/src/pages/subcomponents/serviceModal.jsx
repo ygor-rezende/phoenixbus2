@@ -47,6 +47,7 @@ export const ServiceModal = (props) => {
     data,
     onEditMode,
     onSave,
+    addDetails,
   } = props;
   const [serviceId, setServiceId] = useState(0);
   const [serviceName, setServiceName] = useState("");
@@ -131,8 +132,8 @@ export const ServiceModal = (props) => {
         service: {
           bookingId: invoice,
           serviceName: serviceName,
-          serviceCode: serviceCode,
-          serviceDate: serviceDate,
+          service_code: serviceCode,
+          service_date: serviceDate,
           qty: qty,
           charge: charge,
           salesTax: salesTax,
@@ -169,7 +170,7 @@ export const ServiceModal = (props) => {
       });
 
       if (response?.data) {
-        onSuccess(response.data);
+        onSuccess(`Service ${response.data} created`);
         clearState();
       } else if (response?.disconnect) {
         setAuth({});
@@ -182,6 +183,41 @@ export const ServiceModal = (props) => {
     //call onSave to re-render the services table in the bookings component
     onSave(invoice, tabService);
   }; //handleSaveNewService
+
+  const handleSaveAndAddDetail = async () => {
+    //validate form
+    if (!isFormValid()) {
+      return;
+    }
+
+    const service = {
+      bookingId: invoice,
+      serviceName: serviceName,
+      service_code: serviceCode,
+      service_date: serviceDate,
+      qty: qty,
+      charge: charge,
+      salesTax: salesTax,
+      gratuity: gratuity,
+      changeUser: auth.userName,
+    };
+
+    const response = await postServer("/createservice", {
+      service,
+    });
+
+    if (response?.data) {
+      clearState();
+
+      //open details modal passing the service id and service data
+      addDetails(response.data, service);
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      onError(response.error);
+    }
+  }; //handleSaveAndAddDetail
 
   const handleDeleteService = async () => {
     //Before deleting a service it must delete the details first
@@ -409,6 +445,16 @@ export const ServiceModal = (props) => {
           <Button variant="contained" onClick={handleSaveNewService}>
             Save
           </Button>
+          {!onEditMode && (
+            <Button
+              variant="contained"
+              color="success"
+              style={{ marginLeft: "10px" }}
+              onClick={handleSaveAndAddDetail}
+            >
+              Save & Add Detail
+            </Button>
+          )}
           {onEditMode && (
             <Button
               variant="contained"
