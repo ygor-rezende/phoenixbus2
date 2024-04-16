@@ -252,6 +252,7 @@ export const Bookings = () => {
           intineraryDetails: item.intinerary_details,
           internalComents: item.internal_coments,
           status: item.status,
+          costQuote: currencyFormatter.format(item.cost),
         };
         return quote;
       });
@@ -1880,19 +1881,15 @@ export const Bookings = () => {
                     onChange={handleOnChange}
                   />
 
-                  {state.isQuote === false && (
-                    <TextField
-                      className="textfield"
-                      id="clientComments"
-                      label="Client Comments"
-                      type="text"
-                      multiline
-                      rows={4}
-                      placeholder="Client Comments"
-                      value={state.clientComments}
-                      onChange={handleOnChange}
-                    />
-                  )}
+                  <TextField
+                    className="textfield"
+                    id="clientComments"
+                    label="PO/REF #"
+                    type="text"
+                    placeholder="PO/REF #"
+                    value={state.clientComments}
+                    onChange={handleOnChange}
+                  />
 
                   <TextField
                     className="textfield"
@@ -2147,7 +2144,7 @@ export const Bookings = () => {
                                         <TableCell
                                           style={{ fontWeight: "bold" }}
                                         >
-                                          Spot Time
+                                          Yard Time
                                         </TableCell>
                                         <TableCell
                                           style={{ fontWeight: "bold" }}

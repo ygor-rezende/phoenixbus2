@@ -268,7 +268,7 @@ const DriverReport = (props) => {
               <View style={styles.header}>
                 <View style={{ width: "17%" }}>
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Spot Time: </Text>
+                    <Text style={styles.textBold}>Yard Time: </Text>
                     {data?.spot_time
                       ? dayjs(data?.spot_time).format("HH:mm")
                       : ""}

@@ -32,6 +32,18 @@ export const QuotesView = (props) => {
       label: "Quote ID",
     },
     {
+      id: "quoteDate",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Quote Date",
+    },
+    {
+      id: "tripStartDate",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Trip Start Date",
+    },
+    {
       id: "agencyName",
       isNumeric: false,
       isPaddingDisabled: false,
@@ -50,16 +62,10 @@ export const QuotesView = (props) => {
       label: "Sales Person",
     },
     {
-      id: "quoteDate",
-      isNumeric: false,
+      id: "costQuote",
+      isNumeric: true,
       isPaddingDisabled: false,
-      label: "Quote Date",
-    },
-    {
-      id: "agencyEmail",
-      isNumeric: false,
-      isPaddingDisabled: false,
-      label: "E-Mail",
+      label: "Quoted Cost",
     },
   ];
 
@@ -104,7 +110,7 @@ export const QuotesView = (props) => {
           onDelete={handleDelete}
           filterOptions={[
             { id: "agencyName", name: "Agency" },
-            { id: "id", name: "Invoice" },
+            { id: "id", name: "Quote ID" },
           ]}
           bgcolor="green"
         />
