@@ -150,6 +150,8 @@ const BusesReport = (props) => {
           vehicle_name: e.vehicle_name,
           vehicle_model: e.vehicle_model,
           end_time: e.end_time,
+          start_time: e.start_time,
+          spot_time: e.spot_time,
           end_location: e.return_location ? e.return_location : e.to_location,
           end_address: e.return_location ? e.return_address : e.to_address,
           end_city: e.return_location ? e.return_city : e.to_city,
