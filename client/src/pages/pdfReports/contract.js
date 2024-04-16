@@ -400,7 +400,7 @@ const Contract = (props) => {
                           <TableRow>
                             <TableCell width="50%" align="left">
                               <Text style={{ fontWeight: "semibold" }}>
-                                Spot time:{" "}
+                                Yard time:{" "}
                                 {dayjs(detail.spot_time).format("HH:mm")}
                               </Text>
                             </TableCell>

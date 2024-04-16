@@ -896,7 +896,7 @@ export const DetailModal = (props) => {
           <Box className="modal2Columns">
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
-                label="Spot time"
+                label="Yard time"
                 className="modalField"
                 ampm={false}
                 id="spotTime"

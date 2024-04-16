@@ -189,16 +189,19 @@ const BusesReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="15%" align="left">
+              <TableCell width="10%" align="left">
                 Bus
               </TableCell>
-              <TableCell width="15%" align="left">
+              <TableCell width="12%" align="left">
+                Yard Time
+              </TableCell>
+              <TableCell width="12%" align="left">
                 Start Time
               </TableCell>
-              <TableCell width="15%" align="left">
+              <TableCell width="12%" align="left">
                 Return Time
               </TableCell>
-              <TableCell width="55%" align="left">
+              <TableCell width="54%" align="left">
                 Return Location
               </TableCell>
             </TableHeader>
@@ -207,16 +210,21 @@ const BusesReport = (props) => {
                 return (
                   <View key={row.vehicle_id} style={{ marginTop: 3 }}>
                     <TableRow>
-                      <TableCell width="15%" align="left">
+                      <TableCell width="10%" align="left">
                         {row?.vehicle_name}
                       </TableCell>
-                      <TableCell width="15%" align="left">
+                      <TableCell width="12%" align="left">
+                        {dayjs(row?.spot_time).format("HH:mm")}
+                      </TableCell>
+                      <TableCell width="12%" align="left">
                         {dayjs(row?.start_time).format("HH:mm")}
                       </TableCell>
-                      <TableCell width="15%" align="left">
-                        {dayjs(row?.end_time).format("HH:mm")}
+                      <TableCell width="12%" align="left">
+                        {row?.end_time
+                          ? dayjs(row?.end_time).format("HH:mm")
+                          : ""}
                       </TableCell>
-                      <TableCell width="55%" align="left">
+                      <TableCell width="54%" align="left">
                         {row?.end_location} - {row?.end_address},{" "}
                         {row?.end_city}
                       </TableCell>

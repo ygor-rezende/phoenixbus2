@@ -435,7 +435,7 @@ export const ScheduleModal = (props) => {
 
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
-                label="Spot time"
+                label="Yard time"
                 className="modalField"
                 id="spotTime"
                 ampm={false}

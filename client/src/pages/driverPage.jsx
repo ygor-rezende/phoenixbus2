@@ -287,7 +287,7 @@ export const ScheduledRoutes = () => {
                       {todaysTrip?.fromZip} {todaysTrip?.fromState}
                     </Typography>
                     <Typography>
-                      Spot Time:{" "}
+                      Yard Time:{" "}
                       {todaysTrip?.spotTime
                         ? dayjs(todaysTrip?.spotTime).format(
                             "MMMM D, YYYY HH:mm"

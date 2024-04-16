@@ -68,7 +68,7 @@ class Schedule {
         full outer join locations lr on lr.location_id = d.return_location_id
         full outer join companies c on c.company_id = d.company_id
         WHERE b.is_quote = false AND s.service_date >= $1 AND s.service_date < $2 AND status != 'canceled'
-        ORDER BY s.service_date, d.start_time`,
+        ORDER BY d.start_time`,
         [newDates.startDate, newEndDate]
       );
       return res.json(result.rows);
