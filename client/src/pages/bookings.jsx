@@ -1332,7 +1332,10 @@ export const Bookings = () => {
 
   const handleDuplicateService = async () => {
     //convert dates to utc (iso)
-    let isoDates = state.dates?.map((e) => dayjs(e).toISOString());
+    let isoDates = state.dates?.map((e) => {
+      let date = dayjs(e).set("hour", 0).set("minute", 0).set("second", 0);
+      return date.toISOString();
+    });
     isoDates = JSON.stringify(isoDates);
 
     const controller = new AbortController();
