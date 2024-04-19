@@ -15,6 +15,10 @@ import {
   FormControlLabel,
   Radio,
   Stack,
+  Table,
+  TableRow,
+  TableCell,
+  TableHead,
 } from "@mui/material";
 
 import { UsePrivateGet, UsePrivatePost } from "../hooks/useFetchServer";
@@ -30,9 +34,11 @@ import * as FileSaver from "file-saver";
 
 const Payment = () => {
   const [data, setData] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [invoicePayments, setInvoicePayments] = useState([]);
   const [invoice, setInvoice] = useState(null);
   const [amount, setAmount] = useState(0.0);
-  const [clientId, setClientId] = useState("");
+  const [accountId, setAccountId] = useState(0);
   const [balance, setBalance] = useState(0.0);
   const [date, setDate] = useState(dayjs(new Date()));
   const [payType, setPayType] = useState("");
@@ -68,7 +74,28 @@ const Payment = () => {
       //no error
       else {
         let responseData = response?.data;
-        isMounted && setData(responseData);
+
+        //Aggrouping data by invoice, account id, and balance
+        let uniqueInvoicesData = [
+          ...new Map(
+            responseData?.map((e) => [
+              e["invoice"],
+              {
+                invoice: e.invoice,
+                accountId: e.account_id,
+                balance: e.balance,
+              },
+            ])
+          ).values(),
+        ];
+
+        //filter payments history data
+        let payments = responseData?.filter((e) => e.transaction_type === "p");
+
+        if (isMounted) {
+          setData(uniqueInvoicesData);
+          setPayments(payments);
+        }
       }
     };
 
@@ -96,7 +123,7 @@ const Payment = () => {
     const response = await postServer("/processpayment", {
       payment: {
         invoice: invoice,
-        clientId: clientId,
+        accountId: accountId,
         amount: amount,
         transactionDate: date,
         transactionType: "p",
@@ -167,7 +194,7 @@ const Payment = () => {
     setOpenSnakbar(true);
     setInvoice(null);
     setAmount(0.0);
-    setClientId("");
+    setAccountId(0);
     setBalance(0.0);
     setDate(dayjs(new Date()));
     setPayType("");
@@ -177,16 +204,20 @@ const Payment = () => {
 
   const handleInvoiceChange = (e, newValue, reason) => {
     if (newValue) {
-      setClientId(newValue.clientId);
+      let invoicePayments = payments?.filter(
+        (e) => e.invoice === newValue.invoice
+      );
+      setAccountId(newValue.accountId);
       setInvoice(newValue.invoice);
       setBalance(newValue.balance);
+      setInvoicePayments(invoicePayments);
     } else {
-      setClientId("");
+      setAccountId(0);
       setInvoice(null);
       setBalance(0);
     }
   };
-  const isDisabled = !invoice || !amount || !clientId || !date || !payType;
+  const isDisabled = !invoice || !amount || !accountId || !date || !payType;
 
   const currencyFormatter = Intl.NumberFormat("en-Us", {
     style: "currency",
@@ -209,7 +240,7 @@ const Payment = () => {
               onChange={handleInvoiceChange}
               options={data?.map((e) => {
                 const client = {
-                  clientId: e.client_id,
+                  accountId: e.accountId,
                   balance: e.balance,
                   invoice: e.invoice,
                 };
@@ -322,6 +353,54 @@ const Payment = () => {
           </Button>
         </Paper>
       </Box>
+
+      {invoicePayments?.length > 0 && (
+        <Box id="history-box" className="payments-box">
+          <Paper elevation={2} style={{ padding: "2em" }}>
+            <Typography
+              variant="h5"
+              component="h2"
+              color="primary"
+              gutterBottom
+            >
+              Payments' History
+            </Typography>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: "primary.main" }}>
+                <TableCell style={{ fontWeight: "bold", color: "whitesmoke" }}>
+                  Document #
+                </TableCell>
+                <TableCell style={{ fontWeight: "bold", color: "whitesmoke" }}>
+                  Payment Type
+                </TableCell>
+                <TableCell style={{ fontWeight: "bold", color: "whitesmoke" }}>
+                  Date
+                </TableCell>
+                <TableCell
+                  style={{ fontWeight: "bold", color: "whitesmoke" }}
+                  align="right"
+                >
+                  Amount
+                </TableCell>
+              </TableHead>
+              {invoicePayments?.map((row) => (
+                <TableRow>
+                  <TableCell>{row.doc_number}</TableCell>
+                  <TableCell style={{ textTransform: "capitalize" }}>
+                    {row.payment_type}
+                  </TableCell>
+                  <TableCell>
+                    {dayjs(row.transaction_date).format("l")}
+                  </TableCell>
+                  <TableCell align="right">
+                    {currencyFormatter.format(row.amount)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </Table>
+          </Paper>
+        </Box>
+      )}
 
       <Box id="reports-box" className="payments-box">
         <Paper elevation={2} style={{ padding: "2em" }}>

@@ -149,7 +149,7 @@ const PendingPaymentsReport = (props) => {
     return {
       clientId: e.client_id,
       agency: e.agency,
-      balance: e.balance,
+      balance: e.account_balance,
       received: e.received,
     };
   });
@@ -220,7 +220,12 @@ const PendingPaymentsReport = (props) => {
                 );
                 return (
                   <View>
-                    <View style={{ borderBottom: 0.5, marginTop: 10 }}>
+                    <View
+                      style={[
+                        { borderBottom: 0.5, marginTop: 10 },
+                        styles.textBold,
+                      ]}
+                    >
                       <TableRow key={row.clientId}>
                         <TableCell width="76%" align="left">
                           {row?.agency}
@@ -244,19 +249,20 @@ const PendingPaymentsReport = (props) => {
                               {serv.invoice}
                             </TableCell>
                             <TableCell width="10%" align="left">
-                              {dayjs(serv.service_date).format("l")}
+                              {dayjs(serv.start_date).format("l")}
                             </TableCell>
                             <TableCell width="10%" align="right">
-                              {dayjs(new Date()).diff(
-                                serv.service_date,
-                                "days"
-                              )}
+                              {dayjs(new Date()).diff(serv.start_date, "days")}
                             </TableCell>
                             <TableCell width="12%" align="right">
                               {currencyFormatter.format(serv.cost)}
                             </TableCell>
-                            <TableCell width="12%" align="right"></TableCell>
-                            <TableCell width="12%" align="right"></TableCell>
+                            <TableCell width="12%" align="right">
+                              {currencyFormatter.format(serv.amount_paid)}
+                            </TableCell>
+                            <TableCell width="12%" align="right">
+                              {currencyFormatter.format(serv.invoice_balance)}
+                            </TableCell>
                           </TableRow>
                         );
                       })}

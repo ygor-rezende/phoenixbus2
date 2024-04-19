@@ -1018,12 +1018,14 @@ export const Bookings = () => {
       responsibleName: curBooking?.responsibleName,
       responsibleEmail: curBooking?.responsibleEmail,
       responsiblePhone: curBooking?.responsiblePhone,
-      bookingDate: curBooking?.bookingDate,
-      quoteDate: curBooking?.quoteDate,
+      bookingDate: curBooking?.bookingDate
+        ? dayjs(curBooking?.bookingDate)
+        : null,
+      quoteDate: curBooking?.quoteDate ? dayjs(curBooking?.quoteDate) : null,
       category: curBooking?.category,
       numPeople: curBooking?.numPeople,
-      tripStartDate: curBooking?.tripStartDate,
-      tripEndDate: curBooking?.tripEndDate,
+      tripStartDate: dayjs(curBooking?.tripStartDate),
+      tripEndDate: dayjs(curBooking?.tripEndDate),
       deposit: curBooking?.deposit,
       quotedCost: curBooking?.isQuote ? curBooking.cost : totalCost,
       numHoursQuoteValid: curBooking?.numHoursQuoteValid,
