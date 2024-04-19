@@ -32,6 +32,7 @@ import {
   FormControl,
   InputLabel,
   Menu,
+  Checkbox,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -157,6 +158,7 @@ const initialState = {
   historyDetailData: [],
   transactionsData: [],
   anchorSave: null,
+  hasBooking: null,
 };
 
 export const Bookings = () => {
@@ -253,6 +255,8 @@ export const Bookings = () => {
           internalComents: item.internal_coments,
           status: item.status,
           costQuote: currencyFormatter.format(item.cost),
+          hasBooking: item.has_booking,
+          hasBookingCheck: <Checkbox checked={item.has_booking} size="small" />,
         };
         return quote;
       });
@@ -512,6 +516,7 @@ export const Bookings = () => {
       dates: [],
       openCalendarDialog: false,
       anchorSave: null,
+      hasBooking: null,
     });
   }; //clearState
 
@@ -550,6 +555,7 @@ export const Bookings = () => {
       showAccordion: false,
       accordionTitle: "",
       dates: [],
+      hasBooking: null,
     });
   }; //cancelEditing
 
@@ -829,10 +835,12 @@ export const Bookings = () => {
     const details = await getDetailsData(services);
 
     //load fields
-    console.log(state.quotesData.filter((e) => e.id === id));
+    //find current quote
+    const curQuote = state.quotesData?.find((e) => e.id === id);
+
     //get client id and employee id from bookings data
-    const clientId = state.quotesData.find((e) => e.id === id)?.clientId;
-    const employeeId = state.quotesData.find((e) => e.id === id)?.employeeId;
+    const clientId = curQuote?.clientId;
+    const employeeId = curQuote?.employeeId;
     const employeeObject = state.employeesData.find(
       (employee) => employee.employee_id === employeeId
     );
@@ -845,7 +853,7 @@ export const Bookings = () => {
       showAccordion: true,
       accordionTitle: "Quote",
       invoice: id,
-      isQuote: state.quotesData?.find((e) => e.id === id)?.isQuote,
+      isQuote: curQuote?.isQuote,
       clientId: clientId,
       curClient: curClient,
       agencyName: curClient?.agency,
@@ -853,35 +861,26 @@ export const Bookings = () => {
       agencyContact: curClient?.contact,
       employeeId: employeeId,
       salesPerson: `${employeeObject?.firstname} ${employeeObject?.lastname}`,
-      responsibleName: state.quotesData.find((e) => e.id === id)
-        ?.responsibleName,
-      responsibleEmail: state.quotesData.find((e) => e.id === id)
-        ?.responsibleEmail,
-      responsiblePhone: state.quotesData.find((e) => e.id === id)
-        ?.responsiblePhone,
+      responsibleName: curQuote?.responsibleName,
+      responsibleEmail: curQuote?.responsibleEmail,
+      responsiblePhone: curQuote?.responsiblePhone,
       bookingDate: null,
-      quoteDate: dayjs(state.quotesData?.find((e) => e.id === id)?.quoteDate),
-      category: state.quotesData.find((e) => e.id === id)?.category,
-      numPeople: state.quotesData.find((e) => e.id === id)?.numPeople,
-      tripStartDate: dayjs(
-        state.quotesData.find((e) => e.id === id)?.tripStartDate
-      ),
-      tripEndDate: dayjs(
-        state.quotesData.find((e) => e.id === id)?.tripEndDate
-      ),
-      deposit: state.quotesData.find((e) => e.id === id)?.deposit,
-      quotedCost: state.quotesData.find((e) => e.id === id)?.cost,
-      numHoursQuoteValid: state.quotesData.find((e) => e.id === id)
-        ?.numHoursQuoteValid,
-      clientComments: state.quotesData.find((e) => e.id === id)?.clientComments,
-      intineraryDetails: state.quotesData.find((e) => e.id === id)
-        ?.intineraryDetails,
-      internalComments: state.quotesData.find((e) => e.id === id)
-        ?.internalComents,
-      status: state.quotesData.find((e) => e.id === id)?.status,
+      quoteDate: dayjs(curQuote?.quoteDate),
+      category: curQuote?.category,
+      numPeople: curQuote?.numPeople,
+      tripStartDate: dayjs(curQuote?.tripStartDate),
+      tripEndDate: dayjs(curQuote?.tripEndDate),
+      deposit: curQuote?.deposit,
+      quotedCost: curQuote?.cost,
+      numHoursQuoteValid: curQuote?.numHoursQuoteValid,
+      clientComments: curQuote?.clientComments,
+      intineraryDetails: curQuote?.intineraryDetails,
+      internalComments: curQuote?.internalComents,
+      status: curQuote?.status,
       servicesData: services,
       tabService: tab,
       detailsData: details,
+      hasBooking: curQuote?.hasBooking,
     });
   }; //handleQuoteClick
 
@@ -1306,7 +1305,7 @@ export const Bookings = () => {
   };
 
   const handleInvoiceClick = () => {
-    if (state.onEditMode) return;
+    if (state.onEditMode || state.isQuote) return;
 
     //open dialog to enter the invoice
     setState({ openInvoiceDialog: true });
@@ -1953,6 +1952,7 @@ export const Bookings = () => {
                           onClick={handleSaveAsBooking}
                           color="primary"
                           size="small"
+                          disabled={state.hasBooking}
                         >
                           Create Booking from this Quote
                         </Button>

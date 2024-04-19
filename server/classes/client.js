@@ -43,7 +43,7 @@ class Client {
 
   static async getAllClients() {
     try {
-      const result = await pool.query("Select * FROM clients");
+      const result = await pool.query("Select * FROM clients ORDER BY agency");
       //console.log(result.rows);
       return result.rows;
     } catch (err) {

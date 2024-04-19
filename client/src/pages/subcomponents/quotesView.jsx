@@ -62,6 +62,12 @@ export const QuotesView = (props) => {
       label: "Sales Person",
     },
     {
+      id: "hasBookingCheck",
+      isNumeric: false,
+      isPaddingDisabled: true,
+      label: "Has Booking",
+    },
+    {
       id: "costQuote",
       isNumeric: true,
       isPaddingDisabled: false,

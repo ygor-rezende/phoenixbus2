@@ -244,9 +244,7 @@ class Booking {
 
   static async getAllQuotes() {
     try {
-      const result = await pool.query(
-        "Select * FROM bookings WHERE is_quote IS true ORDER BY invoice"
-      );
+      const result = await pool.query("Select * FROM get_quotes()");
       //console.log(result.rows);
       return result.rows;
     } catch (err) {

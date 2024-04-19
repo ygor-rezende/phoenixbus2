@@ -400,14 +400,6 @@ const Contract = (props) => {
                           <TableRow>
                             <TableCell width="50%" align="left">
                               <Text style={{ fontWeight: "semibold" }}>
-                                Yard time:{" "}
-                                {dayjs(detail.spot_time).format("HH:mm")}
-                              </Text>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell width="50%" align="left">
-                              <Text style={{ fontWeight: "semibold" }}>
                                 Start Time:{" "}
                                 {dayjs(detail.start_time).format("HH:mm")}
                               </Text>

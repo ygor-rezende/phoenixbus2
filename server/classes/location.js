@@ -35,7 +35,9 @@ class Location {
 
   static async getLocations() {
     try {
-      const result = await pool.query("Select * FROM locations");
+      const result = await pool.query(
+        "Select * FROM locations ORDER BY location_name"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
@@ -107,7 +109,7 @@ class Location {
   static async getAllLocationNames() {
     try {
       const result = await pool.query(
-        "Select location_id, location_name FROM locations"
+        "Select location_id, location_name FROM locations ORDER BY location_name, location_id"
       );
       //console.log(result.rows);
       return result.rows;

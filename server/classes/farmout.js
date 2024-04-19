@@ -63,7 +63,9 @@ class FarmOut {
 
   static async getAllCompanies() {
     try {
-      const result = await pool.query("Select * FROM companies");
+      const result = await pool.query(
+        "Select * FROM companies ORDER BY company_name"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
@@ -158,7 +160,7 @@ class FarmOut {
   static async getAllCompanyNames() {
     try {
       const result = await pool.query(
-        "Select company_id, company_name FROM companies"
+        "Select company_id, company_name FROM companies ORDER BY company_name, company_id"
       );
 
       return result.rows;
