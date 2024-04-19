@@ -3,14 +3,7 @@ const pool = require("../db");
 class Payments {
   static async getInvoices() {
     try {
-      const result = await pool.query(
-        `SELECT
-          b.invoice,
-          b.client_id,
-          ac.balance
-          FROM bookings b JOIN accounts ac ON ac.client_id = b.client_id
-          WHERE is_quote = false AND b.status != 'canceled'`
-      );
+      const result = await pool.query(`SELECT * FROM get_invoices_to_pay()`);
       return result.rows;
     } catch (err) {
       console.error(err);
@@ -21,7 +14,7 @@ class Payments {
   static async processPayment(req, res) {
     try {
       const { payment } = req.body;
-      if (!payment || !payment.clientId)
+      if (!payment || !payment.accountId)
         return res
           .status(400)
           .json({ message: "Bad request: Payment information is required" });
@@ -29,7 +22,7 @@ class Payments {
       await pool.query(
         `CALL create_payment_transaction(
         invoice => $1::TEXT,
-        clientId => $2::TEXT,
+        accountid => $2::INTEGER,
         amount => $3::NUMERIC,
         transaction_date => $4::TEXT,
         transaction_type => $5::character,
@@ -38,7 +31,7 @@ class Payments {
         )`,
         [
           payment.invoice,
-          payment.clientId,
+          payment.accountId,
           payment.amount,
           payment.transactionDate,
           payment.transactionType,

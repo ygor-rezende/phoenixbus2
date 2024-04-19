@@ -395,7 +395,7 @@ const EnhancedTable = (props) => {
 
   const colorLine = (data) => {
     if (data?.status === "canceled") return "red";
-    else if (data?.amountDue === "$0.00") return "green";
+    else if (Number(data?.amountDue?.replace("$", "")) <= 0) return "green";
     else return "";
   };
 

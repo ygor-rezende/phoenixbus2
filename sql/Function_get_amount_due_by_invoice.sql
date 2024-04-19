@@ -1,5 +1,7 @@
-DROP FUNCTION get_amount_due_by_invoice();
-CREATE OR REPLACE FUNCTION public.get_amount_due_by_invoice()
+DROP FUNCTION IF EXISTS public.get_amount_due_by_invoice();
+
+CREATE OR REPLACE FUNCTION public.get_amount_due_by_invoice(
+	)
     RETURNS TABLE(invoice character varying, total_debit numeric, total_pay numeric, amount_due numeric) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -25,12 +27,13 @@ BEGIN
 			)
 			SELECT
 				de.invoice,
-				de.totalDebit,
-				pa.totalpay,
-				CASE WHEN de.totaldebit - pa.totalpay <= 0 THEN 0 ELSE de.totaldebit - pa.totalpay END AS amountdue
-			FROM debits de JOIN payments pa ON de.invoice = pa.invoice);
+				COALESCE(de.totalDebit, 0),
+				COALESCE(pa.totalpay, 0),
+				COALESCE(de.totalDebit, 0) - COALESCE(pa.totalpay, 0) AS amountdue
+			FROM debits de FULL OUTER JOIN payments pa ON de.invoice = pa.invoice);
 END
 $BODY$;
+
 
 
 select * from get_amount_due_by_invoice();
