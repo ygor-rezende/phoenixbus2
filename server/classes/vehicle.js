@@ -49,7 +49,9 @@ class Vehicle {
 
   static async getAllVehicles() {
     try {
-      const result = await pool.query("Select * FROM vehicles");
+      const result = await pool.query(
+        "Select * FROM vehicles ORDER BY vehicle_name"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
@@ -120,7 +122,7 @@ class Vehicle {
   static async getAllVehicleNames() {
     try {
       const result = await pool.query(
-        "Select vehicle_id, vehicle_name FROM vehicles WHERE maintenance = false"
+        "Select vehicle_id, vehicle_name FROM vehicles WHERE maintenance = false ORDER BY vehicle_name"
       );
       //console.log(result.rows);
       return result.rows;

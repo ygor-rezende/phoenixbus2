@@ -86,7 +86,9 @@ class Employee {
 
   static async getAllEmployees() {
     try {
-      const result = await pool.query("Select * FROM employees");
+      const result = await pool.query(
+        "Select * FROM employees ORDER BY firstname, lastname"
+      );
       //console.log(result.rows);
       return result.rows;
     } catch (err) {
@@ -208,7 +210,7 @@ class Employee {
   static async getAllEmployeeNames() {
     try {
       const result = await pool.query(
-        "Select employee_id, firstname, lastname FROM employees"
+        "Select employee_id, firstname, lastname FROM employees ORDER BY firstname, lastname"
       );
       //console.log(result.rows);
       return result.rows;
@@ -221,7 +223,7 @@ class Employee {
   static async getSalesPeople() {
     try {
       const result = await pool.query(
-        "Select employee_id, firstname || ' ' || lastname as fullname FROM employees WHERE title = 'Sales'"
+        "Select employee_id, firstname || ' ' || lastname as fullname FROM employees WHERE title = 'Sales' ORDER BY firstname, lastname"
       );
       return result.rows;
     } catch (err) {
@@ -233,7 +235,7 @@ class Employee {
   static async getDrivers() {
     try {
       const result = await pool.query(
-        "Select employee_id, firstname || ' ' || lastname as fullname FROM employees WHERE title = 'Driver'"
+        "Select employee_id, firstname || ' ' || lastname as fullname FROM employees WHERE title = 'Driver' ORDER BY firstname, lastname"
       );
       return result.rows;
     } catch (err) {

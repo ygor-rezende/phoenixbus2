@@ -20,7 +20,9 @@ class User {
 
   static async getUsernames() {
     try {
-      const result = await pool.query("SELECT username FROM users");
+      const result = await pool.query(
+        "SELECT username FROM users ORDER BY username"
+      );
       return result.rows;
     } catch (err) {
       console.error(err);
@@ -31,7 +33,7 @@ class User {
   static async getAvailableUsers() {
     try {
       const result = await pool.query(
-        "SELECT username FROM users WHERE username NOT IN (SELECT user_id from employees WHERE user_id IS NOT NULL)"
+        "SELECT username FROM users WHERE username NOT IN (SELECT user_id from employees WHERE user_id IS NOT NULL) ORDER BY username"
       );
       return result.rows;
     } catch (err) {
