@@ -100,8 +100,8 @@ const Invoice = (props) => {
     arrival,
     departure,
     services,
-    deposit,
     transactions,
+    poRef,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -150,6 +150,7 @@ const Invoice = (props) => {
             <Text style={styles.title}>Invoice / Receipt</Text>
             <Text style={styles.textBold}>Date: {date}</Text>
             <Text style={styles.textBold}>Invoice #: {invoiceNum}</Text>
+            <Text style={styles.textBold}>PO/REF #: {poRef}</Text>
           </View>
         </View>
         <View style={styles.header}>

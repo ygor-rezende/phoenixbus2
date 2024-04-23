@@ -209,7 +209,7 @@ export const ScheduleTable = (props) => {
               <BoldTableCell>Return</BoldTableCell>
               <BoldTableCell>Bus #</BoldTableCell>
               <BoldTableCell>Driver</BoldTableCell>
-              <BoldTableCell>Required</BoldTableCell>
+              <BoldTableCell>Request</BoldTableCell>
               <BoldTableCell align="center">Confirmed?</BoldTableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>

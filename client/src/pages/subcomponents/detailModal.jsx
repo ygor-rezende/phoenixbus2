@@ -578,6 +578,21 @@ export const DetailModal = (props) => {
     return true;
   }; //isFormValid
 
+  const handleAddStop = (e) => {
+    if (e.target.checked)
+      setState({
+        addStop: e.target.checked,
+        addStopDetail: "OutWard",
+        addStopInfo: "",
+      });
+    else
+      setState({
+        addStop: e.target.checked,
+        addStopDetail: "",
+        addStopInfo: "",
+      });
+  };
+
   return (
     <Modal
       open={state.openModal}
@@ -854,16 +869,7 @@ export const DetailModal = (props) => {
               className="modalField"
               style={{ alignSelf: "center" }}
               control={
-                <Checkbox
-                  checked={state.addStop}
-                  onChange={(e) =>
-                    setState({
-                      addStop: e.target.checked,
-                      addStopDetail: "",
-                      addStopInfo: "",
-                    })
-                  }
-                />
+                <Checkbox checked={state.addStop} onChange={handleAddStop} />
               }
               label="Additional Stop"
             />
@@ -886,9 +892,10 @@ export const DetailModal = (props) => {
                 color="primary"
                 value={state.addStopDetail}
                 exclusive
-                onChange={(_, newValue) =>
-                  setState({ addStopDetail: newValue })
-                }
+                onChange={(_, newValue) => {
+                  if (newValue === null) return;
+                  setState({ addStopDetail: newValue });
+                }}
                 aria-label="Stop detail"
                 style={{ alignSelf: "center" }}
               >
@@ -1009,6 +1016,7 @@ export const DetailModal = (props) => {
         <CustomDialog
           openDialog={state.openDialog}
           onCancel={() => setState({ openDialog: false })}
+          A
           onConfirm={handleDeleteDetail}
           title={"Confirm deleting detail?"}
           description={"Are you sure you want to delete this detail?"}
