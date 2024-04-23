@@ -11,6 +11,8 @@ import {
   FormHelperText,
   FormControlLabel,
   Switch,
+  Checkbox,
+  FormGroup,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -59,6 +61,8 @@ const initialState = {
   openValidationDialog: false,
   validationDialogType: "",
   vehicleValidationData: [],
+  specialEvents: "",
+  confirmed: false,
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -115,6 +119,8 @@ export const ScheduleModal = (props) => {
         return: rowData?.return_location,
         instructions: rowData?.instructions,
         useFarmout: rowData?.use_farmout,
+        specialEvents: rowData?.special_events,
+        confirmed: rowData?.confirmed,
         openModal: true,
       });
     }
@@ -205,6 +211,8 @@ export const ScheduleModal = (props) => {
         toLocationId: state.toLocationId,
         returnLocationId: state.returnLocationId,
         useFarmout: state.useFarmout,
+        specialEvents: state.specialEvents,
+        confirmed: state.confirmed,
         changeUser: auth.userName,
       },
     });
@@ -261,6 +269,8 @@ export const ScheduleModal = (props) => {
       openValidationDialog: false,
       validationDialogType: "",
       vehicleValidationData: [],
+      specialEvents: "",
+      confirmed: false,
     });
   }; //clearState
 
@@ -390,6 +400,10 @@ export const ScheduleModal = (props) => {
     else setState({ company: null, companyId: null, useFarmout: isChecked });
   };
 
+  const handleCheckConfirmed = (e) => {
+    setState({ confirmed: e.target.checked });
+  };
+
   return (
     <Modal
       open={state.openModal}
@@ -420,6 +434,18 @@ export const ScheduleModal = (props) => {
             <Switch checked={state.useFarmout} onChange={handleCheckFarmout} />
           }
         />
+
+        <FormGroup style={{ alignContent: "center" }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={state.confirmed}
+                onChange={handleCheckConfirmed}
+              />
+            }
+            label="Confirmed?"
+          />
+        </FormGroup>
 
         <Box sx={{ display: "flex" }}>
           <Box className="modal2Columns">
@@ -498,6 +524,16 @@ export const ScheduleModal = (props) => {
               placeholder="Driver Payment $"
               value={state.payment}
               onChange={(e) => setState({ payment: e.target.value })}
+            />
+
+            <TextField
+              id="specialEvent"
+              className="modalField"
+              label="Special Events"
+              type="text"
+              placeholder="Special Events"
+              value={state.specialEvents}
+              onChange={(e) => setState({ specialEvents: e.target.value })}
             />
           </Box>
           <Box className="modal2Columns">
@@ -761,7 +797,7 @@ export const ScheduleModal = (props) => {
               label="Instructions"
               type="text"
               multiline
-              rows={3}
+              rows={4}
               placeholder="Instructions"
               value={state.instructions}
               onChange={(e) => setState({ instructions: e.target.value })}

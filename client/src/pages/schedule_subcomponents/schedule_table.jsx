@@ -29,6 +29,7 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import VerifiedIcon from "@mui/icons-material/Verified";
 
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -208,6 +209,8 @@ export const ScheduleTable = (props) => {
               <BoldTableCell>Return</BoldTableCell>
               <BoldTableCell>Bus #</BoldTableCell>
               <BoldTableCell>Driver</BoldTableCell>
+              <BoldTableCell>Required</BoldTableCell>
+              <BoldTableCell align="center">Confirmed?</BoldTableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
@@ -237,7 +240,9 @@ export const ScheduleTable = (props) => {
                       gutterBottom
                     >
                       {row?.spot_time
-                        ? dayjs(row?.spot_time).format("MM/DD/YYYY HH:mm")
+                        ? dateStart === dateEnd
+                          ? dayjs(row?.spot_time).format("HH:mm")
+                          : dayjs(row?.spot_time).format("MM/DD/YYYY HH:mm")
                         : ""}
                     </Typography>
                   </TableCell>
@@ -250,7 +255,9 @@ export const ScheduleTable = (props) => {
                         gutterBottom
                       >
                         {row?.start_time
-                          ? dayjs(row?.start_time).format("MM/DD/YYYY HH:mm")
+                          ? dateStart === dateEnd
+                            ? dayjs(row?.start_time).format("HH:mm")
+                            : dayjs(row?.start_time).format("MM/DD/YYYY HH:mm")
                           : ""}
                       </Typography>
 
@@ -263,9 +270,11 @@ export const ScheduleTable = (props) => {
                             gutterBottom
                           >
                             {row?.return_time
-                              ? dayjs(row?.return_time).format(
-                                  "MM/DD/YYYY HH:mm"
-                                )
+                              ? dateStart === dateEnd
+                                ? dayjs(row?.return_time).format("HH:mm")
+                                : dayjs(row?.return_time).format(
+                                    "MM/DD/YYYY HH:mm"
+                                  )
                               : ""}
                           </Typography>
                         </Box>
@@ -325,7 +334,9 @@ export const ScheduleTable = (props) => {
                           gutterBottom
                         >
                           {row?.end_time
-                            ? dayjs(row?.end_time).format("MM/DD/YYYY HH:mm")
+                            ? dateStart === dateEnd
+                              ? dayjs(row?.end_time).format("HH:mm")
+                              : dayjs(row?.end_time).format("MM/DD/YYYY HH:mm")
                             : ""}
                         </Typography>
                       ) : (
@@ -341,7 +352,11 @@ export const ScheduleTable = (props) => {
                             gutterBottom
                           >
                             {row?.end_time
-                              ? dayjs(row?.end_time).format("MM/DD/YYYY HH:mm")
+                              ? dateStart === dateEnd
+                                ? dayjs(row?.end_time).format("HH:mm")
+                                : dayjs(row?.end_time).format(
+                                    "MM/DD/YYYY HH:mm"
+                                  )
                               : ""}
                           </Typography>
                         </Box>
@@ -357,35 +372,47 @@ export const ScheduleTable = (props) => {
                   <TableCell>
                     {row?.use_farmout ? row?.company_name : `${row?.firstname}`}
                   </TableCell>
+                  <TableCell align="left">{row?.special_events}</TableCell>
+                  <TableCell align="center">
+                    {row?.confirmed ? <VerifiedIcon color="success" /> : ""}
+                  </TableCell>
 
-                  <TableCell padding="none">
+                  <TableCell padding="none" align="right">
                     <Tooltip title="Edit">
                       <IconButton
                         onClick={(e) => handleClick(e, row?.detail_id)}
+                        size="small"
                       >
                         <EditNoteIcon color="primary" />
                       </IconButton>
                     </Tooltip>
                   </TableCell>
-                  <TableCell padding="none">
+                  <TableCell padding="none" align="right">
                     <Tooltip title="Print Driver PDF">
                       <IconButton
                         onClick={(e) => handleDriverPDF(row?.detail_id)}
+                        size="small"
                       >
                         <PictureAsPdfIcon color="primary" />
                       </IconButton>
                     </Tooltip>
                   </TableCell>
-                  <TableCell padding="none">
+                  <TableCell padding="none" align="right">
                     {extendLine === index ? (
                       <Tooltip title="Shrink">
-                        <IconButton onClick={() => setExtendLine("")}>
+                        <IconButton
+                          onClick={() => setExtendLine("")}
+                          size="small"
+                        >
                           <ExpandLessIcon color="primary" />
                         </IconButton>
                       </Tooltip>
                     ) : (
                       <Tooltip title="Expand">
-                        <IconButton onClick={() => setExtendLine(index)}>
+                        <IconButton
+                          onClick={() => setExtendLine(index)}
+                          size="small"
+                        >
                           <ExpandMoreIcon color="primary" />
                         </IconButton>
                       </Tooltip>

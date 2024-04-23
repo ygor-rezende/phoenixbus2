@@ -79,6 +79,7 @@ const initialState = {
   addStopDetail: "",
   addStopInfo: "",
   tripLength: 0.0,
+  specialEvents: "",
 };
 
 export const DetailModal = (props) => {
@@ -213,6 +214,7 @@ export const DetailModal = (props) => {
           addStopInfo: data.additional_stop_info,
           addStopDetail: data.additional_stop_detail,
           tripLength: data.trip_length,
+          specialEvents: data.special_events,
           openModal: true,
         });
       } else {
@@ -331,6 +333,7 @@ export const DetailModal = (props) => {
           additionalStopDetail: state.addStopDetail,
           tripLength: state.tripLength,
           changeUser: auth.userName,
+          specialEvents: state.specialEvents,
         },
       });
 
@@ -381,6 +384,7 @@ export const DetailModal = (props) => {
           additionalStopDetail: state.addStopDetail,
           tripLength: tripLength,
           changeUser: auth.userName,
+          specialEvents: state.specialEvents,
         },
       });
 
@@ -539,6 +543,7 @@ export const DetailModal = (props) => {
       addStopDetail: "",
       addStopInfo: "",
       tripLength: 0.0,
+      specialEvent: "",
     });
   };
 
@@ -960,6 +965,16 @@ export const DetailModal = (props) => {
               placeholder="Gratuity $"
               value={state.gratuity}
               onChange={(e) => setState({ gratuity: e.target.value })}
+            />
+
+            <TextField
+              id="specialevents"
+              className="modalField"
+              label="Special Events"
+              type="text"
+              placeholder="Special Events"
+              value={state.specialEvents}
+              onChange={(e) => setState({ specialEvents: e.target.value })}
             />
           </Box>
         </Box>
