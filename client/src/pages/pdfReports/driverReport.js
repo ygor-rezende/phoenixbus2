@@ -252,7 +252,25 @@ const DriverReport = (props) => {
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
               <Text style={[styles.text, { color: "blue" }]}>.</Text>
+              {data?.additional_stop_detail === "OutWard" ||
+              data?.additional_stop_detail === "Both" ? (
+                <View style={{ alignItems: "center" }}>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                </View>
+              ) : null}
               <Image src={PlaceIcon} style={styles.image2} />
+              {data?.additional_stop_detail === "Both" ||
+              data?.additional_stop_detail === "Return" ? (
+                <View style={{ alignItems: "center" }}>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                  <Text style={[styles.text, { color: "blue" }]}>.</Text>
+                </View>
+              ) : null}
               {data?.return_location ? (
                 <View style={{ alignItems: "center" }}>
                   <Text style={[styles.text, { color: "blue" }]}>.</Text>
@@ -271,6 +289,14 @@ const DriverReport = (props) => {
                     <Text style={styles.textBold}>Yard Time: </Text>
                     {data?.spot_time
                       ? dayjs(data?.spot_time).format("HH:mm")
+                      : ""}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.textBold}>Spot time: </Text>
+                    {data?.start_time
+                      ? dayjs(data?.start_time)
+                          .subtract(15, "m")
+                          .format("HH:mm")
                       : ""}
                   </Text>
                   <Text style={styles.text}>
@@ -294,20 +320,28 @@ const DriverReport = (props) => {
                 </View>
               </View>
 
+              {(data?.additional_stop_detail === "Both" ||
+                data?.additional_stop_detail === "OutWard") && (
+                <View style={[styles.header, { marginTop: 20 }]}>
+                  <View style={{ width: "17%" }}></View>
+                  <View style={{ width: "75%" }}>
+                    <Text style={styles.text}>
+                      ADDITIONAL STOP:{" "}
+                      <Text style={styles.textBold}>
+                        {data?.additional_stop_info}
+                      </Text>
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               <View style={[styles.header, { marginTop: 20 }]}>
                 <View style={{ width: "17%" }}>
-                  {data?.return_location ? (
+                  {data?.return_location && (
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>Return time: </Text>
                       {data?.return_time
                         ? dayjs(data?.return_time).format("HH:mm")
-                        : ""}
-                    </Text>
-                  ) : (
-                    <Text style={styles.text}>
-                      <Text style={styles.textBold}>Return time: </Text>
-                      {data?.end_time
-                        ? dayjs(data?.end_time).format("HH:mm")
                         : ""}
                     </Text>
                   )}
@@ -326,16 +360,24 @@ const DriverReport = (props) => {
                 </View>
               </View>
 
-              {data?.return_location ? (
+              {(data?.additional_stop_detail === "Both" ||
+                data?.additional_stop_detail === "Return") && (
                 <View style={[styles.header, { marginTop: 20 }]}>
-                  <View style={{ width: "17%" }}>
+                  <View style={{ width: "17%" }}></View>
+                  <View style={{ width: "75%" }}>
                     <Text style={styles.text}>
-                      <Text style={styles.textBold}>End time: </Text>
-                      {data?.end_time
-                        ? dayjs(data?.end_time).format("HH:mm")
-                        : ""}
+                      ADDITIONAL STOP:{" "}
+                      <Text style={styles.textBold}>
+                        {data?.additional_stop_info}
+                      </Text>
                     </Text>
                   </View>
+                </View>
+              )}
+
+              {data?.return_location ? (
+                <View style={[styles.header, { marginTop: 20 }]}>
+                  <View style={{ width: "17%" }}></View>
                   <View style={{ width: "75%" }}>
                     <Text style={styles.text}>
                       END LOCATION:{" "}

@@ -79,6 +79,7 @@ const initialState = {
   addStopDetail: "",
   addStopInfo: "",
   tripLength: 0.0,
+  specialEvents: "",
 };
 
 export const DetailModal = (props) => {
@@ -213,6 +214,7 @@ export const DetailModal = (props) => {
           addStopInfo: data.additional_stop_info,
           addStopDetail: data.additional_stop_detail,
           tripLength: data.trip_length,
+          specialEvents: data.special_events,
           openModal: true,
         });
       } else {
@@ -331,6 +333,7 @@ export const DetailModal = (props) => {
           additionalStopDetail: state.addStopDetail,
           tripLength: state.tripLength,
           changeUser: auth.userName,
+          specialEvents: state.specialEvents,
         },
       });
 
@@ -381,6 +384,7 @@ export const DetailModal = (props) => {
           additionalStopDetail: state.addStopDetail,
           tripLength: tripLength,
           changeUser: auth.userName,
+          specialEvents: state.specialEvents,
         },
       });
 
@@ -539,6 +543,7 @@ export const DetailModal = (props) => {
       addStopDetail: "",
       addStopInfo: "",
       tripLength: 0.0,
+      specialEvent: "",
     });
   };
 
@@ -572,6 +577,21 @@ export const DetailModal = (props) => {
     setState({ invalidField: "" });
     return true;
   }; //isFormValid
+
+  const handleAddStop = (e) => {
+    if (e.target.checked)
+      setState({
+        addStop: e.target.checked,
+        addStopDetail: "OutWard",
+        addStopInfo: "",
+      });
+    else
+      setState({
+        addStop: e.target.checked,
+        addStopDetail: "",
+        addStopInfo: "",
+      });
+  };
 
   return (
     <Modal
@@ -849,16 +869,7 @@ export const DetailModal = (props) => {
               className="modalField"
               style={{ alignSelf: "center" }}
               control={
-                <Checkbox
-                  checked={state.addStop}
-                  onChange={(e) =>
-                    setState({
-                      addStop: e.target.checked,
-                      addStopDetail: "",
-                      addStopInfo: "",
-                    })
-                  }
-                />
+                <Checkbox checked={state.addStop} onChange={handleAddStop} />
               }
               label="Additional Stop"
             />
@@ -881,9 +892,10 @@ export const DetailModal = (props) => {
                 color="primary"
                 value={state.addStopDetail}
                 exclusive
-                onChange={(_, newValue) =>
-                  setState({ addStopDetail: newValue })
-                }
+                onChange={(_, newValue) => {
+                  if (newValue === null) return;
+                  setState({ addStopDetail: newValue });
+                }}
                 aria-label="Stop detail"
                 style={{ alignSelf: "center" }}
               >
@@ -961,6 +973,16 @@ export const DetailModal = (props) => {
               value={state.gratuity}
               onChange={(e) => setState({ gratuity: e.target.value })}
             />
+
+            <TextField
+              id="specialevents"
+              className="modalField"
+              label="Special Events"
+              type="text"
+              placeholder="Special Events"
+              value={state.specialEvents}
+              onChange={(e) => setState({ specialEvents: e.target.value })}
+            />
           </Box>
         </Box>
         <Box>
@@ -994,6 +1016,7 @@ export const DetailModal = (props) => {
         <CustomDialog
           openDialog={state.openDialog}
           onCancel={() => setState({ openDialog: false })}
+          A
           onConfirm={handleDeleteDetail}
           title={"Confirm deleting detail?"}
           description={"Are you sure you want to delete this detail?"}

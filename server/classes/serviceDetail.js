@@ -30,7 +30,8 @@ class ServiceDetail {
         additional_stop_info => $17::TEXT,
         additional_stop_detail => $18::TEXT,
         trip_length => $19,
-        change_user => $20::TEXT)`,
+        change_user => $20::TEXT,
+        special_events => $21::TEXT)`,
         [
           detail.serviceId,
           detail.employeeId,
@@ -52,6 +53,7 @@ class ServiceDetail {
           detail.additionalStopDetail,
           detail.tripLength,
           detail.changeUser,
+          detail.specialEvents,
         ]
       );
       //send reponse
@@ -149,7 +151,8 @@ class ServiceDetail {
           additionalstopdetail=>$18::TEXT,
           triplength=>$19,
           changeuser=>$20::TEXT,
-          detailid=>$21)`,
+          specialevents=>$21::TEXT,
+          detailid=>$22)`,
         [
           detail.serviceId,
           detail.employeeId,
@@ -171,6 +174,7 @@ class ServiceDetail {
           detail.additionalStopDetail,
           detail.tripLength,
           detail.changeUser,
+          detail.specialEvents,
           detail.detailId,
         ]
       );
@@ -324,7 +328,8 @@ class ServiceDetail {
       additional_stop_info => $17::TEXT,
       additional_stop_detail => $18::TEXT,
       trip_length => $19,
-      change_user => $20::TEXT)`,
+      change_user => $20::TEXT,
+      special_events => $21::TEXT)`,
         [
           detail.service_id,
           null,
@@ -346,6 +351,7 @@ class ServiceDetail {
           detail.additional_stop_detail,
           detail.trip_length,
           changeUser,
+          detail.specialEvents,
         ]
       );
 

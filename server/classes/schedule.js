@@ -30,6 +30,8 @@ class Schedule {
         d.additional_stop_info,
         d.additional_stop_detail,
         d.trip_length,
+        d.special_events,
+        d.confirmed,
         c.company_id,
         c.company_name,
         e.employee_id,
@@ -100,7 +102,9 @@ class Schedule {
           usefarmout=>$12::BOOLEAN,
           companyid=>$13::TEXT,
           changeuser=>$14::TEXT,
-          detailid=>$15
+          confirmed1=>$15::BOOLEAN,
+          specialevents=>$16::TEXT,
+          detailid=>$17
           )`,
         [
           detail.spotTime,
@@ -117,6 +121,8 @@ class Schedule {
           detail.useFarmout,
           detail.companyId,
           detail.changeUser,
+          detail.confirmed,
+          detail.specialEvents,
           detail.detailId,
         ]
       );

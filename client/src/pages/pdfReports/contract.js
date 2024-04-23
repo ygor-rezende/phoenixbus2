@@ -133,8 +133,8 @@ const Contract = (props) => {
     services,
     details,
     locations,
-    deposit,
     transactions,
+    poRef,
   } = props;
 
   const serviceTypes = [
@@ -205,6 +205,7 @@ const Contract = (props) => {
               </Text>
               <Text>Phone: {client.phone}</Text>
               <Text>Email: {client.email}</Text>
+              <Text>PO/REF #: {poRef}</Text>
             </View>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />

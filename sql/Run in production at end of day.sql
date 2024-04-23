@@ -1,99 +1,106 @@
-DROP FUNCTION IF EXISTS public.get_trips_by_driver(character varying);
-DROP TYPE IF EXISTS public.my_table_type;
+UPDATE service_details SET confirmed = false;
 
-CREATE TYPE public.my_table_type AS
-(
-	employee_id character varying(255),
-	service_date character varying(30),
-	service_code character varying(10),
-	vehicle_name character varying(255),
-	vehicle_color character varying(255),
-	spot_time character varying(30),
-	start_time character varying(30),
-	end_time character varying(30),
-	return_time character varying(30),
-	instructions text,
-	from_location_name character varying(255),
-	from_address character varying(255),
-	from_city character varying(100),
-	from_state character varying(255),
-	from_zip character varying(6),
-	to_location_name character varying(255),
-	to_address character varying(255),
-	to_city character varying(100),
-	to_state character varying(255),
-	to_zip character varying(6),
-	num_people smallint
-);
+DROP PROCEDURE IF EXISTS public.update_detail(text, text, text, text, text, numeric, text, text, text, text, text, boolean, text, text, integer);
 
-
-CREATE OR REPLACE FUNCTION public.get_trips_by_driver(
-	userid character varying)
-    RETURNS TABLE(table_result my_table_type) 
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-    ROWS 1000
-
+CREATE OR REPLACE PROCEDURE public.update_detail(
+	IN spottime text,
+	IN starttime text,
+	IN endtime text,
+	IN returntime text,
+	IN instructions1 text,
+	IN payment1 numeric,
+	IN employeeid text,
+	IN vehicleid text,
+	IN fromlocationid text,
+	IN tolocationid text,
+	IN returnlocationid text,
+	IN usefarmout boolean,
+	IN companyid text,
+	IN changeuser text,
+	IN confirmed1 boolean,
+	IN specialevents text,
+	IN detailid integer)
+LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
-	return query
-		SELECT 
-			e.employee_id,
-			s.service_date,
-			s.service_code,
-			v.vehicle_name,
-			v.vehicle_color,
-			sd.spot_time,
-			sd.start_time,
-			sd.end_time,
-			sd.return_time,
-			sd.instructions,
-			fl.location_name AS from_location_name,
-			fl.address AS from_address,
-			fl.city AS from_city,
-			fl.location_state AS from_state,
-			fl.zip AS from_zip,
-			tl.location_name AS to_location_name,
-			tl.address AS to_address,
-			tl.city AS to_city,
-			tl.location_state AS to_state,
-			tl.zip AS to_zip,
-			b.num_people
-		from employees e
-		join service_details sd on e.employee_id = sd.employee_id
-		join locations fl on fl.location_id = sd.from_location_id
-		join locations tl on tl.location_id = sd.to_location_id
-		join vehicles v on v.vehicle_id = sd.vehicle_id
-		join services s on s.service_id = sd.service_id
-		join bookings b on b.invoice = s.booking_id
-		where user_id = userId AND b.is_quote = false AND b.status != 'canceled';
-END; 
+  UPDATE service_details SET employee_id = employeeid, company_id = companyid, vehicle_id = vehicleid, from_location_id = fromlocationid, 
+  to_location_id = tolocationid, return_location_id = returnlocationid, use_farmout = usefarmout, spot_time = spottime, start_time = starttime, end_time = endtime, 
+  return_time = returntime, instructions = instructions1, payment = payment1, change_user = changeuser, confirmed = confirmed1, special_events = specialevents
+  WHERE detail_id = detailid;
+END;
 $BODY$;
 
-DROP TYPE IF EXISTS public.service_details_table_type;
+DROP PROCEDURE IF EXISTS public.update_detail(integer, text, text, text, text, text, text, boolean, text, text, text, text, text, numeric, numeric, boolean, text, text, numeric, text, integer);
 
-CREATE TYPE public.service_details_table_type AS
-(
-	detail_id integer,
-	service_id integer,
-	employee_id character varying(50),
-	vehicle_id character varying(50),
-	from_location_id character varying(50),
-	to_location_id character varying(50),
-	spot_time character varying(30),
-	start_time character varying(30),
-	end_time character varying(30),
-	instructions text,
-	payment numeric(10,2),
-	gratuity numeric(10,2),
-	company_id character varying(50),
-	use_farmout boolean,
-	return_location_id character varying(50),
-	additional_stop boolean,
-	additional_stop_info text,
-	additional_stop_detail character varying(10),
-	trip_length numeric(10,2),
-	change_user character varying(50),
-	return_time character varying(30)
-);
+CREATE OR REPLACE PROCEDURE public.update_detail(
+	IN serviceid integer,
+	IN employeeid text,
+	IN companyid text,
+	IN vehicleid text,
+	IN fromlocationid text,
+	IN tolocationid text,
+	IN returnlocationid text,
+	IN usefarmout boolean,
+	IN spottime text,
+	IN starttime text,
+	IN endtime text,
+	IN returntime text,
+	IN instructions1 text,
+	IN payment1 numeric,
+	IN gratuity1 numeric,
+	IN additionalstop boolean,
+	IN additionalstopinfo text,
+	IN additionalstopdetail text,
+	IN triplength numeric,
+	IN changeuser text,
+	IN specialevents text,
+	IN detailid integer)
+LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+  UPDATE service_details SET service_id = serviceid, employee_id = employeeid, company_id = companyid, vehicle_id = vehicleid, from_location_id = fromlocationid, 
+  to_location_id = tolocationid, return_location_id = returnlocationid, use_farmout = usefarmout, spot_time = spottime, start_time = starttime, end_time = endtime, 
+  return_time = returntime, instructions = instructions1, payment = payment1, gratuity = gratuity1, additional_stop = additionalstop, additional_stop_info = additionalstopinfo, 
+  additional_stop_detail = additionalstopdetail, trip_length = triplength, change_user = changeuser, special_events = specialevents
+  WHERE detail_id = detailid;
+END;
+$BODY$;
+
+DROP PROCEDURE IF EXISTS public.create_detail(integer, text, text, text, text, text, text, boolean, text, text, text, text, text, numeric, numeric, boolean, text, text, numeric, text);
+
+CREATE OR REPLACE PROCEDURE public.create_detail(
+	IN service_id integer,
+	IN employee_id text,
+	IN company_id text,
+	IN vehicle_id text,
+	IN from_location_id text,
+	IN to_location_id text,
+	IN return_location_id text,
+	IN use_farmout boolean,
+	IN spot_time text,
+	IN start_time text,
+	IN end_time text,
+	IN return_time text,
+	IN instructions text,
+	IN payment numeric,
+	IN gratuity numeric,
+	IN additional_stop boolean,
+	IN additional_stop_info text,
+	IN additional_stop_detail text,
+	IN trip_length numeric,
+	IN change_user text,
+	IN special_events text)
+LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+  INSERT INTO service_details (service_id, employee_id, company_id, vehicle_id, from_location_id, to_location_id, return_location_id, use_farmout, spot_time, start_time, 
+							   end_time, return_time, instructions, payment, gratuity, additional_stop, additional_stop_info, additional_stop_detail, trip_length, 
+							   change_user, special_events)
+			VALUES (service_id, employee_id, company_id, vehicle_id, from_location_id, to_location_id, return_location_id, use_farmout, spot_time, start_time, 
+					end_time, return_time, instructions, payment, gratuity, additional_stop, additional_stop_info, additional_stop_detail, trip_length, change_user, 
+					special_events);
+END;
+$BODY$;
+
+
+SELECT confirmed from service_details;
