@@ -62,12 +62,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   contactBoard: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
     margin: 10,
     border: 1,
     padding: 5,
+  },
+  twoColums: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   text: {
     fontFamily: "Roboto",
@@ -230,7 +232,7 @@ const QuoteReport = (props) => {
             </Text>
           </View>
           <View style={styles.contactBoard}>
-            <View style={styles.text}>
+            <View style={styles.twoColums}>
               <View style={styles.text}>
                 <Text>
                   Email: <Text style={styles.textBold}>{client.email}</Text>
@@ -239,28 +241,28 @@ const QuoteReport = (props) => {
                   Phone: <Text style={styles.textBold}>{client.phone}</Text>
                 </Text>
               </View>
-
-              <Text
-                style={[
-                  styles.textBold,
-                  { textTransform: "uppercase", marginTop: 10 },
-                ]}
-              >
-                {quoteDetails}
-              </Text>
-
-              <Text style={[styles.textBold, { marginTop: 10 }]}>
-                *Quote may be subject to change after {quoteExp} hrs
-              </Text>
+              <View style={styles.text}>
+                <Text>
+                  From: <Text style={styles.textBold}>{tripStart}</Text>
+                </Text>
+                <Text>
+                  Through: <Text style={styles.textBold}>{tripEnd}</Text>
+                </Text>
+              </View>
             </View>
-            <View style={styles.text}>
-              <Text>
-                From: <Text style={styles.textBold}>{tripStart}</Text>
-              </Text>
-              <Text>
-                Through: <Text style={styles.textBold}>{tripEnd}</Text>
-              </Text>
-            </View>
+
+            <Text
+              style={[
+                styles.textBold,
+                { textTransform: "uppercase", marginTop: 10 },
+              ]}
+            >
+              {quoteDetails}
+            </Text>
+
+            <Text style={[styles.textBold, { marginTop: 10 }]}>
+              *Quote may be subject to change after {quoteExp} hrs
+            </Text>
           </View>
           <View style={styles.innerBoard}>
             <Text style={styles.textJustify}>

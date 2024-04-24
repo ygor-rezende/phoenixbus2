@@ -36,6 +36,7 @@ import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 
 import dayjs from "dayjs";
+import FarmoutReport from "./pdfReports/farmoutReport";
 
 const drawerWidth = 240;
 
@@ -235,9 +236,26 @@ export const Schedule = () => {
     generateDriverReport(`driverReport_${detailId}`, dataFound);
   };
 
+  const handleFarmoutReport = (companyId) => {
+    const dataFound = data?.filter((item) => item.company_id === companyId);
+    generateFarmoutReport(`farmoutReport_${companyId}`, dataFound);
+  };
+
   const generateDriverReport = async (filename, data) => {
     try {
       const blob = await pdf(<DriverReport data={data} />).toBlob();
+      FileSaver.saveAs(blob, filename);
+      const pdfUrl = URL.createObjectURL(blob);
+      window.open(pdfUrl, "_blank");
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error("Error creating pdf:", error);
+    }
+  };
+
+  const generateFarmoutReport = async (filename, data) => {
+    try {
+      const blob = await pdf(<FarmoutReport data={data} />).toBlob();
       FileSaver.saveAs(blob, filename);
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, "_blank");
@@ -304,6 +322,7 @@ export const Schedule = () => {
                     dateString={dateString}
                     editData={handleOnRowClick}
                     createDriverPDF={handleDriverReport}
+                    createFarmoutPDF={handleFarmoutReport}
                     isLoading={isLoading}
                     dateStart={startDate}
                     dateEnd={endDate}

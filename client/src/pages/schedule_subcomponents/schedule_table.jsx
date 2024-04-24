@@ -67,6 +67,7 @@ export const ScheduleTable = (props) => {
     dateString,
     editData,
     createDriverPDF,
+    createFarmoutPDF,
     isLoading,
     dateStart,
     dateEnd,
@@ -113,6 +114,10 @@ export const ScheduleTable = (props) => {
 
   const handleDriverPDF = (detailId) => {
     createDriverPDF(detailId);
+  };
+
+  const handleFarmoutPDF = (companyId) => {
+    createFarmoutPDF(companyId);
   };
 
   const getBgColor = (rowData) => {
@@ -390,7 +395,11 @@ export const ScheduleTable = (props) => {
                   <TableCell padding="none" align="right">
                     <Tooltip title="Print Driver PDF">
                       <IconButton
-                        onClick={(e) => handleDriverPDF(row?.detail_id)}
+                        onClick={
+                          row?.use_farmout
+                            ? (e) => handleFarmoutPDF(row?.company_id)
+                            : (e) => handleDriverPDF(row?.detail_id)
+                        }
                         size="small"
                       >
                         <PictureAsPdfIcon color="primary" />
