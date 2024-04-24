@@ -220,3 +220,12 @@
     width: 90%;
     margin: 10px 10px !important;
   }
+
+  .filterTextfield{
+    padding-top: 0 !important;
+    color: white !important;
+  }
+
+  .filterTextfield::before{
+    border-bottom: 1px solid rgba(252, 251, 251, 0.42) !important;
+  }
