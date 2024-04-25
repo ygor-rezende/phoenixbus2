@@ -38,13 +38,15 @@ const Table = (props) => {
 };
 
 const TableRow = (props) => {
-  const { children, ...other } = props;
+  const { children, bgColor, ...other } = props;
 
   TableRow.propTypes = {
     children: PropTypes.node,
   };
 
-  return <View style={styles.row}>{children}</View>;
+  return (
+    <View style={[styles.row, { backgroundColor: bgColor }]}>{children}</View>
+  );
 };
 
 const TableHeader = (props) => {
@@ -58,14 +60,19 @@ const TableHeader = (props) => {
 };
 
 const TableCell = (props) => {
-  const { children, align, width, ...other } = props;
+  const { children, align, width, fontSize, ...other } = props;
 
   TableCell.propTypes = {
     children: PropTypes.node || PropTypes.string,
   };
 
   return (
-    <Text style={[styles.cell, { textAlign: align, width: width }]}>
+    <Text
+      style={[
+        styles.cell,
+        { textAlign: align, width: width, fontSize: fontSize },
+      ]}
+    >
       {children}
     </Text>
   );

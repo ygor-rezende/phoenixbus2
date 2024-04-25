@@ -107,14 +107,10 @@ export const ServiceModal = (props) => {
     { code: "RT", name: "ROUND-TRIP" },
     { code: "CH", name: "CHARTER" },
     { code: "DH", name: "DEAD-HEAD" },
+    { code: "SH", name: "SHUTTLE" },
     "N/A",
     "FEE",
-    "EAT",
     "TIP",
-    "OVT",
-    "N/S",
-    "ADA",
-    "OTR",
     "DIS",
   ];
 

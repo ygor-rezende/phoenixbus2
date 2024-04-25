@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: "Roboto",
-    fontSize: 10,
+    fontSize: 12,
   },
   paragraph: {
     marginBottom: 5,
@@ -71,12 +71,12 @@ const styles = StyleSheet.create({
   },
   textBold: {
     fontFamily: "Roboto",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 700,
   },
   textItalic: {
     fontFamily: "Roboto",
-    fontSize: 10,
+    fontSize: 12,
     fontStyle: "italic",
   },
   h2: {
@@ -95,28 +95,6 @@ const styles = StyleSheet.create({
   },
   tableSection: {
     borderTop: 1,
-  },
-  signatureSection: {
-    marginTop: 30,
-    fontSize: 11,
-    marginBottom: 30,
-  },
-  signature: {
-    textAlign: "left",
-    marginBottom: 10,
-    marginHorizontal: 20,
-    paddingTop: 10,
-  },
-  serviceRow: {
-    marginBottom: 3,
-    fontWeight: "semibold",
-    borderBottom: 0.5,
-  },
-  detailsRow: {
-    marginBottom: 5,
-  },
-  detailsSection: {
-    marginBottom: 10,
   },
   totalsSection: {
     marginTop: 20,
@@ -176,33 +154,36 @@ const PayrollReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="25%" align="left">
+              <TableCell width="25%" align="left" fontSize={12}>
                 Name
               </TableCell>
-              <TableCell width="25%" align="right">
+              <TableCell width="25%" align="right" fontSize={12}>
                 Payment
               </TableCell>
-              <TableCell width="25%" align="right">
+              <TableCell width="25%" align="right" fontSize={12}>
                 Gratuity
               </TableCell>
-              <TableCell width="25%" align="right">
+              <TableCell width="25%" align="right" fontSize={12}>
                 Total
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {data?.map((row) => {
+              {data?.map((row, index) => {
                 return (
-                  <TableRow key={row.vehicle_id}>
-                    <TableCell width="25%" align="left">
+                  <TableRow
+                    key={row.vehicle_id}
+                    bgColor={index % 2 === 0 ? "#dcdcdc" : "white"}
+                  >
+                    <TableCell width="25%" align="left" fontSize={12}>
                       {row?.driver}
                     </TableCell>
-                    <TableCell width="25%" align="right">
+                    <TableCell width="25%" align="right" fontSize={12}>
                       {currencyFormatter.format(row?.payment)}
                     </TableCell>
-                    <TableCell width="25%" align="right">
+                    <TableCell width="25%" align="right" fontSize={12}>
                       {currencyFormatter.format(row?.gratuity)}
                     </TableCell>
-                    <TableCell width="25%" align="right">
+                    <TableCell width="25%" align="right" fontSize={12}>
                       {currencyFormatter.format(row?.total)}
                     </TableCell>
                   </TableRow>

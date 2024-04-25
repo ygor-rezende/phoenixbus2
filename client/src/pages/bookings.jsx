@@ -330,6 +330,9 @@ export const Bookings = () => {
             locationsData: locationsRespData,
             quotesData: quotesRespData,
             bookingsData: bookingsRespData,
+            curBooking: state.invoice
+              ? bookingsRespData?.find((e) => e.id === state.invoice)
+              : {},
             salesPeople: salesPeopleRespData,
             drivers: driversRespData,
             companiesData: companiesRespData,
@@ -474,6 +477,17 @@ export const Bookings = () => {
     }
   }; //handleSubmit
 
+  //show msg and reload data
+  const reloadData = (msg) => {
+    setState({
+      msg: msg,
+      error: null,
+      success: true,
+      openSnakbar: true,
+      isDataUpdated: !state.isDataUpdated,
+    });
+  };
+
   //clear state fields utility
   const clearState = (msg) => {
     setState({
@@ -607,7 +621,7 @@ export const Bookings = () => {
     });
 
     if (response?.data) {
-      clearState(response.data);
+      reloadData(response.data);
     } else if (response?.disconnect) {
       setAuth({});
       navigate("/login", { state: { from: location }, replace: true });
@@ -787,7 +801,7 @@ export const Bookings = () => {
     });
 
     //scroll to the invoice field
-    //document.getElementById("invoice").scrollIntoView();
+    //document.getElementById("createQuoteButton")?.scrollIntoView();
   }; //handleItemClick
 
   //get services Data
@@ -1459,6 +1473,7 @@ export const Bookings = () => {
       { code: "RT", name: "ROUND-TRIP" },
       { code: "CH", name: "CHARTER" },
       { code: "DH", name: "DEAD-HEAD" },
+      { code: "SH", name: "SHUTTLE" },
     ];
 
     const isCodeFound = services.find((e) => e.code === type);
@@ -1477,6 +1492,7 @@ export const Bookings = () => {
             justifyContent="center"
           >
             <Button
+              id="createQuoteButton"
               variant="contained"
               onClick={handleNewQuote}
               color="success"
@@ -2402,7 +2418,12 @@ export const Bookings = () => {
                 headings={headings}
                 loadData={getBookingsData}
                 dataUpdated={state.isDataUpdated}
-                editData={handleItemClick}
+                editData={(id) => {
+                  handleItemClick(id);
+                  document
+                    .getElementById("createQuoteButton")
+                    ?.scrollIntoView();
+                }}
                 boxChecked={handleBoxChecked}
                 disableDelete={true}
                 filterOptions={[
@@ -2419,7 +2440,10 @@ export const Bookings = () => {
           <p></p>
           <QuotesView
             getQuotesData={getQuotesData}
-            handleRowClick={handleQuoteClick}
+            handleRowClick={(id) => {
+              handleQuoteClick(id);
+              document.getElementById("createQuoteButton")?.scrollIntoView();
+            }}
             onError={handleOnError}
             onSuccess={handleQuoteDeleteSuccess}
             cancelEditing={cancelEditing}
