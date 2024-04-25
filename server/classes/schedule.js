@@ -15,7 +15,6 @@ class Schedule {
         `select 
         b.invoice,
         s.service_id,
-        s.qty,
         s.charge,
         s.service_date,
         s.service_code,
