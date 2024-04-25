@@ -238,10 +238,14 @@ const PayrollByDriver = (props) => {
                               {dayjs(serv.service_date).format("l")}
                             </TableCell>
                             <TableCell width="8%" align="left">
-                              {dayjs(serv.start_time).format("HH:mm")}
+                              {serv.start_time
+                                ? dayjs(serv.start_time).format("HH:mm")
+                                : ""}
                             </TableCell>
                             <TableCell width="8%" align="left">
-                              {dayjs(serv.end_time).format("HH:mm")}
+                              {serv.end_time
+                                ? dayjs(serv.end_time).format("HH:mm")
+                                : ""}
                             </TableCell>
                             <TableCell width="21%" align="left">
                               {serv.location_from}

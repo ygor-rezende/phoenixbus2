@@ -167,7 +167,8 @@ const FarmoutReport = (props) => {
     { type: "RT", name: "ROUND-TRIP" },
     { type: "CH", name: "CHARTER" },
     { type: "OW", name: "ONE-WAY" },
-    { code: "DH", name: "DEAD-HEAD" },
+    { type: "DH", name: "DEAD-HEAD" },
+    { type: "SH", name: "SHUTTLE" },
   ];
 
   function formatPhoneNumber(phoneNumberString) {
@@ -185,7 +186,7 @@ const FarmoutReport = (props) => {
       <Page style={styles.body}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Driver Order</Text>
+            <Text style={styles.title}>Service Request</Text>
             <Text style={styles.textAllCaps}>{data[0].company_name}</Text>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
@@ -293,12 +294,6 @@ const FarmoutReport = (props) => {
                   <View style={styles.innerBoard}>
                     <View style={styles.header}>
                       <View style={{ width: "17%" }}>
-                        <Text style={styles.text}>
-                          <Text style={styles.textBold}>Yard Time: </Text>
-                          {item?.spot_time
-                            ? dayjs(item?.spot_time).format("HH:mm")
-                            : ""}
-                        </Text>
                         <Text style={styles.text}>
                           <Text style={styles.textBold}>Spot time: </Text>
                           {item?.start_time

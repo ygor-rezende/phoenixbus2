@@ -1,4 +1,4 @@
-import { Children, Fragment, useEffect, useState } from "react";
+import { Children, Fragment, useEffect, useMemo, useState } from "react";
 import {
   Typography,
   Table,
@@ -14,6 +14,7 @@ import {
   CircularProgress,
   TextField,
   Stack,
+  TableSortLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
@@ -36,6 +37,8 @@ import SearchOffIcon from "@mui/icons-material/SearchOff";
 
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
+import { visuallyHidden } from "@mui/utils";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,6 +66,34 @@ const SmallBoldCell = (props) => {
   );
 };
 
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === "desc"
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function stableSort(array, comparator) {
+  const stabilizedThis = array?.map((el, index) => [el, index]);
+  stabilizedThis?.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) {
+      return order;
+    }
+    return a[1] - b[1];
+  });
+  return stabilizedThis?.map((el) => el[0]);
+}
+
 export const ScheduleTable = (props) => {
   const {
     data,
@@ -79,10 +110,17 @@ export const ScheduleTable = (props) => {
   const [endDate, setEndDate] = useState(null);
   const [extendLine, setExtendLine] = useState("");
   const [filteredData, setFilteredData] = useState(data);
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("start_time");
 
   useEffect(() => {
     setFilteredData(data);
   }, [data]);
+
+  const visibleRows = useMemo(
+    () => stableSort(filteredData, getComparator(order, orderBy)),
+    [order, orderBy, filteredData]
+  );
 
   const handleSearch = () => {
     if (startDate && endDate) {
@@ -153,6 +191,8 @@ export const ScheduleTable = (props) => {
             .format("MM/DD/YYYY HH:mm")
             .indexOf(query.toLowerCase()) !== -1
         );
+      else if (selectedOption === "confirmed")
+        return e[selectedOption].toString().indexOf(query.toLowerCase()) !== -1;
       else {
         if (e[selectedOption] !== null)
           return (
@@ -167,6 +207,13 @@ export const ScheduleTable = (props) => {
   const handleClearFilter = () => {
     document.getElementById("filterForm")?.reset();
     setFilteredData(data);
+  };
+
+  //trigger sort onClick on table header
+  const createSortHandler = (column) => (event) => {
+    const isAsc = orderBy === column && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(column);
   };
 
   return (
@@ -247,130 +294,285 @@ export const ScheduleTable = (props) => {
           >
             <TableHead>
               <TableRow sx={{ backgroundColor: "primary.main" }}>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Invoice</Typography>
-                    <TextField
-                      id="invoiceText"
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "invoice")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Client</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "agency")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Type</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "service_code")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Yard</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "spot_time")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Start</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "start_time")}
-                    />
-                  </Stack>
-                </BoldTableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    active={orderBy === "invoice"}
+                    direction={order}
+                    onClick={createSortHandler("invoice")}
+                    style={{ color: "white" }}
+                  >
+                    Invoice
+                    {orderBy === "invoice" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    id="invoiceText"
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "invoice")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "agency"}
+                    direction={order}
+                    onClick={createSortHandler("agency")}
+                    style={{ color: "white" }}
+                  >
+                    Client
+                    {orderBy === "agency" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "agency")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "service_code"}
+                    direction={order}
+                    onClick={createSortHandler("service_code")}
+                    style={{ color: "white" }}
+                  >
+                    Type
+                    {orderBy === "service_code" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
 
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Pick-Up</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "from_location")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Drop-Off</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "to_location")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Return</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "end_time")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Bus #</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "vehicle_name")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Driver</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "firstname")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell>
-                  <Stack>
-                    <Typography>Request</Typography>
-                    <TextField
-                      size="small"
-                      variant="filled"
-                      inputProps={{ className: "filterTextfield" }}
-                      onChange={(e) => filterData(e, "special_events")}
-                    />
-                  </Stack>
-                </BoldTableCell>
-                <BoldTableCell align="center">Confirmed?</BoldTableCell>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "service_code")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "spot_time"}
+                    direction={order}
+                    onClick={createSortHandler("spot_time")}
+                    style={{ color: "white" }}
+                  >
+                    Yard
+                    {orderBy === "spot_time" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "spot_time")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "start_time"}
+                    direction={order}
+                    onClick={createSortHandler("start_time")}
+                    style={{ color: "white" }}
+                  >
+                    Start
+                    {orderBy === "start_time" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "start_time")}
+                  />
+                </TableCell>
+
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "from_location"}
+                    direction={order}
+                    onClick={createSortHandler("from_location")}
+                    style={{ color: "white" }}
+                  >
+                    Pick-Up
+                    {orderBy === "from_location" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "from_location")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "to_location"}
+                    direction={order}
+                    onClick={createSortHandler("to_location")}
+                    style={{ color: "white" }}
+                  >
+                    Drop-Off
+                    {orderBy === "to_location" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "to_location")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "end_time"}
+                    direction={order}
+                    onClick={createSortHandler("end_time")}
+                    style={{ color: "white" }}
+                  >
+                    Return
+                    {orderBy === "end_time" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "end_time")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "vehicle_name"}
+                    direction={order}
+                    onClick={createSortHandler("vehicle_name")}
+                    style={{ color: "white" }}
+                  >
+                    Bus #
+                    {orderBy === "vehicle_name" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "vehicle_name")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "firstname"}
+                    direction={order}
+                    onClick={createSortHandler("firstname")}
+                    style={{ color: "white" }}
+                  >
+                    Driver
+                    {orderBy === "firstname" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "firstname")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "special_events"}
+                    direction={order}
+                    onClick={createSortHandler("special_events")}
+                    style={{ color: "white" }}
+                  >
+                    Request
+                    {orderBy === "special_events" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "special_events")}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <TableSortLabel
+                    active={orderBy === "confirmed"}
+                    direction={order}
+                    onClick={createSortHandler("confirmed")}
+                    style={{ color: "white" }}
+                  >
+                    Confirmed?
+                    {orderBy === "confirmed" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                  <TextField
+                    size="small"
+                    variant="filled"
+                    inputProps={{ className: "filterTextfield" }}
+                    onChange={(e) => filterData(e, "confirmed")}
+                  />
+                </TableCell>
                 <TableCell></TableCell>
                 <TableCell>
                   <Tooltip title="Clear Search">
@@ -383,7 +585,7 @@ export const ScheduleTable = (props) => {
               </TableRow>
             </TableHead>
 
-            {filteredData?.map((row, index) => {
+            {visibleRows?.map((row, index) => {
               return (
                 <TableBody key={row.detail_id}>
                   <TableRow

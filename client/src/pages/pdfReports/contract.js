@@ -141,7 +141,8 @@ const Contract = (props) => {
     { type: "RT", name: "ROUND-TRIP" },
     { type: "CH", name: "CHARTER" },
     { type: "OW", name: "ONE-WAY" },
-    { code: "DH", name: "DEAD-HEAD" },
+    { type: "DH", name: "DEAD-HEAD" },
+    { type: "SH", name: "SHUTTLE" },
   ];
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
