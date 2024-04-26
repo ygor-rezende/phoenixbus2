@@ -102,6 +102,8 @@ const Invoice = (props) => {
     services,
     transactions,
     poRef,
+    responsible,
+    responsibleEmail,
   } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -150,19 +152,25 @@ const Invoice = (props) => {
             <Text style={styles.title}>Invoice / Receipt</Text>
             <Text style={styles.textBold}>Date: {date}</Text>
             <Text style={styles.textBold}>Invoice #: {invoiceNum}</Text>
-            <Text style={styles.textBold}>PO/REF #: {poRef}</Text>
+            {poRef && <Text style={styles.textBold}>PO/REF #: {poRef}</Text>}
           </View>
         </View>
         <View style={styles.header}>
           <View style={styles.text}>
             <Text>To: {client.agency}</Text>
             <Text>Attn: {client.contact}</Text>
-            <Text>{client.address1}</Text>
-            <Text>
-              {client.city}, {client.client_state}
-            </Text>
-            <Text>Phone: {client.phone}</Text>
-            <Text>Email: {client.email}</Text>
+            {client.phone && <Text>Phone: {client.phone}</Text>}
+            {client.email && <Text>Email: {client.email}</Text>}
+            {client.address1 && <Text>{client.address1}</Text>}
+            {client.address1 && (
+              <Text>
+                {client.city}, {client.client_state}
+              </Text>
+            )}
+            {responsible && <Text>Responsible: {responsible}</Text>}
+            {responsibleEmail && (
+              <Text>Responsible Email: {responsibleEmail}</Text>
+            )}
           </View>
           <View style={styles.tripBoard}>
             <View style={[styles.textBold, styles.innerBoard]}>

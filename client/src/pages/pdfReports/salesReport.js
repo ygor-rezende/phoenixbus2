@@ -196,9 +196,12 @@ const SalesReport = (props) => {
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {sales?.map((row) => {
+              {sales?.map((row, index) => {
                 return (
-                  <TableRow key={row.vehicle_id}>
+                  <TableRow
+                    key={row.vehicle_id}
+                    bgColor={index % 2 === 0 ? "#dcdcdc" : "white"}
+                  >
                     <TableCell width="40%" align="left">
                       {row?.agency}
                     </TableCell>

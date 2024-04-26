@@ -149,8 +149,16 @@ const PendingPaymentsReport = (props) => {
     return {
       clientId: e.client_id,
       agency: e.agency,
-      balance: e.account_balance,
-      received: e.received,
+      balance: data
+        ?.filter((item) => item.client_id === e.client_id)
+        ?.reduce((sum, cur) => {
+          return sum + Number(cur.invoice_balance);
+        }, 0),
+      received: data
+        ?.filter((item) => e.client_id === item.client_id)
+        ?.reduce((sum, cur) => {
+          return sum + Number(cur.amount_paid);
+        }, 0),
     };
   });
 
@@ -163,12 +171,12 @@ const PendingPaymentsReport = (props) => {
     return sum + Number(cur.cost);
   }, 0);
 
-  let totalReceived = uniqueClients.reduce((sum, cur) => {
-    return sum + Number(cur.received);
+  let totalReceived = data.reduce((sum, cur) => {
+    return sum + Number(cur.amount_paid);
   }, 0);
 
-  let totalBalance = uniqueClients.reduce((sum, cur) => {
-    return sum + Number(cur.balance);
+  let totalBalance = data.reduce((sum, cur) => {
+    return sum + Number(cur.invoice_balance);
   }, 0);
 
   //calculate the percentual of sales for each client and add it to data

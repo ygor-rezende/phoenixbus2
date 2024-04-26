@@ -211,6 +211,9 @@ const FarmoutReport = (props) => {
                   </Text>
                 </View>
               ) : null}
+              <View>
+                <Text style={styles.h2}>Service {index + 1}</Text>
+              </View>
               <View style={styles.tableSection}>
                 <Table>
                   <TableHeader>

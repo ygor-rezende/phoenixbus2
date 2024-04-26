@@ -769,6 +769,11 @@ export const DetailModal = (props) => {
                 })}
                 sx={{ width: 200 }}
                 getOptionLabel={(option) => option.locationName ?? option}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.locationId}>
+                    {option.locationName}
+                  </li>
+                )}
                 renderInput={(params) => (
                   <TextField
                     required
@@ -808,6 +813,11 @@ export const DetailModal = (props) => {
                 })}
                 sx={{ width: 200 }}
                 getOptionLabel={(option) => option.locationName ?? option}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.locationId}>
+                    {option.locationName}
+                  </li>
+                )}
                 renderInput={(params) => (
                   <TextField
                     required
@@ -845,6 +855,11 @@ export const DetailModal = (props) => {
                   })}
                   sx={{ width: 200 }}
                   getOptionLabel={(option) => option.locationName ?? option}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.locationId}>
+                      {option.locationName}
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField required {...params} label="Return location" />
                   )}
