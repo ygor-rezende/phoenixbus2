@@ -1163,6 +1163,8 @@ export const Bookings = () => {
           deposit={state.deposit}
           transactions={state.transactionsData}
           poRef={state.clientComments}
+          responsible={state.responsibleName}
+          responsibleEmail={state.responsibleEmail}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);
@@ -1190,6 +1192,8 @@ export const Bookings = () => {
           deposit={state.deposit}
           transactions={state.transactionsData}
           poRef={state.clientComments}
+          responsible={state.responsibleName}
+          responsibleEmail={state.responsibleEmail}
         />
       ).toBlob();
       FileSaver.saveAs(blob, filename);

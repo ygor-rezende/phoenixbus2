@@ -155,6 +155,7 @@ const BusesReport = (props) => {
           end_location: e.return_location ? e.return_location : e.to_location,
           end_address: e.return_location ? e.return_address : e.to_address,
           end_city: e.return_location ? e.return_city : e.to_city,
+          driver: e.firstname + " " + e.lastname,
         };
       }
       return info;
@@ -191,42 +192,48 @@ const BusesReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="10%" align="left">
+              <TableCell width="8%" align="left">
                 Bus
               </TableCell>
-              <TableCell width="12%" align="left">
-                Yard Time
+              <TableCell width="15%" align="left">
+                Driver
               </TableCell>
-              <TableCell width="12%" align="left">
-                Start Time
+              <TableCell width="10%" align="left">
+                Yard
               </TableCell>
-              <TableCell width="12%" align="left">
-                Return Time
+              <TableCell width="10%" align="left">
+                Start
               </TableCell>
-              <TableCell width="54%" align="left">
+              <TableCell width="10%" align="left">
+                Return
+              </TableCell>
+              <TableCell width="47%" align="left">
                 Return Location
               </TableCell>
             </TableHeader>
             <View style={{ marginTop: 10 }}>
-              {vehiclesData?.map((row) => {
+              {vehiclesData?.map((row, index) => {
                 return (
                   <View key={row.vehicle_id} style={{ marginTop: 3 }}>
-                    <TableRow>
-                      <TableCell width="10%" align="left">
+                    <TableRow bgColor={index % 2 === 0 ? "#dcdcdc" : "white"}>
+                      <TableCell width="8%" align="left">
                         {row?.vehicle_name}
                       </TableCell>
-                      <TableCell width="12%" align="left">
+                      <TableCell width="15%" align="left">
+                        {row?.driver}
+                      </TableCell>
+                      <TableCell width="10%" align="left">
                         {dayjs(row?.spot_time).format("HH:mm")}
                       </TableCell>
-                      <TableCell width="12%" align="left">
+                      <TableCell width="10%" align="left">
                         {dayjs(row?.start_time).format("HH:mm")}
                       </TableCell>
-                      <TableCell width="12%" align="left">
+                      <TableCell width="10%" align="left">
                         {row?.end_time
                           ? dayjs(row?.end_time).format("HH:mm")
                           : ""}
                       </TableCell>
-                      <TableCell width="54%" align="left">
+                      <TableCell width="47%" align="left">
                         {row?.end_location} - {row?.end_address},{" "}
                         {row?.end_city}
                       </TableCell>

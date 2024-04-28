@@ -135,6 +135,8 @@ const Contract = (props) => {
     locations,
     transactions,
     poRef,
+    responsible,
+    responsibleEmail,
   } = props;
 
   const serviceTypes = [
@@ -200,13 +202,19 @@ const Contract = (props) => {
             <View style={styles.text}>
               <Text>To: {client.agency}</Text>
               <Text>Attn: {client.contact}</Text>
-              <Text>{client.address1}</Text>
-              <Text>
-                {client.city}, {client.zip} {client.client_state}
-              </Text>
-              <Text>Phone: {client.phone}</Text>
-              <Text>Email: {client.email}</Text>
-              <Text>PO/REF #: {poRef}</Text>
+              {client.phone && <Text>Phone: {client.phone}</Text>}
+              {client.email && <Text>Email: {client.email}</Text>}
+              {client.address1 && <Text>{client.address1}</Text>}
+              {client.address1 && (
+                <Text>
+                  {client.city}, {client.zip} {client.client_state}
+                </Text>
+              )}
+              {responsible && <Text>Responsible: {responsible}</Text>}
+              {responsibleEmail && (
+                <Text>Responsible Email: {responsibleEmail}</Text>
+              )}
+              {poRef && <Text>PO/REF #: {poRef}</Text>}
             </View>
           </View>
           <Image style={styles.image} src={PhoenixLogo} />
