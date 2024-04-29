@@ -181,6 +181,49 @@ const FarmoutReport = (props) => {
     return null;
   }
 
+  // Function to find items that repeat more than twice based on specified properties
+  function findRepeats(data, properties) {
+    const counts = {};
+
+    // Count occurrences of each key
+    data.forEach((obj) => {
+      const key = properties.map((prop) => obj[prop]).join("|");
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+    // Get the keys of the counts
+    const repeats = Object.keys(counts);
+
+    // Map the repeating items with their counts
+    const result = repeats.map((key) => {
+      return {
+        item: data.find(
+          (obj) => properties.map((prop) => obj[prop]).join("|") === key
+        ),
+        count: counts[key],
+      };
+    });
+
+    return result;
+  }
+
+  // Specify properties for comparison
+  const comparisonProperties = [
+    "service_date",
+    "spot_time",
+    "start_time",
+    "return_time",
+    "from_location_id",
+    "to_location_id",
+    "return_location_id",
+    "additional_stop_detail",
+    "additional_stop_info",
+    "payment",
+  ];
+
+  // Find items that repeat more than twice
+  const repeats = findRepeats(data, comparisonProperties);
+
   return (
     <Document>
       <Page style={styles.body}>
@@ -192,25 +235,23 @@ const FarmoutReport = (props) => {
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
 
-        {data.map((item, index) => {
+        {repeats.map((item, index) => {
           return (
-            <View key={item.detail_id}>
-              {index === 0 ||
-              data[index].service_date !== data[0]?.service_date ? (
-                <View>
-                  <Text style={styles.h2}>
-                    {dayjs(item?.service_date).format("dddd, MMMM D, YYYY")}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.textBold,
-                      { textAlign: "center", marginBottom: 10 },
-                    ]}
-                  >
-                    ***MILITARY TIME (24-HOUR CLOCK)***
-                  </Text>
-                </View>
-              ) : null}
+            <View key={item.item.detail_id}>
+              <View>
+                <Text style={styles.h2}>
+                  {dayjs(item?.item.service_date).format("dddd, MMMM D, YYYY")}
+                </Text>
+                <Text
+                  style={[
+                    styles.textBold,
+                    { textAlign: "center", marginBottom: 10 },
+                  ]}
+                >
+                  ***MILITARY TIME (24-HOUR CLOCK)***
+                </Text>
+              </View>
+
               <View>
                 <Text style={styles.h2}>Service {index + 1}</Text>
               </View>
@@ -218,24 +259,25 @@ const FarmoutReport = (props) => {
                 <Table>
                   <TableHeader>
                     <TableCell width="50%" align="left">
-                      Client: {item?.agency}
+                      Client: {item?.item.agency}
                     </TableCell>
                     <TableCell width="50%" align="left">
                       <Text style={{ fontWeight: 100 }}>
-                        Contact: {item?.contact}{" "}
-                        {formatPhoneNumber(item?.phone)}
+                        Contact: {item?.item.contact}{" "}
+                        {formatPhoneNumber(item?.item.phone)}
                       </Text>
                     </TableCell>
                   </TableHeader>
                   <View style={{ marginTop: 10, marginLeft: 80 }}>
                     <TableRow>
                       <TableCell width="50%" align="left">
-                        Payment: {currencyFormatter.format(item?.payment)}
+                        Invoice: {item?.item.invoice}
                       </TableCell>
                       <TableCell width="50%" align="left">
                         Service Type:{" "}
-                        {serviceTypes.find((e) => e.type === item?.service_code)
-                          ?.name || item?.service_code}
+                        {serviceTypes.find(
+                          (e) => e.type === item?.item.service_code
+                        )?.name || item?.item.service_code}
                       </TableCell>
                     </TableRow>
                   </View>
@@ -243,7 +285,27 @@ const FarmoutReport = (props) => {
                   <View style={{ marginLeft: 80 }}>
                     <TableRow>
                       <TableCell width="50%" align="left">
-                        Invoice: {item?.invoice}
+                        <Text style={styles.textBold}>
+                          Number of Buses: {item?.count}
+                        </Text>
+                      </TableCell>
+                      <TableCell width="50%" align="left">
+                        Payment per Bus:{" "}
+                        {currencyFormatter.format(item?.item.payment)}
+                      </TableCell>
+                    </TableRow>
+                  </View>
+
+                  <View style={{ marginLeft: 80 }}>
+                    <TableRow>
+                      <TableCell width="50%" align="left"></TableCell>
+                      <TableCell width="50%" align="left">
+                        <Text style={styles.textBold}>
+                          Total Payment:{" "}
+                          {currencyFormatter.format(
+                            item?.item.payment * item?.count
+                          )}
+                        </Text>
                       </TableCell>
                     </TableRow>
                   </View>
@@ -264,8 +326,8 @@ const FarmoutReport = (props) => {
                     <Text style={[styles.text, { color: "blue" }]}>.</Text>
                     <Text style={[styles.text, { color: "blue" }]}>.</Text>
                     <Text style={[styles.text, { color: "blue" }]}>.</Text>
-                    {item?.additional_stop_detail === "OutWard" ||
-                    item?.additional_stop_detail === "Both" ? (
+                    {item?.item.additional_stop_detail === "OutWard" ||
+                    item?.item.additional_stop_detail === "Both" ? (
                       <View style={{ alignItems: "center" }}>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
@@ -274,8 +336,8 @@ const FarmoutReport = (props) => {
                       </View>
                     ) : null}
                     <Image src={PlaceIcon} style={styles.image2} />
-                    {item?.additional_stop_detail === "Both" ||
-                    item?.additional_stop_detail === "Return" ? (
+                    {item?.item.additional_stop_detail === "Both" ||
+                    item?.item.additional_stop_detail === "Return" ? (
                       <View style={{ alignItems: "center" }}>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
@@ -283,7 +345,7 @@ const FarmoutReport = (props) => {
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
                       </View>
                     ) : null}
-                    {item?.return_location ? (
+                    {item?.item.return_location ? (
                       <View style={{ alignItems: "center" }}>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
                         <Text style={[styles.text, { color: "blue" }]}>.</Text>
@@ -299,16 +361,16 @@ const FarmoutReport = (props) => {
                       <View style={{ width: "17%" }}>
                         <Text style={styles.text}>
                           <Text style={styles.textBold}>Spot time: </Text>
-                          {item?.start_time
-                            ? dayjs(item?.start_time)
+                          {item?.item.start_time
+                            ? dayjs(item?.item.start_time)
                                 .subtract(15, "m")
                                 .format("HH:mm")
                             : ""}
                         </Text>
                         <Text style={styles.text}>
                           <Text style={styles.textBold}>Start time: </Text>
-                          {item?.start_time
-                            ? dayjs(item?.start_time).format("HH:mm")
+                          {item?.item.start_time
+                            ? dayjs(item?.item.start_time).format("HH:mm")
                             : ""}
                         </Text>
                       </View>
@@ -316,27 +378,27 @@ const FarmoutReport = (props) => {
                         <Text style={styles.text}>
                           PICK UP LOCATION:{" "}
                           <Text style={styles.textBold}>
-                            {item?.from_location}
+                            {item?.item.from_location}
                           </Text>
                         </Text>
                         <Text style={[styles.text, { marginLeft: 90 }]}>
-                          {item?.from_address}
+                          {item?.item.from_address}
                         </Text>
                         <Text style={[styles.text, { marginLeft: 90 }]}>
-                          {item?.from_city}, {item?.from_state}
+                          {item?.item.from_city}, {item?.item.from_state}
                         </Text>
                       </View>
                     </View>
 
-                    {(item?.additional_stop_detail === "Both" ||
-                      item?.additional_stop_detail === "OutWard") && (
+                    {(item?.item.additional_stop_detail === "Both" ||
+                      item?.item.additional_stop_detail === "OutWard") && (
                       <View style={[styles.header, { marginTop: 20 }]}>
                         <View style={{ width: "17%" }}></View>
                         <View style={{ width: "75%" }}>
                           <Text style={styles.text}>
                             ADDITIONAL STOP:{" "}
                             <Text style={styles.textBold}>
-                              {item?.additional_stop_info}
+                              {item?.item.additional_stop_info}
                             </Text>
                           </Text>
                         </View>
@@ -345,11 +407,11 @@ const FarmoutReport = (props) => {
 
                     <View style={[styles.header, { marginTop: 20 }]}>
                       <View style={{ width: "17%" }}>
-                        {item?.return_location && (
+                        {item?.item.return_location && (
                           <Text style={styles.text}>
                             <Text style={styles.textBold}>Return time: </Text>
-                            {item?.return_time
-                              ? dayjs(item?.return_time).format("HH:mm")
+                            {item?.item.return_time
+                              ? dayjs(item?.item.return_time).format("HH:mm")
                               : ""}
                           </Text>
                         )}
@@ -358,48 +420,48 @@ const FarmoutReport = (props) => {
                         <Text style={styles.text}>
                           DROP OFF LOCATION:{" "}
                           <Text style={styles.textBold}>
-                            {item?.to_location}
+                            {item?.item.to_location}
                           </Text>
                         </Text>
                         <Text style={[styles.text, { marginLeft: 99 }]}>
-                          {item?.to_address}
+                          {item?.item.to_address}
                         </Text>
                         <Text style={[styles.text, { marginLeft: 99 }]}>
-                          {item?.to_city}, {item?.to_state}
+                          {item?.item.to_city}, {item?.item.to_state}
                         </Text>
                       </View>
                     </View>
 
-                    {(item?.additional_stop_detail === "Both" ||
-                      item?.additional_stop_detail === "Return") && (
+                    {(item?.item.additional_stop_detail === "Both" ||
+                      item?.item.additional_stop_detail === "Return") && (
                       <View style={[styles.header, { marginTop: 20 }]}>
                         <View style={{ width: "17%" }}></View>
                         <View style={{ width: "75%" }}>
                           <Text style={styles.text}>
                             ADDITIONAL STOP:{" "}
                             <Text style={styles.textBold}>
-                              {item?.additional_stop_info}
+                              {item?.item.additional_stop_info}
                             </Text>
                           </Text>
                         </View>
                       </View>
                     )}
 
-                    {item?.return_location ? (
+                    {item?.item.return_location ? (
                       <View style={[styles.header, { marginTop: 20 }]}>
                         <View style={{ width: "17%" }}></View>
                         <View style={{ width: "75%" }}>
                           <Text style={styles.text}>
                             END LOCATION:{" "}
                             <Text style={styles.textBold}>
-                              {item?.return_location}
+                              {item?.item.return_location}
                             </Text>
                           </Text>
                           <Text style={[styles.text, { marginLeft: 75 }]}>
-                            {item?.return_address}
+                            {item?.item.return_address}
                           </Text>
                           <Text style={[styles.text, { marginLeft: 75 }]}>
-                            {item?.return_city}, {item?.return_state}
+                            {item?.item.return_city}, {item?.item.return_state}
                           </Text>
                         </View>
                       </View>
@@ -407,7 +469,7 @@ const FarmoutReport = (props) => {
                   </View>
                 </View>
                 <Text style={[styles.textBold, { marginTop: 10 }]}>
-                  Instructions: {item?.instructions}
+                  Instructions: {item?.item.instructions}
                 </Text>
               </View>
             </View>
