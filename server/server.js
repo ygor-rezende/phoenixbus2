@@ -28,6 +28,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const allowedOrigins = require("./config/allowedOrigins");
 const { Sales } = require("./classes/sales");
 const { Payments } = require("./classes/client_payments");
+const sendQuote = require("./controllers/emailController");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -754,6 +755,16 @@ app.get(
   }
 );
 //#endregion
+
+//#region email API
+app.post(
+  "/sendQuoteEmail",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await sendQuote(req, res);
+    return response;
+  }
+);
 
 if (os.hostname().indexOf("LAPTOP") > -1)
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

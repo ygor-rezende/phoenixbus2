@@ -1,35 +1,29 @@
-require("dotenv").config();
-const nodemailer = require("nodemailer");
-const functions = require("firebase-functions");
-const { error } = require("firebase-functions/logger");
+const { getFirestore, doc, set } = require("firebase-admin/firestore");
+const { initializeApp } = require("firebase-admin/app");
+const admin = require("firebase-admin");
+var serviceAccount = require("../firebase_service_account.json");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTPUSER,
-    pass: process.env.SMTPPASS,
-  },
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
-exports.sendEmail = functions.firestore
-  .document("quotes/{quoteId}")
-  .onCreate((snap, context) => {
-    const mailOptions = {
-      from: process.env.SMTPUSER,
-      to: snap.data().email,
-      subject: "New quote",
-      html: `<h1>Quote</h1>
-                <p>
-                <b>Email: </b> ${snap.data().email}</p>`,
+const emailDb = getFirestore();
+
+const sendQuote = async (req, res) => {
+  const { data } = req.body;
+  console.log(data);
+
+  try {
+    const quoteData = {
+      email: "ygor.rezende@gmail.com",
+      subject: "Quote 01",
     };
 
-    return transporter.sendMail(mailOptions, (error, data) => {
-      if (error) {
-        console.log(error);
-        return;
-      }
-      console.log("Sent!");
-    });
-  });
+    const response = await emailDb.collection("quotes").add(quoteData);
+    return res.json("Email Sent");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = sendQuote;
