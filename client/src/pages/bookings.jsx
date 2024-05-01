@@ -2010,6 +2010,7 @@ export const Bookings = () => {
                           variant="contained"
                           onClick={handleSendQuote}
                           size="small"
+                          disabled
                         >
                           Send Quote to Client
                         </Button>
