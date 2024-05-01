@@ -341,7 +341,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "agency")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="10px">
                   <TableSortLabel
                     active={orderBy === "service_code"}
                     direction={order}
@@ -365,7 +365,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "service_code")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="10px">
                   <TableSortLabel
                     active={orderBy === "spot_time"}
                     direction={order}
@@ -388,7 +388,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "spot_time")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="10px">
                   <TableSortLabel
                     active={orderBy === "start_time"}
                     direction={order}
@@ -458,7 +458,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "to_location")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="10px">
                   <TableSortLabel
                     active={orderBy === "end_time"}
                     direction={order}
@@ -481,14 +481,14 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "end_time")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="11px">
                   <TableSortLabel
                     active={orderBy === "vehicle_name"}
                     direction={order}
                     onClick={createSortHandler("vehicle_name")}
                     style={{ color: "white" }}
                   >
-                    Bus #
+                    Bus#
                     {orderBy === "vehicle_name" ? (
                       <Box component="span" sx={visuallyHidden}>
                         {order === "desc"
@@ -550,14 +550,14 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "special_events")}
                   />
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" width="10px">
                   <TableSortLabel
                     active={orderBy === "confirmed"}
                     direction={order}
                     onClick={createSortHandler("confirmed")}
                     style={{ color: "white" }}
                   >
-                    Confirmed?
+                    Conf?
                     {orderBy === "confirmed" ? (
                       <Box component="span" sx={visuallyHidden}>
                         {order === "desc"
@@ -573,14 +573,14 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "confirmed")}
                   />
                 </TableCell>
-                <TableCell></TableCell>
-                <TableCell>
+                <TableCell width="10px">
                   <Tooltip title="Clear Search">
                     <IconButton size="small" onClick={handleClearFilter}>
                       <SearchOffIcon sx={{ color: "white" }} />
                     </IconButton>
                   </Tooltip>
                 </TableCell>
+                <TableCell></TableCell>
                 <TableCell></TableCell>
               </TableRow>
             </TableHead>

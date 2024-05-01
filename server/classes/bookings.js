@@ -181,7 +181,8 @@ class Booking {
               additional_stop_info => $17::TEXT,
               additional_stop_detail => $18::TEXT,
               trip_length => $19,
-              change_user => $20::TEXT)`,
+              change_user => $20::TEXT,
+              special_events => $21::TEXT)`,
                 [
                   lastService.service_id,
                   detail.employee_id,
@@ -203,6 +204,7 @@ class Booking {
                   detail.additional_stop_detail,
                   detail.trip_length,
                   booking.changeUser,
+                  detail.special_events,
                 ]
               );
             } //end details for

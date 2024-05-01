@@ -1485,6 +1485,22 @@ export const Bookings = () => {
     else return type;
   };
 
+  //Send quote to client
+  const handleSendQuote = async () => {
+    const response = await postServer("/sendQuoteEmail", {
+      data: { email: state.agencyEmail, quoteId: state.invoice },
+    });
+
+    if (response?.data) {
+      setState({ success: true, openSnakbar: true, msg: response.data });
+    } else if (response?.disconnect) {
+      setAuth({});
+      navigate("/login", { state: { from: location }, replace: true });
+    } else if (response?.error) {
+      setState({ error: response.error, success: false, openSnakbar: true });
+    }
+  };
+
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
@@ -1988,6 +2004,15 @@ export const Bookings = () => {
                         >
                           <ReceiptIcon />
                           Quote
+                        </Button>
+                        <Button
+                          style={{ marginLeft: "10px" }}
+                          variant="contained"
+                          onClick={handleSendQuote}
+                          size="small"
+                          disabled
+                        >
+                          Send Quote to Client
                         </Button>
                       </Box>
                     )}
