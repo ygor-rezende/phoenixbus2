@@ -241,12 +241,12 @@ export const Bookings = () => {
           responsibleName: item.responsible_name,
           responsibleEmail: item.responsible_email,
           responsiblePhone: item.responsible_phone,
-          quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
-          bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
+          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+          bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"), //Important: Format required for sorting
           category: item.category,
           numPeople: item.num_people,
-          tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
-          tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
+          tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+          tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"), //Important: Format required for sorting
           deposit: item.deposit,
           cost: item.cost,
           numHoursQuoteValid: item.hours_quote_valid,
@@ -304,12 +304,12 @@ export const Bookings = () => {
             responsibleName: item.responsible_name,
             responsibleEmail: item.responsible_email,
             responsiblePhone: item.responsible_phone,
-            quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
-            bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
+            quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+            bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"), //Important: Format required for sorting
             category: item.category,
             numPeople: item.num_people,
-            tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
-            tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
+            tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+            tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"), //Important: Format required for sorting
             deposit: item.deposit,
             cost: item.cost,
             numHoursQuoteValid: item.hours_quote_valid,
