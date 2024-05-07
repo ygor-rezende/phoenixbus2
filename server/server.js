@@ -36,7 +36,7 @@ app.use(credentials);
 //using cors for allow testing
 app.use(cors(corsOptions));
 
-app.use(express.json()); // To parse the incoming requests with JSON payloads
+app.use(express.json({ limit: "50mb" })); // To parse the incoming requests with JSON payloads
 
 //middleware for cookies
 app.use(cookieParser());

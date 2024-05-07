@@ -1,4 +1,5 @@
 import React, { useReducer, useEffect, useRef } from "react";
+import { renderToString } from "react-dom/server";
 import {
   Alert,
   AlertTitle,
@@ -72,6 +73,7 @@ import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
 import QuoteReport from "./pdfReports/quote";
 import { Calendar } from "react-multi-date-picker";
+import { axiosPdfService } from "../api/axios";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1147,85 +1149,29 @@ export const Bookings = () => {
     });
   };
 
-  //function to generate invoice PDF
-  const generateInvoice = async (filename) => {
+  //function to create a blob
+  const createBlob = async (reactPdfComponent) => {
     try {
-      const blob = await pdf(
-        <Invoice
-          date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
-          invoiceNum={state.invoice}
-          client={state.curClient}
-          passengers={state.numPeople}
-          bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
-          arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
-          departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
-          services={state.servicesData}
-          deposit={state.deposit}
-          transactions={state.transactionsData}
-          poRef={state.clientComments}
-          responsible={state.responsibleName}
-          responsibleEmail={state.responsibleEmail}
-        />
-      ).toBlob();
-      FileSaver.saveAs(blob, filename);
-      const pdfUrl = URL.createObjectURL(blob);
-      window.open(pdfUrl, "_blank");
-      URL.revokeObjectURL(pdfUrl);
+      return await pdf(reactPdfComponent).toBlob();
     } catch (error) {
-      console.error("Error creating pdf:", error);
+      console.error("Error creating blob:", error);
     }
   };
 
-  //function to generate contract PDF
-  const generateContract = async (filename) => {
+  //create pdf string
+  const createPdfString = async (reactPdfComponent) => {
     try {
-      const blob = await pdf(
-        <Contract
-          date={new Date().toString().substring(0, 24)}
-          invoiceNum={state.invoice}
-          client={state.curClient}
-          category={state.category}
-          passengers={state.numPeople}
-          services={state.servicesData}
-          details={state.detailsData}
-          locations={state.locationsData}
-          deposit={state.deposit}
-          transactions={state.transactionsData}
-          poRef={state.clientComments}
-          responsible={state.responsibleName}
-          responsibleEmail={state.responsibleEmail}
-        />
-      ).toBlob();
-      FileSaver.saveAs(blob, filename);
-      const pdfUrl = URL.createObjectURL(blob);
-      window.open(pdfUrl, "_blank");
-      URL.revokeObjectURL(pdfUrl);
+      const buffer = await pdf(reactPdfComponent).toString();
+      console.log(buffer);
+      return buffer;
     } catch (error) {
-      console.error("Error creating pdf:", error);
+      console.error("Error creating string pdf:", error);
     }
   };
 
-  //function to generate contract PDF
-  const generateQuoteReport = async (filename) => {
+  //create a pdf, open in a new window and call save as
+  const openPdfToSave = (blob, filename) => {
     try {
-      const blob = await pdf(
-        <QuoteReport
-          date={dayjs(state.quoteDate).format("dddd, MMMM D, YYYY")}
-          invoiceNum={state.invoice}
-          quotedCost={state.quotedCost}
-          salesPerson={state.salesPerson}
-          client={state.curClient}
-          passengers={state.numPeople}
-          deposit={state.deposit}
-          tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
-          tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
-          quoteExp={state.numHoursQuoteValid}
-          services={state.servicesData}
-          details={state.detailsData}
-          locations={state.locationsData}
-          quoteDetails={state.intineraryDetails}
-        />
-      ).toBlob();
       FileSaver.saveAs(blob, filename);
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, "_blank");
@@ -1236,17 +1182,110 @@ export const Bookings = () => {
   };
 
   //Handle download pdf click
-  const handleDownloadInvoice = () => {
-    generateInvoice(`invoice${state.invoice}.pdf`);
+  const handleDownloadInvoice = async () => {
+    const blob = await createBlob(
+      <Invoice
+        date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+        invoiceNum={state.invoice}
+        client={state.curClient}
+        passengers={state.numPeople}
+        bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
+        arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
+        departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+        services={state.servicesData}
+        deposit={state.deposit}
+        transactions={state.transactionsData}
+        poRef={state.clientComments}
+        responsible={state.responsibleName}
+        responsibleEmail={state.responsibleEmail}
+      />
+    );
+
+    openPdfToSave(blob, `invoice${state.invoice}.pdf`);
   };
 
-  const handleDowloadContract = () => {
-    generateContract(`confirmation${state.invoice}.pdf`);
+  const handleDowloadContract = async () => {
+    const blob = await createBlob(
+      <Contract
+        date={new Date().toString().substring(0, 24)}
+        invoiceNum={state.invoice}
+        client={state.curClient}
+        category={state.category}
+        passengers={state.numPeople}
+        services={state.servicesData}
+        details={state.detailsData}
+        locations={state.locationsData}
+        deposit={state.deposit}
+        transactions={state.transactionsData}
+        poRef={state.clientComments}
+        responsible={state.responsibleName}
+        responsibleEmail={state.responsibleEmail}
+      />
+    );
+
+    openPdfToSave(blob, `confirmation${state.invoice}.pdf`);
   };
 
-  const handleDownloadQuote = () => {
-    generateQuoteReport(`quote${state.invoice}.pdf`);
+  function quoteReport() {
+    return (
+      <QuoteReport
+        date={dayjs(state.quoteDate).format("dddd, MMMM D, YYYY")}
+        invoiceNum={state.invoice}
+        quotedCost={state.quotedCost}
+        salesPerson={state.salesPerson}
+        client={state.curClient}
+        passengers={state.numPeople}
+        deposit={state.deposit}
+        tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
+        tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
+        quoteExp={state.numHoursQuoteValid}
+        services={state.servicesData}
+        details={state.detailsData}
+        locations={state.locationsData}
+        quoteDetails={state.intineraryDetails}
+      />
+    );
+  }
+
+  const handleDownloadQuote = async () => {
+    const blob = await createBlob(quoteReport());
+
+    openPdfToSave(blob, `quote${state.invoice}.pdf`);
   };
+
+  //fetch quote pdf
+  const handleGetQuotePdf = async () => {
+    try {
+      const response = await axiosPdfService.post("/quote", {
+        data: {
+          quoteDate: state.quoteDate,
+          invoice: state.invoice,
+          quotedCost: state.quotedCost,
+          salesPerson: state.salesPerson,
+          client: state.curClient,
+          passengers: state.numPeople,
+          deposit: state.deposit,
+          tripStart: state.tripStartDate,
+          tripEnd: state.tripEndDate,
+          quoteExp: state.numHoursQuoteValid,
+          services: state.servicesData,
+          details: state.detailsData,
+          locations: state.locationsData,
+          quoteDetails: state.intineraryDetails,
+        },
+      });
+      if (response.data) {
+        var file = new Blob([response.data], { type: "application/pdf" });
+        var fileURL = URL.createObjectURL(file);
+        window.open(fileURL, "_blank");
+      }
+    } catch (err) {
+      console.error(err);
+      setState({ error: err.message, success: false, openSnakbar: true });
+    }
+  };
+
+  //
 
   //When the create quote button is clicked
   const handleNewQuote = () => {
@@ -1487,8 +1526,14 @@ export const Bookings = () => {
 
   //Send quote to client
   const handleSendQuote = async () => {
+    const pdfString = await createPdfString(quoteReport());
+
     const response = await postServer("/sendQuoteEmail", {
-      data: { email: state.agencyEmail, quoteId: state.invoice },
+      data: {
+        email: state.agencyEmail,
+        quoteId: state.invoice,
+        attachment: pdfString,
+      },
     });
 
     if (response?.data) {
@@ -1999,7 +2044,7 @@ export const Bookings = () => {
                         <Button
                           style={{ marginLeft: "10px" }}
                           variant="contained"
-                          onClick={handleDownloadQuote}
+                          onClick={handleGetQuotePdf}
                           size="small"
                         >
                           <ReceiptIcon />
@@ -2010,7 +2055,6 @@ export const Bookings = () => {
                           variant="contained"
                           onClick={handleSendQuote}
                           size="small"
-                          disabled
                         >
                           Send Quote to Client
                         </Button>

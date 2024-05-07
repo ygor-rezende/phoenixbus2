@@ -11,12 +11,14 @@ const emailDb = getFirestore();
 
 const sendQuote = async (req, res) => {
   const { data } = req.body;
-  console.log(data);
+  //console.log(data);
 
   try {
     const quoteData = {
       email: "ygor.rezende@gmail.com",
-      subject: "Quote 01",
+      subject: `Quote ${data?.quoteId}`,
+      attachment: data?.attachment,
+      filename: `Quote${data?.quoteId}.pdf`,
     };
 
     const response = await emailDb.collection("quotes").add(quoteData);

@@ -226,7 +226,9 @@ function EnhancedTableToolbar(props) {
             >
               {searchOptions?.map((option) => {
                 return (
-                  <ToggleButton value={option.id}>{option.name}</ToggleButton>
+                  <ToggleButton value={option.id} key={option.id}>
+                    {option.name}
+                  </ToggleButton>
                 );
               })}
             </ToggleButtonGroup>
