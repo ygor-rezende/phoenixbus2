@@ -28,6 +28,8 @@ pdfService.use(cors(corsOptions));
 //Quotes
 pdfService.use("/api/getpdf", require("./routes/pdf-routes"));
 
+pdfService.use("/newpdf", express.static("public"));
+
 if (os.hostname().indexOf("LAPTOP") > -1)
   pdfService.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

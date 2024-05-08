@@ -1,4 +1,5 @@
 const React = require("react");
+const path = require("path");
 
 const {
   renderToBuffer,
@@ -36,6 +37,37 @@ async function createQuoteStream(data) {
   }
 }
 
+async function createQuoteFile(data) {
+  try {
+    //handle path to save
+    let publicDir = path.resolve(__dirname, "../../public");
+    //console.log(data);
+    await renderToFile(
+      <QuoteReport
+        date={dayjs(data.date).format("dddd, MMMM D, YYYY")}
+        invoiceNum={data.invoiceNum}
+        quotedCost={data.quotedCost}
+        salesPerson={data.salesPerson}
+        client={data.client}
+        passengers={data.passengers}
+        deposit={data.deposit}
+        tripStart={dayjs(data.tripStart).format("dddd, MMMM D, YYYY")}
+        tripEnd={dayjs(data.tripEnd).format("dddd, MMMM D, YYYY")}
+        quoteExp={data.quoteExp}
+        services={data.services}
+        details={data.details}
+        locations={data.locations}
+        quoteDetails={data.quoteDetails}
+      />,
+      `${publicDir}/${data.invoiceNum}.pdf`
+    );
+    return `${data.invoiceNum}.pdf`;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+}
+
 async function createInvoiceStream(data) {
   try {
     return await renderToStream(
@@ -61,4 +93,4 @@ async function createInvoiceStream(data) {
   }
 }
 
-module.exports = { createQuoteStream, createInvoiceStream };
+module.exports = { createQuoteStream, createInvoiceStream, createQuoteFile };

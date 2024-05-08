@@ -29,6 +29,7 @@ const allowedOrigins = require("./config/allowedOrigins");
 const { Sales } = require("./classes/sales");
 const { Payments } = require("./classes/client_payments");
 const sendQuote = require("./controllers/emailController");
+const path = require("path");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -41,7 +42,7 @@ app.use(express.json({ limit: "50mb" })); // To parse the incoming requests with
 //middleware for cookies
 app.use(cookieParser());
 
-app.use(express.static("public"));
+app.use("/newpdf", express.static("public"));
 
 //free routes
 app.use("/", require("./routes/root"));

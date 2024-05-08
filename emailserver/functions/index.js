@@ -13,8 +13,7 @@ const nodemailer = require("nodemailer");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const fs = require("fs");
-const reactPdf = require("@react-pdf/renderer");
-const parse = require("html-react-parser").default;
+const axios = require("axios");
 
 admin.initializeApp();
 
@@ -44,16 +43,23 @@ fs.readFile(
 exports.sendEmail = functions.firestore
   .document("quotes/{quoteId}")
   .onCreate(async (snap, context) => {
-    //parse the attachment (string) to a react element
-    //const reactObject = parse(snap.data().attachment);
-    //transform it into a reactPdf buffer
-    //const buffer = await reactPdf.renderToBuffer(reactObject);
+    //get data to create attachment
+    const parsedData = JSON.parse(snap.data().attachment);
 
-    const attachmentOptions = {
-      filename: snap.data().filename,
-      content: snap.data().attachment,
-      contentType: "application/pdf",
-    };
+    let response = await axios.post(
+      `${process.env.PDFSERVICE}/quote`,
+      { data: parsedData },
+      { responseType: "blob" }
+    );
+
+    let attachmentOptions = null;
+    if (response?.data) {
+      attachmentOptions = {
+        filename: snap.data().filename,
+        content: response?.data,
+        contentType: "application/pdf",
+      };
+    }
 
     const mailOptions = {
       from: process.env.SMTPUSER,

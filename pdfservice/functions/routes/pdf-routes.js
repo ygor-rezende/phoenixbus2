@@ -2,22 +2,32 @@ const express = require("express");
 const router = express.Router();
 const bodyParser = require("body-parser");
 const logger = require("firebase-functions/logger");
-const { createQuoteStream } = require("../lib/pdfhandlers/createPdf");
+const {
+  createQuoteStream,
+  createQuoteFile,
+} = require("../lib/pdfhandlers/createPdf");
 
 router.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-router.post("/quote", bodyParser.json(), async (req, res) => {
+router.post("/quote/:responseType", bodyParser.json(), async (req, res) => {
   try {
     const { data } = req.body;
+    const { responseType } = req.params;
+
     if (!data)
       return res.status(400).json({ message: "Bad request: Missing data." });
 
-    const pdfStream = await createQuoteStream(data);
-    res.contentType("application/pdf");
-    pdfStream.pipe(res);
-    pdfStream.on("end", () => console.log("Done streaming, response sent."));
+    if (responseType === "stream") {
+      const pdfStream = await createQuoteStream(data);
+      res.contentType("application/pdf");
+      pdfStream.pipe(res);
+      pdfStream.on("end", () => console.log("Done streaming, response sent."));
+    } else if (responseType === "newfile") {
+      const filename = await createQuoteFile(data);
+      res.json(filename);
+    }
   } catch (err) {
     console.error("Error route /quote: ", err);
     logger.error("Error route /quote: ", err);

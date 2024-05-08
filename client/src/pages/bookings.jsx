@@ -1256,7 +1256,7 @@ export const Bookings = () => {
   //fetch quote pdf
   const handleGetQuotePdf = async () => {
     try {
-      const response = await axiosPdfService.post("/quote", {
+      const response = await axiosPdfService.post("/quote/stream", {
         data: {
           quoteDate: state.quoteDate,
           invoice: state.invoice,
@@ -1526,23 +1526,46 @@ export const Bookings = () => {
 
   //Send quote to client
   const handleSendQuote = async () => {
-    const pdfString = await createPdfString(quoteReport());
+    let attachmentJson = {
+      date: dayjs(state.quoteDate).format("dddd, MMMM D, YYYY"),
+      invoiceNum: state.invoice,
+      quotedCost: state.quotedCost,
+      salesPerson: state.salesPerson,
+      client: state.curClient,
+      passengers: state.numPeople,
+      deposit: state.deposit,
+      tripStart: dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY"),
+      tripEnd: dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY"),
+      quoteExp: state.numHoursQuoteValid,
+      services: state.servicesData,
+      details: state.detailsData,
+      locations: state.locationsData,
+      quoteDetails: state.intineraryDetails,
+    };
 
-    const response = await postServer("/sendQuoteEmail", {
-      data: {
-        email: state.agencyEmail,
-        quoteId: state.invoice,
-        attachment: pdfString,
-      },
-    });
+    attachmentJson = JSON.stringify(attachmentJson);
 
-    if (response?.data) {
-      setState({ success: true, openSnakbar: true, msg: response.data });
-    } else if (response?.disconnect) {
-      setAuth({});
-      navigate("/login", { state: { from: location }, replace: true });
-    } else if (response?.error) {
-      setState({ error: response.error, success: false, openSnakbar: true });
+    //validate email
+    if (state.responsibleEmail) {
+      const response = await postServer("/sendQuoteEmail", {
+        data: {
+          email: state.responsibleEmail,
+          quoteId: state.invoice,
+          attachmentData: attachmentJson,
+          timestamp: new Date().toISOString(),
+          user: auth.userName,
+        },
+      });
+      if (response?.data) {
+        setState({ success: true, openSnakbar: true, msg: response.data });
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        setState({ error: response.error, success: false, openSnakbar: true });
+      }
+    } else {
+      window.alert("Responsible email is not valid.");
     }
   };
 
