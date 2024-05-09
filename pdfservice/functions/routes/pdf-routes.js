@@ -7,10 +7,6 @@ const {
   createQuoteFile,
 } = require("../lib/pdfhandlers/createPdf");
 
-router.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
 router.post("/quote/:responseType", bodyParser.json(), async (req, res) => {
   try {
     const { data } = req.body;
@@ -26,7 +22,7 @@ router.post("/quote/:responseType", bodyParser.json(), async (req, res) => {
       pdfStream.on("end", () => console.log("Done streaming, response sent."));
     } else if (responseType === "newfile") {
       const filename = await createQuoteFile(data);
-      res.json(filename);
+      res.status(200).json(filename);
     }
   } catch (err) {
     console.error("Error route /quote: ", err);

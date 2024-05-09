@@ -1,5 +1,4 @@
 import React, { useReducer, useEffect, useRef } from "react";
-import { renderToString } from "react-dom/server";
 import {
   Alert,
   AlertTitle,
@@ -34,6 +33,7 @@ import {
   InputLabel,
   Menu,
   Checkbox,
+  Badge,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -57,6 +57,8 @@ import { QuotesView } from "./subcomponents/quotesView";
 import { ServiceModal } from "./subcomponents/serviceModal";
 import { CustomTabPanel } from "./subcomponents/customTabPanel";
 import { DetailModal } from "./subcomponents/detailModal";
+import CustomDialog from "../utils/customDialog";
+import SendIcon from "@mui/icons-material/Send";
 
 import {
   UsePrivateGet,
@@ -103,6 +105,7 @@ const initialState = {
   agencyContact: "",
   curClient: {},
   curBooking: {},
+  curQuote: {},
   employeeId: "",
   salesPerson: null,
   responsibleName: "",
@@ -161,6 +164,8 @@ const initialState = {
   transactionsData: [],
   anchorSave: null,
   hasBooking: null,
+  openSendEmailDialog: false,
+  manualInvoiceError: false,
 };
 
 export const Bookings = () => {
@@ -335,6 +340,9 @@ export const Bookings = () => {
             curBooking: state.invoice
               ? bookingsRespData?.find((e) => e.id === state.invoice)
               : {},
+            curQuote: state.invoice
+              ? quotesRespData?.find((e) => e.id === state.invoice)
+              : {},
             salesPeople: salesPeopleRespData,
             drivers: driversRespData,
             companiesData: companiesRespData,
@@ -502,6 +510,7 @@ export const Bookings = () => {
       clientId: "",
       curClient: {},
       curBooking: {},
+      curQuote: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -533,6 +542,7 @@ export const Bookings = () => {
       openCalendarDialog: false,
       anchorSave: null,
       hasBooking: null,
+      manualInvoiceError: false,
     });
   }; //clearState
 
@@ -547,6 +557,7 @@ export const Bookings = () => {
       clientId: "",
       curClient: {},
       curBooking: {},
+      curQuote: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -572,6 +583,7 @@ export const Bookings = () => {
       accordionTitle: "",
       dates: [],
       hasBooking: null,
+      manualInvoiceError: false,
     });
   }; //cancelEditing
 
@@ -897,6 +909,7 @@ export const Bookings = () => {
       tabService: tab,
       detailsData: details,
       hasBooking: curQuote?.hasBooking,
+      curQuote: curQuote,
     });
   }; //handleQuoteClick
 
@@ -1373,7 +1386,11 @@ export const Bookings = () => {
   };
 
   const handleCloseInvoice = () => {
-    setState({ openInvoiceDialog: false, invoice: "" });
+    setState({
+      openInvoiceDialog: false,
+      invoice: "",
+      manualInvoiceError: false,
+    });
   };
 
   const handleCloseCalendar = () => {
@@ -1382,6 +1399,10 @@ export const Bookings = () => {
 
   const handleCloseCancelDiag = () => {
     setState({ openCancelDialog: false });
+  };
+
+  const handleCloseEmailDiag = () => {
+    setState({ openSendEmailDialog: false });
   };
 
   //open dialog to show calendar to select dates of services
@@ -1546,7 +1567,7 @@ export const Bookings = () => {
     attachmentJson = JSON.stringify(attachmentJson);
 
     //validate email
-    if (state.responsibleEmail) {
+    if (state.curQuote?.responsibleEmail) {
       const response = await postServer("/sendQuoteEmail", {
         data: {
           email: state.responsibleEmail,
@@ -1556,16 +1577,39 @@ export const Bookings = () => {
           user: auth.userName,
         },
       });
-      if (response?.data) {
-        setState({ success: true, openSnakbar: true, msg: response.data });
+      if (response?.status === 202) {
+        setState({
+          success: true,
+          openSnakbar: true,
+          msg: response.data,
+          openSendEmailDialog: false,
+        });
       } else if (response?.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
       } else if (response?.error) {
-        setState({ error: response.error, success: false, openSnakbar: true });
+        setState({
+          error: response.error,
+          success: false,
+          openSnakbar: true,
+          openSendEmailDialog: false,
+        });
       }
     } else {
       window.alert("Responsible email is not valid.");
+    }
+  };
+
+  const emailDialogDescription = !state.curQuote?.responsibleEmail
+    ? "Responsible email is missing. Please go back and save a responsible email."
+    : `Confirm emailing this quote to ${state.curQuote?.responsibleEmail}?`;
+
+  //validates manual invoice entry
+  const handleValidateManualInvoice = () => {
+    if (state.invoice.includes("/") || state.invoice.includes("\\")) {
+      setState({ manualInvoiceError: true, invoice: "" });
+    } else {
+      setState({ openInvoiceDialog: false });
     }
   };
 
@@ -2073,14 +2117,22 @@ export const Bookings = () => {
                           <ReceiptIcon />
                           Quote
                         </Button>
-                        <Button
-                          style={{ marginLeft: "10px" }}
-                          variant="contained"
-                          onClick={handleSendQuote}
-                          size="small"
-                        >
-                          Send Quote to Client
-                        </Button>
+
+                        <Tooltip title="Date last quote sent" arrow>
+                          <Badge color="secondary" badgeContent={0}>
+                            <Button
+                              style={{ marginLeft: "10px" }}
+                              variant="contained"
+                              onClick={() => {
+                                setState({ openSendEmailDialog: true });
+                              }}
+                              size="small"
+                              disabled
+                            >
+                              <SendIcon /> Email Quote
+                            </Button>
+                          </Badge>
+                        </Tooltip>
                       </Box>
                     )}
 
@@ -2579,6 +2631,7 @@ export const Bookings = () => {
                 Enter the {state.isQuote ? "Quote ID" : "Invoice #"}.
               </DialogContentText>
               <TextField
+                error={state.manualInvoiceError}
                 autofocus
                 margin="dense"
                 id="manualInvoice"
@@ -2587,13 +2640,12 @@ export const Bookings = () => {
                 fullWidth
                 variant="standard"
                 onChange={(e) => setState({ invoice: e.target.value })}
+                helperText="Characters '/' '\' are not alowed"
               />
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseInvoice}>Cancel</Button>
-              <Button onClick={() => setState({ openInvoiceDialog: false })}>
-                OK
-              </Button>
+              <Button onClick={handleValidateManualInvoice}>OK</Button>
             </DialogActions>
           </Dialog>
 
@@ -2682,6 +2734,14 @@ export const Bookings = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          <CustomDialog
+            openDialog={state.openSendEmailDialog}
+            onConfirm={handleSendQuote}
+            onCancel={handleCloseEmailDiag}
+            title="Emailing Quote to client"
+            description={emailDialogDescription}
+          />
         </div>
       </div>
     </div>
