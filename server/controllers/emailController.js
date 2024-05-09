@@ -11,8 +11,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-const emailDb = getFirestore();
-
 const transporter = nodemailer.createTransport({
   host: process.env.SMTPHOST,
   port: process.env.SMTPPORT,
@@ -69,15 +67,6 @@ const sendQuote = async (req, res) => {
       html: "<div><h1>Quote</h1></div>",
       attachments: [attachmentOptions],
     };
-
-    // const quoteData = {
-    //   email: "ygor.rezende@gmail.com",
-    //   subject: `Quote ${data?.quoteId}`,
-    //   attachment: data?.attachmentData,
-    //   filename: `Quote${data?.quoteId}.pdf`,
-    //   timestamp: data?.timestamp,
-    //   user: data?.user,
-    // };
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
