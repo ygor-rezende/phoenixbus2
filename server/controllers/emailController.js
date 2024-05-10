@@ -1,4 +1,3 @@
-const { getFirestore, doc, set } = require("firebase-admin/firestore");
 const { initializeApp } = require("firebase-admin/app");
 const admin = require("firebase-admin");
 var serviceAccount = require("../firebase_service_account.json");
