@@ -33,6 +33,7 @@ import {
   InputLabel,
   Menu,
   Checkbox,
+  Badge,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -56,6 +57,8 @@ import { QuotesView } from "./subcomponents/quotesView";
 import { ServiceModal } from "./subcomponents/serviceModal";
 import { CustomTabPanel } from "./subcomponents/customTabPanel";
 import { DetailModal } from "./subcomponents/detailModal";
+import CustomDialog from "../utils/customDialog";
+import SendIcon from "@mui/icons-material/Send";
 
 import {
   UsePrivateGet,
@@ -72,6 +75,7 @@ import Contract from "./pdfReports/contract";
 import * as FileSaver from "file-saver";
 import QuoteReport from "./pdfReports/quote";
 import { Calendar } from "react-multi-date-picker";
+import { axiosPdfService } from "../api/axios";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -101,6 +105,7 @@ const initialState = {
   agencyContact: "",
   curClient: {},
   curBooking: {},
+  curQuote: {},
   employeeId: "",
   salesPerson: null,
   responsibleName: "",
@@ -159,6 +164,8 @@ const initialState = {
   transactionsData: [],
   anchorSave: null,
   hasBooking: null,
+  openSendEmailDialog: false,
+  manualInvoiceError: false,
 };
 
 export const Bookings = () => {
@@ -241,12 +248,12 @@ export const Bookings = () => {
           responsibleName: item.responsible_name,
           responsibleEmail: item.responsible_email,
           responsiblePhone: item.responsible_phone,
-          quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
-          bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
+          quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+          bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"), //Important: Format required for sorting
           category: item.category,
           numPeople: item.num_people,
-          tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
-          tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
+          tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+          tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"), //Important: Format required for sorting
           deposit: item.deposit,
           cost: item.cost,
           numHoursQuoteValid: item.hours_quote_valid,
@@ -304,12 +311,12 @@ export const Bookings = () => {
             responsibleName: item.responsible_name,
             responsibleEmail: item.responsible_email,
             responsiblePhone: item.responsible_phone,
-            quoteDate: dayjs(item.quote_date).format("MM/DD/YYYY"),
-            bookingDate: dayjs(item.booking_date).format("MM/DD/YYYY"),
+            quoteDate: dayjs(item.quote_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+            bookingDate: dayjs(item.booking_date).format("YYYY-MM-DD"), //Important: Format required for sorting
             category: item.category,
             numPeople: item.num_people,
-            tripStartDate: dayjs(item.trip_start_date).format("MM/DD/YYYY"),
-            tripEndDate: dayjs(item.trip_end_date).format("MM/DD/YYYY"),
+            tripStartDate: dayjs(item.trip_start_date).format("YYYY-MM-DD"), //Important: Format required for sorting
+            tripEndDate: dayjs(item.trip_end_date).format("YYYY-MM-DD"), //Important: Format required for sorting
             deposit: item.deposit,
             cost: item.cost,
             numHoursQuoteValid: item.hours_quote_valid,
@@ -332,6 +339,9 @@ export const Bookings = () => {
             bookingsData: bookingsRespData,
             curBooking: state.invoice
               ? bookingsRespData?.find((e) => e.id === state.invoice)
+              : {},
+            curQuote: state.invoice
+              ? quotesRespData?.find((e) => e.id === state.invoice)
               : {},
             salesPeople: salesPeopleRespData,
             drivers: driversRespData,
@@ -500,6 +510,7 @@ export const Bookings = () => {
       clientId: "",
       curClient: {},
       curBooking: {},
+      curQuote: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -531,6 +542,7 @@ export const Bookings = () => {
       openCalendarDialog: false,
       anchorSave: null,
       hasBooking: null,
+      manualInvoiceError: false,
     });
   }; //clearState
 
@@ -545,6 +557,7 @@ export const Bookings = () => {
       clientId: "",
       curClient: {},
       curBooking: {},
+      curQuote: {},
       agencyName: null,
       agencyEmail: "",
       agencyContact: "",
@@ -570,6 +583,7 @@ export const Bookings = () => {
       accordionTitle: "",
       dates: [],
       hasBooking: null,
+      manualInvoiceError: false,
     });
   }; //cancelEditing
 
@@ -895,6 +909,7 @@ export const Bookings = () => {
       tabService: tab,
       detailsData: details,
       hasBooking: curQuote?.hasBooking,
+      curQuote: curQuote,
     });
   }; //handleQuoteClick
 
@@ -1147,85 +1162,29 @@ export const Bookings = () => {
     });
   };
 
-  //function to generate invoice PDF
-  const generateInvoice = async (filename) => {
+  //function to create a blob
+  const createBlob = async (reactPdfComponent) => {
     try {
-      const blob = await pdf(
-        <Invoice
-          date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
-          invoiceNum={state.invoice}
-          client={state.curClient}
-          passengers={state.numPeople}
-          bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
-          arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
-          departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
-          services={state.servicesData}
-          deposit={state.deposit}
-          transactions={state.transactionsData}
-          poRef={state.clientComments}
-          responsible={state.responsibleName}
-          responsibleEmail={state.responsibleEmail}
-        />
-      ).toBlob();
-      FileSaver.saveAs(blob, filename);
-      const pdfUrl = URL.createObjectURL(blob);
-      window.open(pdfUrl, "_blank");
-      URL.revokeObjectURL(pdfUrl);
+      return await pdf(reactPdfComponent).toBlob();
     } catch (error) {
-      console.error("Error creating pdf:", error);
+      console.error("Error creating blob:", error);
     }
   };
 
-  //function to generate contract PDF
-  const generateContract = async (filename) => {
+  //create pdf string
+  const createPdfString = async (reactPdfComponent) => {
     try {
-      const blob = await pdf(
-        <Contract
-          date={new Date().toString().substring(0, 24)}
-          invoiceNum={state.invoice}
-          client={state.curClient}
-          category={state.category}
-          passengers={state.numPeople}
-          services={state.servicesData}
-          details={state.detailsData}
-          locations={state.locationsData}
-          deposit={state.deposit}
-          transactions={state.transactionsData}
-          poRef={state.clientComments}
-          responsible={state.responsibleName}
-          responsibleEmail={state.responsibleEmail}
-        />
-      ).toBlob();
-      FileSaver.saveAs(blob, filename);
-      const pdfUrl = URL.createObjectURL(blob);
-      window.open(pdfUrl, "_blank");
-      URL.revokeObjectURL(pdfUrl);
+      const buffer = await pdf(reactPdfComponent).toString();
+      console.log(buffer);
+      return buffer;
     } catch (error) {
-      console.error("Error creating pdf:", error);
+      console.error("Error creating string pdf:", error);
     }
   };
 
-  //function to generate contract PDF
-  const generateQuoteReport = async (filename) => {
+  //create a pdf, open in a new window and call save as
+  const openPdfToSave = (blob, filename) => {
     try {
-      const blob = await pdf(
-        <QuoteReport
-          date={dayjs(state.quoteDate).format("dddd, MMMM D, YYYY")}
-          invoiceNum={state.invoice}
-          quotedCost={state.quotedCost}
-          salesPerson={state.salesPerson}
-          client={state.curClient}
-          passengers={state.numPeople}
-          deposit={state.deposit}
-          tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
-          tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
-          quoteExp={state.numHoursQuoteValid}
-          services={state.servicesData}
-          details={state.detailsData}
-          locations={state.locationsData}
-          quoteDetails={state.intineraryDetails}
-        />
-      ).toBlob();
       FileSaver.saveAs(blob, filename);
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, "_blank");
@@ -1236,17 +1195,110 @@ export const Bookings = () => {
   };
 
   //Handle download pdf click
-  const handleDownloadInvoice = () => {
-    generateInvoice(`invoice${state.invoice}.pdf`);
+  const handleDownloadInvoice = async () => {
+    const blob = await createBlob(
+      <Invoice
+        date={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+        invoiceNum={state.invoice}
+        client={state.curClient}
+        passengers={state.numPeople}
+        bookingDate={dayjs(state.bookingDate).format("MM/DD/YYYY")}
+        arrival={dayjs(state.tripEndDate).format("MM/DD/YYYY")}
+        departure={dayjs(state.tripStartDate).format("MM/DD/YYYY")}
+        services={state.servicesData}
+        deposit={state.deposit}
+        transactions={state.transactionsData}
+        poRef={state.clientComments}
+        responsible={state.responsibleName}
+        responsibleEmail={state.responsibleEmail}
+      />
+    );
+
+    openPdfToSave(blob, `invoice${state.invoice}.pdf`);
   };
 
-  const handleDowloadContract = () => {
-    generateContract(`confirmation${state.invoice}.pdf`);
+  const handleDowloadContract = async () => {
+    const blob = await createBlob(
+      <Contract
+        date={new Date().toString().substring(0, 24)}
+        invoiceNum={state.invoice}
+        client={state.curClient}
+        category={state.category}
+        passengers={state.numPeople}
+        services={state.servicesData}
+        details={state.detailsData}
+        locations={state.locationsData}
+        deposit={state.deposit}
+        transactions={state.transactionsData}
+        poRef={state.clientComments}
+        responsible={state.responsibleName}
+        responsibleEmail={state.responsibleEmail}
+      />
+    );
+
+    openPdfToSave(blob, `confirmation${state.invoice}.pdf`);
   };
 
-  const handleDownloadQuote = () => {
-    generateQuoteReport(`quote${state.invoice}.pdf`);
+  function quoteReport() {
+    return (
+      <QuoteReport
+        date={dayjs(state.quoteDate).format("dddd, MMMM D, YYYY")}
+        invoiceNum={state.invoice}
+        quotedCost={state.quotedCost}
+        salesPerson={state.salesPerson}
+        client={state.curClient}
+        passengers={state.numPeople}
+        deposit={state.deposit}
+        tripStart={dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY")}
+        tripEnd={dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY")}
+        quoteExp={state.numHoursQuoteValid}
+        services={state.servicesData}
+        details={state.detailsData}
+        locations={state.locationsData}
+        quoteDetails={state.intineraryDetails}
+      />
+    );
+  }
+
+  const handleDownloadQuote = async () => {
+    const blob = await createBlob(quoteReport());
+
+    openPdfToSave(blob, `quote${state.invoice}.pdf`);
   };
+
+  //fetch quote pdf
+  const handleGetQuotePdf = async () => {
+    try {
+      const response = await axiosPdfService.post("/quote/stream", {
+        data: {
+          quoteDate: state.quoteDate,
+          invoice: state.invoice,
+          quotedCost: state.quotedCost,
+          salesPerson: state.salesPerson,
+          client: state.curClient,
+          passengers: state.numPeople,
+          deposit: state.deposit,
+          tripStart: state.tripStartDate,
+          tripEnd: state.tripEndDate,
+          quoteExp: state.numHoursQuoteValid,
+          services: state.servicesData,
+          details: state.detailsData,
+          locations: state.locationsData,
+          quoteDetails: state.intineraryDetails,
+        },
+      });
+      if (response.data) {
+        var file = new Blob([response.data], { type: "application/pdf" });
+        var fileURL = URL.createObjectURL(file);
+        window.open(fileURL, "_blank");
+      }
+    } catch (err) {
+      console.error(err);
+      setState({ error: err.message, success: false, openSnakbar: true });
+    }
+  };
+
+  //
 
   //When the create quote button is clicked
   const handleNewQuote = () => {
@@ -1334,7 +1386,11 @@ export const Bookings = () => {
   };
 
   const handleCloseInvoice = () => {
-    setState({ openInvoiceDialog: false, invoice: "" });
+    setState({
+      openInvoiceDialog: false,
+      invoice: "",
+      manualInvoiceError: false,
+    });
   };
 
   const handleCloseCalendar = () => {
@@ -1343,6 +1399,10 @@ export const Bookings = () => {
 
   const handleCloseCancelDiag = () => {
     setState({ openCancelDialog: false });
+  };
+
+  const handleCloseEmailDiag = () => {
+    setState({ openSendEmailDialog: false });
   };
 
   //open dialog to show calendar to select dates of services
@@ -1487,17 +1547,69 @@ export const Bookings = () => {
 
   //Send quote to client
   const handleSendQuote = async () => {
-    const response = await postServer("/sendQuoteEmail", {
-      data: { email: state.agencyEmail, quoteId: state.invoice },
-    });
+    let attachmentJson = {
+      date: dayjs(state.quoteDate).format("dddd, MMMM D, YYYY"),
+      invoiceNum: state.invoice,
+      quotedCost: state.quotedCost,
+      salesPerson: state.salesPerson,
+      client: state.curClient,
+      passengers: state.numPeople,
+      deposit: state.deposit,
+      tripStart: dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY"),
+      tripEnd: dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY"),
+      quoteExp: state.numHoursQuoteValid,
+      services: state.servicesData,
+      details: state.detailsData,
+      locations: state.locationsData,
+      quoteDetails: state.intineraryDetails,
+    };
 
-    if (response?.data) {
-      setState({ success: true, openSnakbar: true, msg: response.data });
-    } else if (response?.disconnect) {
-      setAuth({});
-      navigate("/login", { state: { from: location }, replace: true });
-    } else if (response?.error) {
-      setState({ error: response.error, success: false, openSnakbar: true });
+    attachmentJson = JSON.stringify(attachmentJson);
+
+    //validate email
+    if (state.curQuote?.responsibleEmail) {
+      const response = await postServer("/sendQuoteEmail", {
+        data: {
+          email: state.responsibleEmail,
+          quoteId: state.invoice,
+          attachmentData: attachmentJson,
+          timestamp: new Date().toISOString(),
+          user: auth.userName,
+        },
+      });
+      if (response?.status === 202) {
+        setState({
+          success: true,
+          openSnakbar: true,
+          msg: response.data,
+          openSendEmailDialog: false,
+        });
+      } else if (response?.disconnect) {
+        setAuth({});
+        navigate("/login", { state: { from: location }, replace: true });
+      } else if (response?.error) {
+        setState({
+          error: response.error,
+          success: false,
+          openSnakbar: true,
+          openSendEmailDialog: false,
+        });
+      }
+    } else {
+      window.alert("Responsible email is not valid.");
+    }
+  };
+
+  const emailDialogDescription = !state.curQuote?.responsibleEmail
+    ? "Responsible email is missing. Please go back and save a responsible email."
+    : `Confirm emailing this quote to ${state.curQuote?.responsibleEmail}?`;
+
+  //validates manual invoice entry
+  const handleValidateManualInvoice = () => {
+    if (state.invoice.includes("/") || state.invoice.includes("\\")) {
+      setState({ manualInvoiceError: true, invoice: "" });
+    } else {
+      setState({ openInvoiceDialog: false });
     }
   };
 
@@ -1999,21 +2111,28 @@ export const Bookings = () => {
                         <Button
                           style={{ marginLeft: "10px" }}
                           variant="contained"
-                          onClick={handleDownloadQuote}
+                          onClick={handleGetQuotePdf}
                           size="small"
                         >
                           <ReceiptIcon />
                           Quote
                         </Button>
-                        <Button
-                          style={{ marginLeft: "10px" }}
-                          variant="contained"
-                          onClick={handleSendQuote}
-                          size="small"
-                          disabled
-                        >
-                          Send Quote to Client
-                        </Button>
+
+                        <Tooltip title="Date last quote sent" arrow>
+                          <Badge color="secondary" badgeContent={0}>
+                            <Button
+                              style={{ marginLeft: "10px" }}
+                              variant="contained"
+                              onClick={() => {
+                                setState({ openSendEmailDialog: true });
+                              }}
+                              size="small"
+                              disabled
+                            >
+                              <SendIcon /> Email Quote
+                            </Button>
+                          </Badge>
+                        </Tooltip>
                       </Box>
                     )}
 
@@ -2512,6 +2631,7 @@ export const Bookings = () => {
                 Enter the {state.isQuote ? "Quote ID" : "Invoice #"}.
               </DialogContentText>
               <TextField
+                error={state.manualInvoiceError}
                 autofocus
                 margin="dense"
                 id="manualInvoice"
@@ -2520,13 +2640,12 @@ export const Bookings = () => {
                 fullWidth
                 variant="standard"
                 onChange={(e) => setState({ invoice: e.target.value })}
+                helperText="Characters '/' '\' are not alowed"
               />
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseInvoice}>Cancel</Button>
-              <Button onClick={() => setState({ openInvoiceDialog: false })}>
-                OK
-              </Button>
+              <Button onClick={handleValidateManualInvoice}>OK</Button>
             </DialogActions>
           </Dialog>
 
@@ -2615,6 +2734,14 @@ export const Bookings = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          <CustomDialog
+            openDialog={state.openSendEmailDialog}
+            onConfirm={handleSendQuote}
+            onCancel={handleCloseEmailDiag}
+            title="Emailing Quote to client"
+            description={emailDialogDescription}
+          />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Children, Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Typography,
   Table,
@@ -13,7 +13,6 @@ import {
   Tooltip,
   CircularProgress,
   TextField,
-  Stack,
   TableSortLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -26,7 +25,6 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import PlaceIcon from "@mui/icons-material/Place";
-import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import { BusIcon } from "../../utils/busIcon";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -108,13 +106,19 @@ export const ScheduleTable = (props) => {
   } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [extendLine, setExtendLine] = useState("");
+  const [extendLine, setExtendLine] = useState(new Map());
+  const [expandAll, setExpandAll] = useState(false);
   const [filteredData, setFilteredData] = useState(data);
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("start_time");
 
   useEffect(() => {
     setFilteredData(data);
+    let indexes = new Map();
+    data.forEach((e, index) => {
+      indexes.set(index, false);
+    });
+    setExtendLine(indexes);
   }, [data]);
 
   const visibleRows = useMemo(
@@ -216,6 +220,22 @@ export const ScheduleTable = (props) => {
     setOrderBy(column);
   };
 
+  //setExtendLine to true or false
+  const handleExpandShrinkLine = (index) => {
+    let lines = new Map(extendLine);
+    lines.set(index, !lines.get(index));
+    setExtendLine(lines);
+  };
+
+  const handleExpandAll = (value) => {
+    let lines = new Map();
+    extendLine.forEach((v, k) => {
+      lines.set(k, value);
+    });
+    setExtendLine(lines);
+    setExpandAll(value);
+  };
+
   return (
     <Fragment>
       <Box
@@ -294,7 +314,7 @@ export const ScheduleTable = (props) => {
           >
             <TableHead>
               <TableRow sx={{ backgroundColor: "primary.main" }}>
-                <TableCell sortDirection={order}>
+                <TableCell sortDirection={order} width="80px">
                   <TableSortLabel
                     active={orderBy === "invoice"}
                     direction={order}
@@ -363,29 +383,6 @@ export const ScheduleTable = (props) => {
                     variant="filled"
                     inputProps={{ className: "filterTextfield" }}
                     onChange={(e) => filterData(e, "service_code")}
-                  />
-                </TableCell>
-                <TableCell width="10px">
-                  <TableSortLabel
-                    active={orderBy === "spot_time"}
-                    direction={order}
-                    onClick={createSortHandler("spot_time")}
-                    style={{ color: "white" }}
-                  >
-                    Yard
-                    {orderBy === "spot_time" ? (
-                      <Box component="span" sx={visuallyHidden}>
-                        {order === "desc"
-                          ? "sorted descending"
-                          : "sorted ascending"}
-                      </Box>
-                    ) : null}
-                  </TableSortLabel>
-                  <TextField
-                    size="small"
-                    variant="filled"
-                    inputProps={{ className: "filterTextfield" }}
-                    onChange={(e) => filterData(e, "spot_time")}
                   />
                 </TableCell>
                 <TableCell width="10px">
@@ -504,7 +501,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "vehicle_name")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="100px">
                   <TableSortLabel
                     active={orderBy === "firstname"}
                     direction={order}
@@ -527,7 +524,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "firstname")}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="80px">
                   <TableSortLabel
                     active={orderBy === "special_events"}
                     direction={order}
@@ -573,7 +570,7 @@ export const ScheduleTable = (props) => {
                     onChange={(e) => filterData(e, "confirmed")}
                   />
                 </TableCell>
-                <TableCell width="10px">
+                <TableCell padding="none">
                   <Tooltip title="Clear Search">
                     <IconButton size="small" onClick={handleClearFilter}>
                       <SearchOffIcon sx={{ color: "white" }} />
@@ -581,7 +578,20 @@ export const ScheduleTable = (props) => {
                   </Tooltip>
                 </TableCell>
                 <TableCell></TableCell>
-                <TableCell></TableCell>
+                <TableCell padding="none">
+                  <Tooltip title={expandAll ? "Shrink All" : "Expand All"}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleExpandAll(!expandAll)}
+                    >
+                      {expandAll ? (
+                        <ExpandLessIcon sx={{ color: "white" }} />
+                      ) : (
+                        <ExpandMoreIcon sx={{ color: "white" }} />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
             </TableHead>
 
@@ -600,20 +610,7 @@ export const ScheduleTable = (props) => {
                     <TableCell>{row?.invoice}</TableCell>
                     <TableCell>{row?.agency}</TableCell>
                     <TableCell>{row?.service_code}</TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
-                        bgcolor="white"
-                        className="scheduleFromTo"
-                        gutterBottom
-                      >
-                        {row?.spot_time
-                          ? dateStart === dateEnd
-                            ? dayjs(row?.spot_time).format("HH:mm")
-                            : dayjs(row?.spot_time).format("MM/DD/YYYY HH:mm")
-                          : ""}
-                      </Typography>
-                    </TableCell>
+
                     <TableCell>
                       <Box>
                         <Typography
@@ -776,10 +773,10 @@ export const ScheduleTable = (props) => {
                       </Tooltip>
                     </TableCell>
                     <TableCell padding="none" align="right">
-                      {extendLine === index ? (
+                      {extendLine.get(index) === true ? (
                         <Tooltip title="Shrink">
                           <IconButton
-                            onClick={() => setExtendLine("")}
+                            onClick={() => handleExpandShrinkLine(index)}
                             size="small"
                           >
                             <ExpandLessIcon color="primary" />
@@ -788,7 +785,7 @@ export const ScheduleTable = (props) => {
                       ) : (
                         <Tooltip title="Expand">
                           <IconButton
-                            onClick={() => setExtendLine(index)}
+                            onClick={() => handleExpandShrinkLine(index)}
                             size="small"
                           >
                             <ExpandMoreIcon color="primary" />
@@ -798,7 +795,7 @@ export const ScheduleTable = (props) => {
                     </TableCell>
                   </TableRow>
 
-                  {extendLine === index ? (
+                  {extendLine.get(index) === true ? (
                     <TableRow key={"r" + index}>
                       <TableCell colSpan="13">
                         <Table size="small">

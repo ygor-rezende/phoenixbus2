@@ -2,10 +2,10 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "serve": "firebase emulators:start --only functions",
+    "serve": "firebase emulators:start --only functions:emailServer",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "firebase deploy --only functions:emailServer",
     "logs": "firebase functions:log"
   },
   "engines": {
@@ -13,9 +13,12 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@react-pdf/renderer": "^3.4.4",
+    "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "firebase-admin": "^12.1.0",
     "firebase-functions": "^4.3.1",
+    "html-react-parser": "^5.1.10",
     "nodemailer": "^6.9.13"
   },
   "devDependencies": {

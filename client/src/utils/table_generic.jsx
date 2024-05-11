@@ -18,6 +18,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import dayjs from "dayjs";
 
 import { visuallyHidden } from "@mui/utils";
 import {
@@ -225,7 +226,9 @@ function EnhancedTableToolbar(props) {
             >
               {searchOptions?.map((option) => {
                 return (
-                  <ToggleButton value={option.id}>{option.name}</ToggleButton>
+                  <ToggleButton value={option.id} key={option.id}>
+                    {option.name}
+                  </ToggleButton>
                 );
               })}
             </ToggleButtonGroup>
@@ -463,7 +466,9 @@ const EnhancedTable = (props) => {
                             textTransform: "uppercase",
                           }}
                         >
-                          {row[`${cell.id}`]}
+                          {cell.id?.toLowerCase()?.includes("date")
+                            ? dayjs(row[`${cell.id}`]).format("MM/DD/YYYY")
+                            : row[`${cell.id}`]}
                         </TableCell>
                       );
                     })}

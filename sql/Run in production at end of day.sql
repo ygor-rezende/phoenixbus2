@@ -1,106 +1,36 @@
-UPDATE service_details SET confirmed = false;
+DROP TABLE IF EXISTS public.emails;
 
-DROP PROCEDURE IF EXISTS public.update_detail(text, text, text, text, text, numeric, text, text, text, text, text, boolean, text, text, integer);
+CREATE TABLE IF NOT EXISTS public.emails
+(
+    email_id character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    email_address character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    attachment_path character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    time_stamp timestamp without time zone NOT NULL,
+    who_sent character varying(50) COLLATE pg_catalog."default",
+    email_type character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    num_times_sent smallint NOT NULL,
+	num_times_opened smallint NOT NULL,
+    CONSTRAINT emails_pkey PRIMARY KEY (email_id)
+);
 
-CREATE OR REPLACE PROCEDURE public.update_detail(
-	IN spottime text,
-	IN starttime text,
-	IN endtime text,
-	IN returntime text,
-	IN instructions1 text,
-	IN payment1 numeric,
-	IN employeeid text,
-	IN vehicleid text,
-	IN fromlocationid text,
-	IN tolocationid text,
-	IN returnlocationid text,
-	IN usefarmout boolean,
-	IN companyid text,
-	IN changeuser text,
-	IN confirmed1 boolean,
-	IN specialevents text,
-	IN detailid integer)
+
+CREATE OR REPLACE PROCEDURE public.create_update_email(
+	IN emailid text,
+	IN emailaddress text,
+	IN attachmentpath text,
+	IN whosent text,
+	IN emailtype text)
 LANGUAGE 'plpgsql'
 AS $BODY$
+DECLARE id_selected character varying := (SELECT email_id FROM emails WHERE email_id = emailid);
+	numtimessent smallint := (SELECT num_times_sent FROM emails WHERE email_id = emailid);
 BEGIN
-  UPDATE service_details SET employee_id = employeeid, company_id = companyid, vehicle_id = vehicleid, from_location_id = fromlocationid, 
-  to_location_id = tolocationid, return_location_id = returnlocationid, use_farmout = usefarmout, spot_time = spottime, start_time = starttime, end_time = endtime, 
-  return_time = returntime, instructions = instructions1, payment = payment1, change_user = changeuser, confirmed = confirmed1, special_events = specialevents
-  WHERE detail_id = detailid;
+	IF(id_selected IS NOT NULL) THEN
+		UPDATE emails SET email_address = emailaddress, who_sent = whosent, num_times_sent = numtimessent + 1, 
+		time_stamp = now() WHERE email_id = id_selected;
+	ELSE
+  		INSERT INTO emails (email_id, email_address, attachment_path, time_stamp, who_sent, email_type, num_times_sent, num_times_opened)
+			VALUES (emailid, emailaddress, attachmentpath, now(), whosent, emailtype, 1, 0);
+	END IF;
 END;
 $BODY$;
-
-DROP PROCEDURE IF EXISTS public.update_detail(integer, text, text, text, text, text, text, boolean, text, text, text, text, text, numeric, numeric, boolean, text, text, numeric, text, integer);
-
-CREATE OR REPLACE PROCEDURE public.update_detail(
-	IN serviceid integer,
-	IN employeeid text,
-	IN companyid text,
-	IN vehicleid text,
-	IN fromlocationid text,
-	IN tolocationid text,
-	IN returnlocationid text,
-	IN usefarmout boolean,
-	IN spottime text,
-	IN starttime text,
-	IN endtime text,
-	IN returntime text,
-	IN instructions1 text,
-	IN payment1 numeric,
-	IN gratuity1 numeric,
-	IN additionalstop boolean,
-	IN additionalstopinfo text,
-	IN additionalstopdetail text,
-	IN triplength numeric,
-	IN changeuser text,
-	IN specialevents text,
-	IN detailid integer)
-LANGUAGE 'plpgsql'
-AS $BODY$
-BEGIN
-  UPDATE service_details SET service_id = serviceid, employee_id = employeeid, company_id = companyid, vehicle_id = vehicleid, from_location_id = fromlocationid, 
-  to_location_id = tolocationid, return_location_id = returnlocationid, use_farmout = usefarmout, spot_time = spottime, start_time = starttime, end_time = endtime, 
-  return_time = returntime, instructions = instructions1, payment = payment1, gratuity = gratuity1, additional_stop = additionalstop, additional_stop_info = additionalstopinfo, 
-  additional_stop_detail = additionalstopdetail, trip_length = triplength, change_user = changeuser, special_events = specialevents
-  WHERE detail_id = detailid;
-END;
-$BODY$;
-
-DROP PROCEDURE IF EXISTS public.create_detail(integer, text, text, text, text, text, text, boolean, text, text, text, text, text, numeric, numeric, boolean, text, text, numeric, text);
-
-CREATE OR REPLACE PROCEDURE public.create_detail(
-	IN service_id integer,
-	IN employee_id text,
-	IN company_id text,
-	IN vehicle_id text,
-	IN from_location_id text,
-	IN to_location_id text,
-	IN return_location_id text,
-	IN use_farmout boolean,
-	IN spot_time text,
-	IN start_time text,
-	IN end_time text,
-	IN return_time text,
-	IN instructions text,
-	IN payment numeric,
-	IN gratuity numeric,
-	IN additional_stop boolean,
-	IN additional_stop_info text,
-	IN additional_stop_detail text,
-	IN trip_length numeric,
-	IN change_user text,
-	IN special_events text)
-LANGUAGE 'plpgsql'
-AS $BODY$
-BEGIN
-  INSERT INTO service_details (service_id, employee_id, company_id, vehicle_id, from_location_id, to_location_id, return_location_id, use_farmout, spot_time, start_time, 
-							   end_time, return_time, instructions, payment, gratuity, additional_stop, additional_stop_info, additional_stop_detail, trip_length, 
-							   change_user, special_events)
-			VALUES (service_id, employee_id, company_id, vehicle_id, from_location_id, to_location_id, return_location_id, use_farmout, spot_time, start_time, 
-					end_time, return_time, instructions, payment, gratuity, additional_stop, additional_stop_info, additional_stop_detail, trip_length, change_user, 
-					special_events);
-END;
-$BODY$;
-
-
-SELECT confirmed from service_details;

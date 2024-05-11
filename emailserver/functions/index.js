@@ -7,11 +7,14 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const logger = require("firebase-functions/logger");
 require("dotenv").config();
+const logger = require("firebase-functions/logger");
 const nodemailer = require("nodemailer");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const fs = require("fs");
+const axios = require("axios");
+
 admin.initializeApp();
 
 const transporter = nodemailer.createTransport({
@@ -24,16 +27,46 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+let htmlpage = null;
+fs.readFile(
+  "./email_templates/quote_email_template.html",
+  "utf-8",
+  (err, data) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    htmlpage = data;
+  }
+);
+
 exports.sendEmail = functions.firestore
   .document("quotes/{quoteId}")
-  .onCreate((snap, context) => {
+  .onCreate(async (snap, context) => {
+    //get data to create attachment
+    const parsedData = JSON.parse(snap.data().attachment);
+
+    let response = await axios.post(
+      `${process.env.PDFSERVICE}/quote`,
+      { data: parsedData },
+      { responseType: "blob" }
+    );
+
+    let attachmentOptions = null;
+    if (response?.data) {
+      attachmentOptions = {
+        filename: snap.data().filename,
+        content: response?.data,
+        contentType: "application/pdf",
+      };
+    }
+
     const mailOptions = {
       from: process.env.SMTPUSER,
       to: snap.data().email,
       subject: snap.data().subject,
-      html: `<h1>Quote</h1>
-                <p>
-                <b>Email: </b> ${snap.data().email}</p>`,
+      html: htmlpage,
+      attachments: [attachmentOptions],
     };
 
     return transporter.sendMail(mailOptions, (error, data) => {
@@ -46,11 +79,3 @@ exports.sendEmail = functions.firestore
       logger.info("Email Sent!");
     });
   });
-
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
