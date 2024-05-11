@@ -41,6 +41,8 @@ app.use(express.json({ limit: "50mb" })); // To parse the incoming requests with
 //middleware for cookies
 app.use(cookieParser());
 
+app.use(express.static("public"));
+
 //free routes
 app.use("/", require("./routes/root"));
 app.use("/api/login", require("./routes/auth"));
