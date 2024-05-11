@@ -314,6 +314,12 @@ export const ScheduleTable = (props) => {
           >
             <TableHead>
               <TableRow sx={{ backgroundColor: "primary.main" }}>
+                <TableCell
+                  width="5px"
+                  style={{ color: "white", paddingRight: 6 }}
+                >
+                  #
+                </TableCell>
                 <TableCell sortDirection={order} width="80px">
                   <TableSortLabel
                     active={orderBy === "invoice"}
@@ -607,6 +613,9 @@ export const ScheduleTable = (props) => {
                       outlineColor: "gray",
                     }}
                   >
+                    <TableCell style={{ paddingRight: 6 }}>
+                      {index + 1}
+                    </TableCell>
                     <TableCell>{row?.invoice}</TableCell>
                     <TableCell>{row?.agency}</TableCell>
                     <TableCell>{row?.service_code}</TableCell>
@@ -812,6 +821,10 @@ export const ScheduleTable = (props) => {
                               {row?.service_code === "CH" && (
                                 <SmallBoldCell>Trip Length (Hr)</SmallBoldCell>
                               )}
+
+                              {row?.client_comments && (
+                                <SmallBoldCell>PO/REF #</SmallBoldCell>
+                              )}
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -857,6 +870,16 @@ export const ScheduleTable = (props) => {
                                   }}
                                 >
                                   {row?.trip_length}
+                                </SmallBoldCell>
+                              )}
+                              {row?.client_comments && (
+                                <SmallBoldCell
+                                  style={{
+                                    color: "black",
+                                    fontWeight: "normal",
+                                  }}
+                                >
+                                  {row?.client_comments}
                                 </SmallBoldCell>
                               )}
                             </TableRow>
