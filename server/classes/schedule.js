@@ -14,6 +14,7 @@ class Schedule {
       const result = await pool.query(
         `select 
         b.invoice,
+        b.client_comments,
         s.service_id,
         s.charge,
         s.service_date,
