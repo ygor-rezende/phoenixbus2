@@ -340,7 +340,7 @@ const DriverReport = (props) => {
                 <View style={{ width: "17%" }}>
                   {data?.return_location && (
                     <Text style={styles.text}>
-                      <Text style={styles.textBold}>Return time: </Text>
+                      <Text style={styles.textBold}>Return PickUp time: </Text>
                       {data?.return_time
                         ? dayjs(data?.return_time).format("HH:mm")
                         : ""}
