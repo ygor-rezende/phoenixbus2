@@ -778,7 +778,7 @@ export const ScheduleModal = (props) => {
                 adapterLocale="en"
               >
                 <DateTimePicker
-                  label="Return time"
+                  label="Return PickUp time"
                   className="modalField"
                   id="returnTime"
                   ampm={false}

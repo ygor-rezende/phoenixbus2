@@ -946,7 +946,7 @@ export const DetailModal = (props) => {
 
               {serviceData?.service_code === "RT" && (
                 <DateTimePicker
-                  label="Return time"
+                  label="Return Pickup time"
                   className="modalField"
                   ampm={false}
                   id="returnTime"

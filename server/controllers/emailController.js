@@ -5,6 +5,7 @@ const axios = require("axios");
 const nodemailer = require("nodemailer");
 const { logger } = require("firebase-functions");
 const pool = require("../db");
+const QuoteHTML = require("../classes/quoteEmailHtml");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -63,7 +64,7 @@ const sendQuote = async (req, res) => {
       from: process.env.SMTPUSER,
       to: data.email,
       subject: `Quote ${data?.quoteId}`,
-      html: "<div><h1>Quote</h1></div>",
+      html: QuoteHTML(data),
       attachments: [attachmentOptions],
     };
 
@@ -74,7 +75,7 @@ const sendQuote = async (req, res) => {
         return res.status(500).json({ message: `Error: ${error}` });
       }
 
-      console.log(info);
+      //console.log(info);
       if (info.accepted?.length > 0) {
         //save data in the db.
         saveDataInDatabase(data, attachmentAddress, "quote");
