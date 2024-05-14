@@ -29,6 +29,7 @@ const allowedOrigins = require("./config/allowedOrigins");
 const { Sales } = require("./classes/sales");
 const { Payments } = require("./classes/client_payments");
 const sendQuote = require("./controllers/emailController");
+const Email = require("./classes/emails");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -41,7 +42,19 @@ app.use(express.json({ limit: "50mb" })); // To parse the incoming requests with
 //middleware for cookies
 app.use(cookieParser());
 
-app.use(express.static("public"));
+//Serve files
+app.use(
+  "/image/:requestId",
+  (req, res, next) => {
+    const { requestId } = req.params;
+
+    //check request id to count how many times an email was viewed
+    Email.updateEmailViews(requestId);
+    console.log(requestId);
+    next();
+  },
+  express.static("public")
+);
 
 //free routes
 app.use("/", require("./routes/root"));
@@ -765,6 +778,17 @@ app.post(
     return response;
   }
 );
+
+app.get(
+  "/getEmailsSent",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Email.getEmailsSent();
+    res.json(response);
+  }
+);
+
+//#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

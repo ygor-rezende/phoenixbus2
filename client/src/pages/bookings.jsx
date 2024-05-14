@@ -34,6 +34,8 @@ import {
   Menu,
   Checkbox,
   Badge,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -166,6 +168,7 @@ const initialState = {
   hasBooking: null,
   openSendEmailDialog: false,
   manualInvoiceError: false,
+  isLoading: false,
 };
 
 export const Bookings = () => {
@@ -219,32 +222,30 @@ export const Bookings = () => {
       response = await getServer("/getamountduebyinvoice", controller.signal);
       const transactionsRespData = response?.data;
 
+      response = await getServer("/getEmailsSent", controller.signal);
+      const emailsRespData = response?.data;
+
       response = await getServer("/getallquotes", controller.signal);
       let quotesRespData = response?.data;
       quotesRespData = quotesRespData?.map((item) => {
+        const emailInfo = emailsRespData?.find(
+          (e) => e.email_id === item.invoice
+        );
+        const clientInfo = clientsRespData.find(
+          (client) => client.client_id === item.client_id
+        );
+        const employeeInfo = employeesRespData.find(
+          (employee) => employee.employee_id === item.employee_id
+        );
         const quote = {
           id: item.invoice,
           isQuote: item.is_quote,
           clientId: item.client_id,
-          agencyName: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).agency,
-          agencyContact: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).contact,
-          agencyEmail: clientsRespData.find(
-            (client) => client.client_id === item.client_id
-          ).email,
+          agencyName: clientInfo?.agency,
+          agencyContact: clientInfo?.contact,
+          agencyEmail: clientInfo?.email,
           employeeId: item.employee_id,
-          salesPerson: `${
-            employeesRespData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).firstname
-          } ${
-            employeesRespData.find(
-              (employee) => employee.employee_id === item.employee_id
-            ).lastname
-          }`,
+          salesPerson: `${employeeInfo?.firstname} ${employeeInfo?.lastname}`,
           responsibleName: item.responsible_name,
           responsibleEmail: item.responsible_email,
           responsiblePhone: item.responsible_phone,
@@ -264,6 +265,13 @@ export const Bookings = () => {
           costQuote: currencyFormatter.format(item.cost),
           hasBooking: item.has_booking,
           hasBookingCheck: <Checkbox checked={item.has_booking} size="small" />,
+          emailSentDate: dayjs(emailInfo?.time_stamp)
+            .utc(true)
+            .local()
+            .format("LLL"),
+          emailUser: emailInfo?.who_sent,
+          emailSentQty: emailInfo?.num_times_sent,
+          emailOpenedQty: emailInfo?.num_times_opened,
         };
         return quote;
       });
@@ -1547,6 +1555,9 @@ export const Bookings = () => {
 
   //Send quote to client
   const handleSendQuote = async () => {
+    //Show circular progress for loading info
+    setState({ isLoading: true });
+
     let attachmentJson = {
       date: dayjs(state.quoteDate).format("dddd, MMMM D, YYYY"),
       invoiceNum: state.invoice,
@@ -1567,11 +1578,21 @@ export const Bookings = () => {
     attachmentJson = JSON.stringify(attachmentJson);
 
     //validate email
-    if (state.curQuote?.responsibleEmail) {
+    if (state.curQuote?.responsibleEmail || state.curQuote?.responsibleName) {
       const response = await postServer("/sendQuoteEmail", {
         data: {
           email: state.responsibleEmail,
+          clientName: state.responsibleName,
           quoteId: state.invoice,
+          quoteDate: dayjs(state.quoteDate).format("LL"),
+          passengers: state.numPeople,
+          tripStart: dayjs(state.tripStartDate).format("dddd, MMMM D, YYYY"),
+          tripEnd: dayjs(state.tripEndDate).format("dddd, MMMM D, YYYY"),
+          quotedCost: state.quotedCost,
+          deposit: state.deposit,
+          quoteExp: dayjs(
+            dayjs(new Date()).add(state.numHoursQuoteValid, "hour")
+          ).format("LL"),
           attachmentData: attachmentJson,
           timestamp: new Date().toISOString(),
           user: auth.userName,
@@ -1583,6 +1604,8 @@ export const Bookings = () => {
           openSnakbar: true,
           msg: response.data,
           openSendEmailDialog: false,
+          isDataUpdated: !state.isDataUpdated,
+          isLoading: false,
         });
       } else if (response?.disconnect) {
         setAuth({});
@@ -1593,14 +1616,17 @@ export const Bookings = () => {
           success: false,
           openSnakbar: true,
           openSendEmailDialog: false,
+          isLoading: false,
         });
       }
     } else {
-      window.alert("Responsible email is not valid.");
+      window.alert("Responsible name or email is not valid.");
     }
   };
 
-  const emailDialogDescription = !state.curQuote?.responsibleEmail
+  const emailDialogDescription = state.curQuote?.emailUser
+    ? `Email was sent on ${state.curQuote?.emailSentDate} by ${state.curQuote?.emailUser}. Do you want to send it again?`
+    : !state.curQuote?.responsibleEmail
     ? "Responsible email is missing. Please go back and save a responsible email."
     : `Confirm emailing this quote to ${state.curQuote?.responsibleEmail}?`;
 
@@ -2118,8 +2144,22 @@ export const Bookings = () => {
                           Quote
                         </Button>
 
-                        <Tooltip title="Date last quote sent" arrow>
-                          <Badge color="secondary" badgeContent={0}>
+                        <Tooltip
+                          title={
+                            state.curQuote?.emailUser
+                              ? `Sent on ${state.curQuote?.emailSentDate} by ${state.curQuote?.emailUser}`
+                              : ""
+                          }
+                          arrow
+                        >
+                          <Badge
+                            color="secondary"
+                            badgeContent={
+                              state.curQuote?.emailUser
+                                ? state.curQuote?.emailSentQty
+                                : 0
+                            }
+                          >
                             <Button
                               style={{ marginLeft: "10px" }}
                               variant="contained"
@@ -2127,7 +2167,6 @@ export const Bookings = () => {
                                 setState({ openSendEmailDialog: true });
                               }}
                               size="small"
-                              disabled
                             >
                               <SendIcon /> Email Quote
                             </Button>
@@ -2742,6 +2781,10 @@ export const Bookings = () => {
             title="Emailing Quote to client"
             description={emailDialogDescription}
           />
+
+          <Backdrop open={state.isLoading} sx={{ zIndex: 4 }}>
+            <CircularProgress color="primary" />
+          </Backdrop>
         </div>
       </div>
     </div>
