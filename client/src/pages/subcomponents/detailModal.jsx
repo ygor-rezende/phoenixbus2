@@ -543,7 +543,7 @@ export const DetailModal = (props) => {
       addStopDetail: "",
       addStopInfo: "",
       tripLength: 0.0,
-      specialEvent: "",
+      specialEvents: "",
     });
   };
 
@@ -599,6 +599,7 @@ export const DetailModal = (props) => {
       onClose={() => setState({ openModal: false })}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      sx={{ zIndex: 2 }}
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
