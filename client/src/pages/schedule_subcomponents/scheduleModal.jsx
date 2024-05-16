@@ -410,6 +410,7 @@ export const ScheduleModal = (props) => {
       onClose={handleCloseModal}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      sx={{ zIndex: 2 }}
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
