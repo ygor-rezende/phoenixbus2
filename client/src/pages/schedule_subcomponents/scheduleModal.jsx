@@ -48,6 +48,7 @@ const initialState = {
   endTime: null,
   returnTime: null,
   driver: null,
+  phone: "",
   vehicle: null,
   company: null,
   payment: 0.0,
@@ -111,6 +112,7 @@ export const ScheduleModal = (props) => {
         driver: rowData?.firstname
           ? `${rowData?.firstname} ${rowData?.lastname}`
           : null,
+        phone: rowData?.phone?.replace(/\s/g, ""), //remove all spaces
         vehicle: rowData?.vehicle_name,
         company: rowData?.company_name,
         payment: rowData?.payment,
@@ -195,6 +197,12 @@ export const ScheduleModal = (props) => {
   };
 
   const handleUpdate = async () => {
+    const smsId = state.driver
+      .substring(0, state.driver.indexOf(" "))
+      .concat("_", state.invoice, "_", new Date().toISOString());
+
+    const spotTime = dayjs(state.start_time).subtract(15, "m").format("HH:mm");
+
     const response = await putServer("/updateSchedule", {
       detail: {
         detailId: state.detailId,
@@ -214,6 +222,19 @@ export const ScheduleModal = (props) => {
         specialEvents: state.specialEvents,
         confirmed: state.confirmed,
         changeUser: auth.userName,
+      },
+      smsData: {
+        id: smsId,
+        to: state.phone,
+        name: state.driver,
+        bus: state.vehicle,
+        tripDate: dayjs(state.serviceDate).format("dddd, MMMM D, YYYY"),
+        spotTime: spotTime,
+        yardTime: dayjs(state.spotTime).format("HH:mm"),
+        spotTimeOfDay:
+          new Date(spotTime).getHours() > 12 ? "afternoon" : "morning",
+        yardTimeOfDay:
+          new Date(state.spotTime).getHours() > 12 ? "afternoon" : "morning",
       },
     });
 

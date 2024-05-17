@@ -1,3 +1,4 @@
+const axios = require("axios");
 const pool = require("../db");
 
 class Schedule {
@@ -38,6 +39,7 @@ class Schedule {
         e.employee_id,
         e.firstname,
         e.lastname,
+        e.phone,
         v.vehicle_id,
         v.vehicle_name,
         v.vehicle_color,
@@ -83,7 +85,7 @@ class Schedule {
 
   static async updateSchedule(req, res) {
     try {
-      const { detail } = req.body;
+      const { detail, smsData } = req.body;
       if (!detail)
         return res.status(400).json("Bad request: Missing information");
 
@@ -128,11 +130,22 @@ class Schedule {
         ]
       );
 
+      //send SMS if needed
+      if (detail.useFarmout === false && detail.confirmed === true)
+        await this.sendSMS(smsData);
+
       return res.json(`Schedule updated successfully`);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message });
     }
+  } //update schedule
+
+  static async sendSMS(data) {
+    //call post method on smsService
+    let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
+      data,
+    });
   }
 }
 
