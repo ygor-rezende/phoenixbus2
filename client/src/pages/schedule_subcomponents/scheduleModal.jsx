@@ -297,17 +297,17 @@ export const ScheduleModal = (props) => {
 
   //validate the form fields
   const isFormValid = () => {
-    if (!state.spotTime) {
+    if (!dayjs(state.spotTime).isValid()) {
       setState({ invalidField: "spotTime" });
       return;
     }
 
-    if (!state.startTime) {
+    if (!dayjs(state.startTime).isValid()) {
       setState({ invalidField: "startTime" });
       return;
     }
 
-    if (!state.endTime) {
+    if (!dayjs(state.endTime).isValid()) {
       setState({ invalidField: "endTime" });
       return;
     }
@@ -483,8 +483,18 @@ export const ScheduleModal = (props) => {
 
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
-                label="Yard time"
+                slotProps={{
+                  textField: {
+                    error: state.invalidField === "spotTime",
+                    helperText:
+                      state.invalidField === "spotTime"
+                        ? "Information required"
+                        : "",
+                    required: true,
+                  },
+                }}
                 className="modalField"
+                label="Yard time"
                 id="spotTime"
                 ampm={false}
                 timezone="America/New_York"
@@ -494,7 +504,7 @@ export const ScheduleModal = (props) => {
 
               <FormControl
                 error={state.invalidField === "startTime"}
-                className="modalField"
+                className="modalField"                
               >
                 <DateTimePicker
                   label="Service time"
@@ -506,7 +516,7 @@ export const ScheduleModal = (props) => {
                     setState({ startTime: dayjs(newValue) })
                   }
                 />
-                <FormHelperText style={{}}>
+                <FormHelperText>
                   {state.invalidField === "startTime"
                     ? "Information required"
                     : ""}
@@ -517,7 +527,7 @@ export const ScheduleModal = (props) => {
                 error={state.invalidField === "endTime"}
                 className="modalField"
               >
-                <DateTimePicker
+                <DateTimePicker                  
                   label="End time"
                   id="endTime"
                   ampm={false}

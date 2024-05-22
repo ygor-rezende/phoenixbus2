@@ -417,12 +417,12 @@ export const Bookings = () => {
       return;
     }
 
-    if (!state.tripStartDate) {
+    if (!dayjs(state.tripStartDate).isValid()) {
       setState({ invalidField: "tripStartDate" });
       return;
     }
 
-    if (!state.tripEndDate) {
+    if (!dayjs(state.tripEndDate).isValid()) {
       setState({ invalidField: "tripEndDate" });
       return;
     }
@@ -1903,17 +1903,20 @@ export const Bookings = () => {
                     />
 
                     <DatePicker
-                      error={state.invalidField === "tripStartDate"}
-                      helperText={
-                        state.invalidField === "tripStartDate"
-                          ? "Information required"
-                          : ""
-                      }
+                      slotProps={{
+                        textField: {
+                          error: state.invalidField === "tripStartDate",
+                          helperText:
+                            state.invalidField === "tripStartDate"
+                              ? "Information required"
+                              : "",
+                          required: true,
+                        },
+                      }}
                       label="Trip Start Date"
                       className="textfieldSmall"
                       id="tripStartDate"
                       timezone="America/New_York"
-                      required
                       placeholder="Trip Start Date"
                       value={state.tripStartDate}
                       onChange={(newValue) =>
@@ -2000,17 +2003,20 @@ export const Bookings = () => {
                     />
 
                     <DatePicker
-                      error={state.invalidField === "tripEndDate"}
-                      helperText={
-                        state.invalidField === "tripEndDate"
-                          ? "Information required"
-                          : ""
-                      }
+                      slotProps={{
+                        textField: {
+                          error: state.invalidField === "tripEndDate",
+                          helperText:
+                            state.invalidField === "tripEndDate"
+                              ? "Information required"
+                              : "",
+                          required: true,
+                        },
+                      }}
                       label="Trip End Date"
                       className="textfieldSmall"
                       id="tripEndDate"
                       timezone="America/New_York"
-                      required
                       placeholder="Trip End Date"
                       value={state.tripEndDate}
                       onChange={(newValue) =>

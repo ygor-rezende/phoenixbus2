@@ -83,6 +83,23 @@ class Schedule {
     }
   }
 
+  static async getBusesDailySchedule(req, res) {
+    try {
+      const { serviceDate } = req.params;
+      if (!serviceDate)
+        return res.status(400).json("Bad request: Missing service date");
+
+      const response = await pool.query(
+        `SELECT * FROM get_buses_daily_schedule(servicedate => '${serviceDate}%'::TEXT)`
+      );
+
+      return res.json(response.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    }
+  }
+
   static async updateSchedule(req, res) {
     try {
       const { detail, smsData } = req.body;

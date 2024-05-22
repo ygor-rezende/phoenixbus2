@@ -668,6 +668,15 @@ app.get(
   }
 );
 
+app.get(
+  "/getbusesschedule/:serviceDate",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Schedule.getBusesDailySchedule(req, res);
+    return response;
+  }
+);
+
 app.put(
   "/updateSchedule",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),
