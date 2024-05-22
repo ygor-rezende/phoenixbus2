@@ -48,6 +48,7 @@ const initialState = {
   endTime: null,
   returnTime: null,
   driver: null,
+  phone: "",
   vehicle: null,
   company: null,
   payment: 0.0,
@@ -111,6 +112,7 @@ export const ScheduleModal = (props) => {
         driver: rowData?.firstname
           ? `${rowData?.firstname} ${rowData?.lastname}`
           : null,
+        phone: rowData?.phone?.replace(/\s/g, ""), //remove all spaces
         vehicle: rowData?.vehicle_name,
         company: rowData?.company_name,
         payment: rowData?.payment,
@@ -195,6 +197,12 @@ export const ScheduleModal = (props) => {
   };
 
   const handleUpdate = async () => {
+    const smsId = state.driver
+      .substring(0, state.driver.indexOf(" "))
+      .concat("_", state.invoice, "_", new Date().toISOString());
+
+    const spotTime = dayjs(state.start_time).subtract(15, "m").format("HH:mm");
+
     const response = await putServer("/updateSchedule", {
       detail: {
         detailId: state.detailId,
@@ -214,6 +222,19 @@ export const ScheduleModal = (props) => {
         specialEvents: state.specialEvents,
         confirmed: state.confirmed,
         changeUser: auth.userName,
+      },
+      smsData: {
+        id: smsId,
+        to: state.phone,
+        name: state.driver,
+        bus: state.vehicle,
+        tripDate: dayjs(state.serviceDate).format("dddd, MMMM D, YYYY"),
+        spotTime: spotTime,
+        yardTime: dayjs(state.spotTime).format("HH:mm"),
+        spotTimeOfDay:
+          new Date(spotTime).getHours() > 12 ? "afternoon" : "morning",
+        yardTimeOfDay:
+          new Date(state.spotTime).getHours() > 12 ? "afternoon" : "morning",
       },
     });
 
@@ -276,17 +297,17 @@ export const ScheduleModal = (props) => {
 
   //validate the form fields
   const isFormValid = () => {
-    if (!state.spotTime) {
+    if (!dayjs(state.spotTime).isValid()) {
       setState({ invalidField: "spotTime" });
       return;
     }
 
-    if (!state.startTime) {
+    if (!dayjs(state.startTime).isValid()) {
       setState({ invalidField: "startTime" });
       return;
     }
 
-    if (!state.endTime) {
+    if (!dayjs(state.endTime).isValid()) {
       setState({ invalidField: "endTime" });
       return;
     }
@@ -410,6 +431,7 @@ export const ScheduleModal = (props) => {
       onClose={handleCloseModal}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      sx={{ zIndex: 2 }}
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
@@ -461,8 +483,18 @@ export const ScheduleModal = (props) => {
 
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
-                label="Yard time"
+                slotProps={{
+                  textField: {
+                    error: state.invalidField === "spotTime",
+                    helperText:
+                      state.invalidField === "spotTime"
+                        ? "Information required"
+                        : "",
+                    required: true,
+                  },
+                }}
                 className="modalField"
+                label="Yard time"
                 id="spotTime"
                 ampm={false}
                 timezone="America/New_York"
@@ -472,7 +504,7 @@ export const ScheduleModal = (props) => {
 
               <FormControl
                 error={state.invalidField === "startTime"}
-                className="modalField"
+                className="modalField"                
               >
                 <DateTimePicker
                   label="Service time"
@@ -484,7 +516,7 @@ export const ScheduleModal = (props) => {
                     setState({ startTime: dayjs(newValue) })
                   }
                 />
-                <FormHelperText style={{}}>
+                <FormHelperText>
                   {state.invalidField === "startTime"
                     ? "Information required"
                     : ""}
@@ -495,7 +527,7 @@ export const ScheduleModal = (props) => {
                 error={state.invalidField === "endTime"}
                 className="modalField"
               >
-                <DateTimePicker
+                <DateTimePicker                  
                   label="End time"
                   id="endTime"
                   ampm={false}

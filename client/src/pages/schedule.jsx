@@ -37,6 +37,7 @@ import * as FileSaver from "file-saver";
 
 import dayjs from "dayjs";
 import FarmoutReport from "./pdfReports/farmoutReport";
+import BusesTable from "./schedule_subcomponents/busesTable";
 
 const drawerWidth = 240;
 
@@ -85,6 +86,7 @@ export const Schedule = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [busSchedule, setBusSchedule] = useState([]);
 
   const effectRun = useRef(false);
 
@@ -130,10 +132,21 @@ export const Schedule = () => {
           endDate: new Date(endDate).toISOString().slice(0, 10),
         });
 
-        const response = await getServer(
+        //Get schedule data
+        let response = await getServer(
           `/getschedule/${dates}`,
           controller.signal
         );
+        const scheduleData = response.data;
+
+        //Get buses day schedule data
+        const serviceDate = new Date(startDate).toISOString()?.slice(0, 10);
+        response = await getServer(
+          `/getbusesschedule/${serviceDate}`,
+          controller.signal
+        );
+
+        const busesData = response.data;
 
         if (response.disconnect) {
           setAuth({});
@@ -142,8 +155,8 @@ export const Schedule = () => {
         }
         //no error
         else {
-          const responseMsg = await response.data;
-          isMounted && setData(responseMsg);
+          isMounted && setData(scheduleData);
+          setBusSchedule(busesData);
           setDateString(dayjs(startDate).format("dddd, MMMM D, YYYY"));
           setIsLoading(false);
         }
@@ -177,7 +190,19 @@ export const Schedule = () => {
         endDate: new Date(endDate).toISOString().slice(0, 10),
       });
 
-      const response = await getServer(`/getschedule/${dates}`);
+      //get schedule
+      let response = await getServer(`/getschedule/${dates}`);
+      const scheduleData = response.data;
+
+      let busesData = [];
+      if (sDate === eDate) {
+        //Get buses day schedule data
+        const serviceDate = new Date(startDate).toISOString()?.slice(0, 10);
+
+        response = await getServer(`/getbusesschedule/${serviceDate}`);
+        busesData = response.data;
+      }
+
       if (response.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
@@ -185,8 +210,8 @@ export const Schedule = () => {
       }
       //no error
       else {
-        const responseData = await response.data;
-        setData(responseData);
+        setData(scheduleData);
+        setBusSchedule(busesData);
         setIsLoading(false);
         if (sDate === eDate)
           setDateString(dayjs(sDate).format("dddd, MMMM D, YYYY"));
@@ -332,13 +357,12 @@ export const Schedule = () => {
               <Grid item xs={12} md={8} lg={9}>
                 <Paper
                   sx={{
-                    p: 2,
+                    p: 0,
                     display: "flex",
                     flexDirection: "column",
-                    height: 240,
                   }}
                 ></Paper>
-                {/*chart*/}
+                <BusesTable data={busSchedule} />
               </Grid>
               <Grid item xs={12} md={4} lg={3}>
                 <Paper

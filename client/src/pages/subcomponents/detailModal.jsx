@@ -543,7 +543,7 @@ export const DetailModal = (props) => {
       addStopDetail: "",
       addStopInfo: "",
       tripLength: 0.0,
-      specialEvent: "",
+      specialEvents: "",
     });
   };
 
@@ -574,6 +574,21 @@ export const DetailModal = (props) => {
       return;
     }
 
+    if (!dayjs(state.spotTime).isValid()) {
+      setState({ invalidField: "spotTime" });
+      return;
+    }
+
+    if (!dayjs(state.startTime).isValid()) {
+      setState({ invalidField: "startTime" });
+      return;
+    }
+
+    if (!dayjs(state.endTime).isValid()) {
+      setState({ invalidField: "endTime" });
+      return;
+    }
+
     setState({ invalidField: "" });
     return true;
   }; //isFormValid
@@ -599,6 +614,7 @@ export const DetailModal = (props) => {
       onClose={() => setState({ openModal: false })}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      sx={{ zIndex: 2 }}
     >
       <Box sx={modalStile}>
         <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
@@ -923,6 +939,16 @@ export const DetailModal = (props) => {
           <Box className="modal2Columns">
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
               <DateTimePicker
+                slotProps={{
+                  textField: {
+                    error: state.invalidField === "spotTime",
+                    helperText:
+                      state.invalidField === "spotTime"
+                        ? "Information required"
+                        : "",
+                    required: true,
+                  },
+                }}
                 label="Yard time"
                 className="modalField"
                 ampm={false}
@@ -933,6 +959,16 @@ export const DetailModal = (props) => {
               />
 
               <DateTimePicker
+                slotProps={{
+                  textField: {
+                    error: state.invalidField === "startTime",
+                    helperText:
+                      state.invalidField === "startTime"
+                        ? "Information required"
+                        : "",
+                    required: true,
+                  },
+                }}
                 label="Start time"
                 className="modalField"
                 ampm={false}
@@ -959,6 +995,16 @@ export const DetailModal = (props) => {
               )}
 
               <DateTimePicker
+                slotProps={{
+                  textField: {
+                    error: state.invalidField === "endTime",
+                    helperText:
+                      state.invalidField === "endTime"
+                        ? "Information required"
+                        : "",
+                    required: true,
+                  },
+                }}
                 label="End time"
                 className="modalField"
                 ampm={false}
