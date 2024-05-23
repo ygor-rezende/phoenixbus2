@@ -3,17 +3,12 @@ const bodyParser = require("body-parser");
 const logger = require("firebase-functions/logger");
 const { getFirestore } = require("firebase-admin/firestore");
 const pool = require("../db");
-const admin = require("firebase-admin");
-const serviceAccount = require("../firebase_service_account.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+require("dotenv").config();
 
 const db = getFirestore();
 
 const router = express.Router();
-router.post("/sendSMS", bodyParser.json(), async (req, res) => {
+router.post("/", bodyParser.json(), async (req, res) => {
   try {
     const { data } = req.body;
     console.log(data);
@@ -28,7 +23,7 @@ router.post("/sendSMS", bodyParser.json(), async (req, res) => {
       to: data.to,
       body: `Hello ${data.name}.\n
                  You have a trip on ${data.tripDate} at ${data.spotTime} (in the ${data.spotTimeOfDay}).\n
-                 Please confirm this trip by clicking here: http://127.0.0.1:5001/phoenixintranet-8d6e8/us-central1/smsService/confirmTrip/${data.id}
+                 Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPTESTADDRESS}/${data.id}
                  Trip Details:             
                  Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
                  Bus: ${data.bus}\n           
@@ -68,6 +63,7 @@ router.post("/sendSMS", bodyParser.json(), async (req, res) => {
       //Save result on database
       await pool.query(`CALL create_sms(
         sms_id => '${data.id}'::TEXT,
+        detail_id => ${data.detailId}::SMALLINT,
         to_phone => '${data.to}'::TEXT,
         delivery_status => '${docInstance.data().delivery?.state}'::TEXT
       );`);
@@ -79,39 +75,6 @@ router.post("/sendSMS", bodyParser.json(), async (req, res) => {
     console.error(err);
     logger.error(err);
     return res.status(500).json({ message: err.message });
-  }
-});
-
-router.get("/confirmTrip/:smsId", async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const { smsId } = req.params;
-
-    await client.query("BEGIN");
-
-    //Check if smsId exists
-    const response = await client.query(
-      `SELECT sms_id from sms WHERE sms_id = '${smsId}'`
-    );
-
-    if (response.rowCount < 1) {
-      await client.query("COMMIT");
-      return res.status(404).send(`<h2>Page not found.</h2>`);
-    }
-
-    //save confirmation on database
-    await client.query(`CALL confirm_sms(smsid => '${smsId}'::TEXT)`);
-
-    //send response for driver
-    await client.query("COMMIT");
-    return res.status(200).send(`<h2>Trip confirmed successfully!</h2>`);
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error(err);
-    logger.error(err);
-    return res.status(500).send(`<h2>An error ocurred. Please try again.</h2>`);
-  } finally {
-    client.release();
   }
 });
 

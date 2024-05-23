@@ -574,17 +574,17 @@ export const DetailModal = (props) => {
       return;
     }
 
-    if (!dayjs(state.spotTime).isValid()) {
+    if (!dayjs(state.spotTime).isValid() || state.spotTime > state.startTime) {
       setState({ invalidField: "spotTime" });
       return;
     }
 
-    if (!dayjs(state.startTime).isValid()) {
+    if (!dayjs(state.startTime).isValid() || state.startTime > state.endTime) {
       setState({ invalidField: "startTime" });
       return;
     }
 
-    if (!dayjs(state.endTime).isValid()) {
+    if (!dayjs(state.endTime).isValid() || state.endTime < state.startTime) {
       setState({ invalidField: "endTime" });
       return;
     }
@@ -944,7 +944,9 @@ export const DetailModal = (props) => {
                     error: state.invalidField === "spotTime",
                     helperText:
                       state.invalidField === "spotTime"
-                        ? "Information required"
+                        ? state.spotTime > state.startTime
+                          ? "Invalid date/time"
+                          : "Information required"
                         : "",
                     required: true,
                   },
@@ -956,6 +958,10 @@ export const DetailModal = (props) => {
                 timezone="America/New_York"
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
+                minDateTime={dayjs(serviceData.service_date).set("hour", 0)}
+                maxDateTime={dayjs(serviceData.service_date)
+                  .set("hour", 23)
+                  .set("minutes", 59)}
               />
 
               <DateTimePicker
@@ -964,7 +970,9 @@ export const DetailModal = (props) => {
                     error: state.invalidField === "startTime",
                     helperText:
                       state.invalidField === "startTime"
-                        ? "Information required"
+                        ? state.startTime > state.endTime
+                          ? "Invalid date/time"
+                          : "Information required"
                         : "",
                     required: true,
                   },
@@ -978,6 +986,10 @@ export const DetailModal = (props) => {
                 onChange={(newValue) =>
                   setState({ startTime: dayjs(newValue) })
                 }
+                minDateTime={state.spotTime}
+                maxDateTime={dayjs(serviceData.service_date)
+                  .set("hour", 23)
+                  .set("minutes", 59)}
               />
 
               {serviceData?.service_code === "RT" && (
@@ -991,6 +1003,10 @@ export const DetailModal = (props) => {
                   onChange={(newValue) =>
                     setState({ returnTime: dayjs(newValue) })
                   }
+                  minDateTime={state.startTime}
+                  maxDateTime={dayjs(serviceData.service_date)
+                    .set("hour", 23)
+                    .set("minutes", 59)}
                 />
               )}
 
@@ -1000,7 +1016,9 @@ export const DetailModal = (props) => {
                     error: state.invalidField === "endTime",
                     helperText:
                       state.invalidField === "endTime"
-                        ? "Information required"
+                        ? state.endTime < state.startTime
+                          ? "Invalid date/time"
+                          : "Information required"
                         : "",
                     required: true,
                   },
@@ -1012,6 +1030,10 @@ export const DetailModal = (props) => {
                 id="endTime"
                 value={state.endTime}
                 onChange={(newValue) => setState({ endTime: dayjs(newValue) })}
+                minDateTime={state.startTime}
+                maxDateTime={dayjs(serviceData.service_date)
+                  .set("hour", 23)
+                  .set("minutes", 59)}
               />
             </LocalizationProvider>
             <TextField

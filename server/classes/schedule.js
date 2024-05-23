@@ -1,5 +1,7 @@
 const axios = require("axios");
 const pool = require("../db");
+require("dotenv").config();
+const os = require("os");
 
 class Schedule {
   static async getSchedule(req, res) {
@@ -39,7 +41,7 @@ class Schedule {
         e.employee_id,
         e.firstname,
         e.lastname,
-        e.phone,
+        e.phone AS driver_phone,
         v.vehicle_id,
         v.vehicle_name,
         v.vehicle_color,
@@ -101,12 +103,23 @@ class Schedule {
   }
 
   static async updateSchedule(req, res) {
+    const client = await pool.connect();
     try {
       const { detail, smsData } = req.body;
       if (!detail)
         return res.status(400).json("Bad request: Missing information");
 
-      await pool.query(
+      //Start transaction
+      await client.query("BEGIN");
+
+      //get the confirmed field for later check
+      const response = await client.query(
+        `SELECT confirmed FROM service_details WHERE detail_id = ${detail.detailId}`
+      );
+
+      const wasConfirmed = response.rows?.at(0)?.confirmed;
+
+      await client.query(
         `CALL update_detail(
           spottime=>$1::TEXT,
           starttime=>$2::TEXT,
@@ -148,21 +161,35 @@ class Schedule {
       );
 
       //send SMS if needed
-      if (detail.useFarmout === false && detail.confirmed === true)
-        await this.sendSMS(smsData);
+      // if (
+      //   detail.useFarmout === false &&
+      //   detail.confirmed === true &&
+      //   wasConfirmed === false
+      // )
+      //   await this.sendSMS(smsData);
 
+      await client.query("COMMIT");
       return res.json(`Schedule updated successfully`);
     } catch (err) {
+      await client.query("ROLLBACK");
       console.error(err);
       return res.status(500).json({ message: err.message });
+    } finally {
+      client.release();
     }
   } //update schedule
 
   static async sendSMS(data) {
     //call post method on smsService
-    let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
-      data,
-    });
+    if (os.hostname().indexOf("LAPTOP") > -1) {
+      let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
+        data,
+      });
+    } else {
+      let response = await axios.post(`${process.env.SMSSERVICEPROD}/sendSMS`, {
+        data,
+      });
+    }
   }
 }
 

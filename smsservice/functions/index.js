@@ -1,22 +1,21 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-require("dotenv").config();
-
 const { onRequest } = require("firebase-functions/v1/https");
 const express = require("express");
-const router = require("./routes/routes");
+const credentials = require("./middleware/credentials");
+const admin = require("firebase-admin");
+const serviceAccount = require("./firebase_service_account.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/", router);
+app.use("/confirmTrip", require("./routes/freeRoute"));
+
+app.use(credentials);
+
+app.use("/sendSMS", require("./routes/protectedRoute"));
 
 exports.smsService = onRequest(app);
