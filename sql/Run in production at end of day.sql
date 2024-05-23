@@ -1,3 +1,4 @@
+DROP TABLE public.sms;
 CREATE TABLE IF NOT EXISTS public.sms
 (
     sms_id character varying(50) COLLATE pg_catalog."default" NOT NULL,
@@ -13,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.sms
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
+);
 
 DROP PROCEDURE IF EXISTS public.create_sms(text, text, text);
 CREATE OR REPLACE PROCEDURE public.create_sms(
