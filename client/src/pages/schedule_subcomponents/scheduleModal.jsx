@@ -198,8 +198,10 @@ export const ScheduleModal = (props) => {
 
   const handleUpdate = async () => {
     const smsId = state.driver
-      .substring(0, state.driver.indexOf(" "))
-      .concat("_", state.invoice, "_", new Date().toISOString());
+      ? state.driver
+          ?.substring(0, state.driver.indexOf(" "))
+          .concat("_", state.invoice, "_", new Date().toISOString())
+      : null;
 
     const spotTime = dayjs(state.start_time).subtract(15, "m").format("HH:mm");
 
@@ -297,17 +299,17 @@ export const ScheduleModal = (props) => {
 
   //validate the form fields
   const isFormValid = () => {
-    if (!dayjs(state.spotTime).isValid()) {
+    if (!dayjs(state.spotTime).isValid() || state.spotTime > state.startTime) {
       setState({ invalidField: "spotTime" });
       return;
     }
 
-    if (!dayjs(state.startTime).isValid()) {
+    if (!dayjs(state.startTime).isValid() || state.startTime > state.endTime) {
       setState({ invalidField: "startTime" });
       return;
     }
 
-    if (!dayjs(state.endTime).isValid()) {
+    if (!dayjs(state.endTime).isValid() || state.endTime < state.startTime) {
       setState({ invalidField: "endTime" });
       return;
     }
@@ -500,11 +502,15 @@ export const ScheduleModal = (props) => {
                 timezone="America/New_York"
                 value={state.spotTime}
                 onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
+                minDateTime={dayjs(state.serviceDate).set("hour", 0)}
+                maxDateTime={dayjs(state.serviceDate)
+                  .set("hour", 23)
+                  .set("minutes", 59)}
               />
 
               <FormControl
                 error={state.invalidField === "startTime"}
-                className="modalField"                
+                className="modalField"
               >
                 <DateTimePicker
                   label="Service time"
@@ -515,6 +521,10 @@ export const ScheduleModal = (props) => {
                   onChange={(newValue) =>
                     setState({ startTime: dayjs(newValue) })
                   }
+                  minDateTime={state.spotTime}
+                  maxDateTime={dayjs(state.serviceDate)
+                    .set("hour", 23)
+                    .set("minutes", 59)}
                 />
                 <FormHelperText>
                   {state.invalidField === "startTime"
@@ -527,7 +537,7 @@ export const ScheduleModal = (props) => {
                 error={state.invalidField === "endTime"}
                 className="modalField"
               >
-                <DateTimePicker                  
+                <DateTimePicker
                   label="End time"
                   id="endTime"
                   ampm={false}
@@ -538,6 +548,10 @@ export const ScheduleModal = (props) => {
                       endTime: dayjs(newValue),
                     })
                   }
+                  minDateTime={state.startTime}
+                  maxDateTime={dayjs(state.serviceDate)
+                    .set("hour", 23)
+                    .set("minutes", 59)}
                 />
                 <FormHelperText>
                   {state.invalidField === "endTime"
@@ -819,6 +833,10 @@ export const ScheduleModal = (props) => {
                   onChange={(newValue) =>
                     setState({ returnTime: dayjs(newValue) })
                   }
+                  minDateTime={state.startTime}
+                  maxDateTime={dayjs(state.serviceDate)
+                    .set("hour", 23)
+                    .set("minutes", 59)}
                 />
               </LocalizationProvider>
             )}

@@ -115,7 +115,7 @@ export const ScheduleTable = (props) => {
   useEffect(() => {
     setFilteredData(data);
     let indexes = new Map();
-    data.forEach((e, index) => {
+    data?.forEach((e, index) => {
       indexes.set(index, false);
     });
     setExtendLine(indexes);
@@ -229,7 +229,7 @@ export const ScheduleTable = (props) => {
 
   const handleExpandAll = (value) => {
     let lines = new Map();
-    extendLine.forEach((v, k) => {
+    extendLine?.forEach((v, k) => {
       lines.set(k, value);
     });
     setExtendLine(lines);

@@ -101,7 +101,7 @@ class Schedule {
   }
 
   static async updateSchedule(req, res) {
-    const client = pool.connect();
+    const client = await pool.connect();
     try {
       const { detail, smsData } = req.body;
       if (!detail)
