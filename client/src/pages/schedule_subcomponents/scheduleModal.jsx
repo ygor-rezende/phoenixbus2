@@ -112,7 +112,7 @@ export const ScheduleModal = (props) => {
         driver: rowData?.firstname
           ? `${rowData?.firstname} ${rowData?.lastname}`
           : null,
-        phone: rowData?.phone?.replace(/\s/g, ""), //remove all spaces
+        phone: rowData?.driver_phone?.replace(/\s/g, ""), //remove all spaces
         vehicle: rowData?.vehicle_name,
         company: rowData?.company_name,
         payment: rowData?.payment,
@@ -227,6 +227,7 @@ export const ScheduleModal = (props) => {
       },
       smsData: {
         id: smsId,
+        detailId: state.detailId,
         to: state.phone,
         name: state.driver,
         bus: state.vehicle,

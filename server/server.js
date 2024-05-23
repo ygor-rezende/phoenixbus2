@@ -42,7 +42,7 @@ app.use(express.json({ limit: "50mb" })); // To parse the incoming requests with
 //middleware for cookies
 app.use(cookieParser());
 
-//Serve files
+//Serve phoenix log image for email view
 app.use(
   "/image/:requestId",
   (req, res, next) => {

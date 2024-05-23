@@ -1,5 +1,7 @@
 const axios = require("axios");
 const pool = require("../db");
+require("dotenv").config();
+const os = require("os");
 
 class Schedule {
   static async getSchedule(req, res) {
@@ -39,7 +41,7 @@ class Schedule {
         e.employee_id,
         e.firstname,
         e.lastname,
-        e.phone,
+        e.phone AS driver_phone,
         v.vehicle_id,
         v.vehicle_name,
         v.vehicle_color,
@@ -115,7 +117,7 @@ class Schedule {
         `SELECT confirmed FROM service_details WHERE detail_id = ${detail.detailId}`
       );
 
-      const wasConfirmed = response.data;
+      const wasConfirmed = response.rows?.at(0)?.confirmed;
 
       await client.query(
         `CALL update_detail(
@@ -159,12 +161,12 @@ class Schedule {
       );
 
       //send SMS if needed
-      if (
-        detail.useFarmout === false &&
-        detail.confirmed === true &&
-        wasConfirmed === false
-      )
-        await this.sendSMS(smsData);
+      // if (
+      //   detail.useFarmout === false &&
+      //   detail.confirmed === true &&
+      //   wasConfirmed === false
+      // )
+      //   await this.sendSMS(smsData);
 
       await client.query("COMMIT");
       return res.json(`Schedule updated successfully`);
@@ -179,9 +181,15 @@ class Schedule {
 
   static async sendSMS(data) {
     //call post method on smsService
-    let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
-      data,
-    });
+    if (os.hostname().indexOf("LAPTOP") > -1) {
+      let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
+        data,
+      });
+    } else {
+      let response = await axios.post(`${process.env.SMSSERVICEPROD}/sendSMS`, {
+        data,
+      });
+    }
   }
 }
 
