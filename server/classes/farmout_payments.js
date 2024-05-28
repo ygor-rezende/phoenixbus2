@@ -1,17 +1,19 @@
 const pool = require("../db");
 
-class Payments {
-  static async getInvoices() {
+class FarmoutPayments {
+  static async getUpdatedAccounts() {
     try {
-      const result = await pool.query(`SELECT * FROM get_invoices_to_pay()`);
+      const result = await pool.query(
+        `SELECT * FROM calculate_farmout_balance()`
+      );
       return result.rows;
     } catch (err) {
       console.error(err);
       return { message: err.message };
     }
-  } //getInvoices
+  } //getUpdatedAccounts
 
-  static async processPayment(req, res) {
+  static async processFarmoutPayment(req, res) {
     try {
       const { payment } = req.body;
       if (!payment || !payment.accountId)
@@ -20,21 +22,17 @@ class Payments {
           .json({ message: "Bad request: Payment information is required" });
 
       await pool.query(
-        `CALL create_payment_transaction(
-        invoice => $1::TEXT,
-        accountid => $2::INTEGER,
-        amount => $3::NUMERIC,
-        transaction_date => $4::TEXT,
-        transaction_type => $5::character,
-        payment_type => $6::TEXT,
-        doc_number => $7::TEXT
+        `CALL record_farmout_payment(
+        accountid => $1::INTEGER,
+        amount => $2::NUMERIC,
+        transaction_date => $3::TEXT,
+        payment_type => $4::TEXT,
+        doc_number => $5::TEXT
         )`,
         [
-          payment.invoice,
           payment.accountId,
           payment.amount,
           payment.transactionDate,
-          payment.transactionType,
           payment.paymentType,
           payment.docNumber,
         ]
@@ -46,29 +44,29 @@ class Payments {
       console.error(err);
       return res.status(500).json({ message: err.message });
     }
-  } //processPayment
+  } //processFarmoutPayment
 
-  static async getPendingPayments() {
-    try {
-      const result = await pool.query(`SELECT * FROM get_pending_payments()`);
-      return result.rows;
-    } catch (err) {
-      console.error(err);
-      return { message: err.message };
-    }
-  } //getPendingPayments
-
-  static async getAmountDueByInvoice() {
+  static async getPendingFarmoutPayments() {
     try {
       const result = await pool.query(
-        `SELECT * FROM get_amount_due_by_invoice()`
+        `SELECT * FROM get_pending_farmout_payments()`
       );
       return result.rows;
     } catch (err) {
       console.error(err);
       return { message: err.message };
     }
-  } //getAmountDueByInvoice
+  } //getPendingFarmoutPayments
+
+  static async getFarmoutTransactions() {
+    try {
+      const result = await pool.query(`SELECT * FROM farmout_transactions`);
+      return result.rows;
+    } catch (err) {
+      console.error(err);
+      return { message: err.message };
+    }
+  } //getFarmoutTransactions
 }
 
-module.exports = { Payments };
+module.exports = { FarmoutPayments };

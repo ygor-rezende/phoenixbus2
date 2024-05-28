@@ -267,6 +267,13 @@ const APPBar = () => {
               >
                 Payments
               </MenuItem>
+              <MenuItem
+                component={NavLink}
+                to="/payfarmout"
+                onClick={handleCloseAccounting}
+              >
+                Farmout Payments
+              </MenuItem>
             </Menu>
 
             {userType === ROLES.admin ? (
