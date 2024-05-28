@@ -30,6 +30,7 @@ const { Sales } = require("./classes/sales");
 const { Payments } = require("./classes/client_payments");
 const sendQuote = require("./controllers/emailController");
 const Email = require("./classes/emails");
+const { FarmoutPayments } = require("./classes/farmout_payments");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -793,6 +794,44 @@ app.get(
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await Email.getEmailsSent();
+    res.json(response);
+  }
+);
+//#endregion
+
+//#Region farmout payments
+app.get(
+  "/getFarmoutAccounts",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await FarmoutPayments.getUpdatedAccounts();
+    res.json(response);
+  }
+);
+
+app.post(
+  "/processFarmoutPayment",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await FarmoutPayments.processFarmoutPayment(req, res);
+    return response;
+  }
+);
+
+app.get(
+  "/getPendingFarmoutPayments",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await FarmoutPayments.getPendingFarmoutPayments();
+    res.json(response);
+  }
+);
+
+app.get(
+  "/getFarmoutTransactions",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
+  async (req, res) => {
+    let response = await FarmoutPayments.getFarmoutTransactions();
     res.json(response);
   }
 );

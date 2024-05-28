@@ -25,6 +25,7 @@ import PersistLogin from "./Authentication/PersistLogin.js";
 import APPBar from "./pages/appBar.jsx";
 import { Sales } from "./pages/sales.jsx";
 import Payment from "./pages/payment.jsx";
+import FarmoutPayment from "./pages/farmoutPayment.jsx";
 
 const App = () => {
   const ROLES = {
@@ -75,6 +76,7 @@ const App = () => {
                 <Route path="/sales" element={<Sales />} />
                 <Route path="/driverpayroll" element={<DriverPayroll />} />
                 <Route path="/payments" element={<Payment />} />
+                <Route path="/payfarmout" element={<FarmoutPayment />} />
               </Route>
               <Route element={<RequireAuth allowedRoles={[ROLES.admin]} />}>
                 <Route path="/signup" element={<Register />} exact />
