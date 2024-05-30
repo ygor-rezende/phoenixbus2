@@ -22,15 +22,13 @@ router.post("/", bodyParser.json(), async (req, res) => {
     const smsInfo = {
       to: data.to,
       body: `Hello ${data.name}.\n
-                 You have a trip on ${data.tripDate} at ${data.spotTime} (in the ${data.spotTimeOfDay}).\n
-                 Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPTESTADDRESS}/${data.id}
-                 Trip Details:             
-                 Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
-                 Bus: ${data.bus}\n           
-                 Please refer to the Driver Order for more details.
-                 Have a good trip,\n
-                 Phoenix Bus Orlando.            
-                 `,
+      You have a trip on ${data.tripDate} at ${data.startTime} (in the ${data.startTimeOfDay}).\n
+      Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPPRODADDRESS}/${data.id}
+      \nTrip Details:
+      Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
+      Bus: ${data.bus}\n
+      Please refer to the Driver Order for more details.
+      Phoenix Bus Orlando.`,
     };
 
     //add a document to trigger sms
@@ -48,11 +46,11 @@ router.post("/", bodyParser.json(), async (req, res) => {
       while (true) {
         if (docInstance.data().delivery?.state === "SUCCESS") {
           status = 202;
-          response = "SMS delivered";
+          response = "SMS sent to driver.";
           break;
         } else if (docInstance.data().delivery?.state === "ERROR") {
-          status = 202;
-          response = { message: "Error delivering SMS" };
+          status = 500;
+          response = "Error delivering SMS.";
           break;
         } else {
           docInstance = await doc.get();
@@ -74,7 +72,7 @@ router.post("/", bodyParser.json(), async (req, res) => {
   } catch (err) {
     console.error(err);
     logger.error(err);
-    return res.status(500).json({ message: err.message });
+    return res.status(500).json(err.message);
   }
 });
 

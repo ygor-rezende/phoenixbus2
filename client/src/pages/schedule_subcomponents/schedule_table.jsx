@@ -32,6 +32,8 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
+import MarkChatReadIcon from "@mui/icons-material/MarkChatRead";
+import SmsFailedIcon from "@mui/icons-material/SmsFailed";
 
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -103,6 +105,7 @@ export const ScheduleTable = (props) => {
     isLoading,
     dateStart,
     dateEnd,
+    smsData,
   } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -602,6 +605,8 @@ export const ScheduleTable = (props) => {
             </TableHead>
 
             {visibleRows?.map((row, index) => {
+              //filter sms data
+              let smsInfo = smsData?.find((e) => e.detail_id === row.detail_id);
               return (
                 <TableBody key={row.detail_id}>
                   <TableRow
@@ -825,6 +830,16 @@ export const ScheduleTable = (props) => {
                               {row?.client_comments && (
                                 <SmallBoldCell>PO/REF #</SmallBoldCell>
                               )}
+
+                              {smsInfo?.detail_id && (
+                                <SmallBoldCell>SMS Delivered?</SmallBoldCell>
+                              )}
+
+                              {smsInfo?.detail_id && (
+                                <SmallBoldCell>
+                                  Driver confirmation?
+                                </SmallBoldCell>
+                              )}
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -880,6 +895,45 @@ export const ScheduleTable = (props) => {
                                   }}
                                 >
                                   {row?.client_comments}
+                                </SmallBoldCell>
+                              )}
+                              {smsInfo?.detail_id && (
+                                <SmallBoldCell
+                                  style={{
+                                    color: "black",
+                                    fontWeight: "normal",
+                                  }}
+                                >
+                                  {smsInfo.delivery_status === "SUCCESS" ? (
+                                    <div>
+                                      <MarkChatReadIcon color="success" />{" "}
+                                      {dayjs(smsInfo.delivery_timestamp)
+                                        .utc(true)
+                                        .local()
+                                        .format("LLL")}
+                                    </div>
+                                  ) : smsInfo.delivery_status === "ERROR" ? (
+                                    <div>
+                                      <SmsFailedIcon color="error" />
+                                    </div>
+                                  ) : (
+                                    ""
+                                  )}
+                                </SmallBoldCell>
+                              )}
+                              {smsInfo?.detail_id && (
+                                <SmallBoldCell
+                                  style={{
+                                    color: "black",
+                                    fontWeight: "normal",
+                                  }}
+                                >
+                                  {smsInfo.confirmed_timestamp
+                                    ? dayjs(smsInfo.confirmed_timestamp)
+                                        .utc(true)
+                                        .local()
+                                        .format("LLL")
+                                    : ""}
                                 </SmallBoldCell>
                               )}
                             </TableRow>

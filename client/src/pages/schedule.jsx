@@ -87,6 +87,7 @@ export const Schedule = () => {
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [busSchedule, setBusSchedule] = useState([]);
+  const [smsInfo, setSMSInfo] = useState([]);
 
   const effectRun = useRef(false);
 
@@ -145,8 +146,10 @@ export const Schedule = () => {
           `/getbusesschedule/${serviceDate}`,
           controller.signal
         );
-
         const busesData = response.data;
+
+        response = await getServer("/getsmsinfo", controller.signal);
+        const smsRespData = response.data;
 
         if (response.disconnect) {
           setAuth({});
@@ -157,6 +160,7 @@ export const Schedule = () => {
         else {
           isMounted && setData(scheduleData);
           setBusSchedule(busesData);
+          setSMSInfo(smsRespData);
           setDateString(dayjs(startDate).format("dddd, MMMM D, YYYY"));
           setIsLoading(false);
         }
@@ -203,6 +207,9 @@ export const Schedule = () => {
         busesData = response.data;
       }
 
+      response = await getServer("/getsmsinfo");
+      const smsRespData = response.data;
+
       if (response.disconnect) {
         setAuth({});
         navigate("/login", { state: { from: location }, replace: true });
@@ -212,6 +219,7 @@ export const Schedule = () => {
       else {
         setData(scheduleData);
         setBusSchedule(busesData);
+        setSMSInfo(smsRespData);
         setIsLoading(false);
         if (sDate === eDate)
           setDateString(dayjs(sDate).format("dddd, MMMM D, YYYY"));
@@ -351,6 +359,7 @@ export const Schedule = () => {
                     isLoading={isLoading}
                     dateStart={startDate}
                     dateEnd={endDate}
+                    smsData={smsInfo}
                   />
                 </Paper>
               </Grid>

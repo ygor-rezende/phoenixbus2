@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const pool = require("../db");
 
 router.get("/:smsId", async (req, res) => {
   const client = await pool.connect();
@@ -15,7 +16,11 @@ router.get("/:smsId", async (req, res) => {
 
     if (response.rowCount < 1) {
       await client.query("COMMIT");
-      return res.status(404).send(`<h2>Page not found.</h2>`);
+      return res
+        .status(404)
+        .send(
+          `<h1 style="text-align:center; position:relative; top:50%">Page Not Found</h1>`
+        );
     }
 
     //save confirmation on database
@@ -23,12 +28,20 @@ router.get("/:smsId", async (req, res) => {
 
     //send response for driver
     await client.query("COMMIT");
-    return res.status(200).send(`<h2>Trip confirmed successfully!</h2>`);
+    return res
+      .status(200)
+      .send(
+        `<h1 style="text-align:center; position:relative; top:50%">Trip confirmed successfully!</h1>`
+      );
   } catch (err) {
     await client.query("ROLLBACK");
     console.error(err);
     logger.error(err);
-    return res.status(500).send(`<h2>An error ocurred. Please try again.</h2>`);
+    return res
+      .status(500)
+      .send(
+        `<h1 style="text-align:center; position:relative; top:50%">An error ocurred. Please try again.</h1>`
+      );
   } finally {
     client.release();
   }
