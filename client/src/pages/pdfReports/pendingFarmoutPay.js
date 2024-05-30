@@ -145,16 +145,38 @@ const PendingFarmoutPayReport = (props) => {
     minimumFractionDigits: 2,
   });
 
+  //calculate amount due and past due by company
+  let newData = data?.map((e, idx, arr) => {
+    let dataByCompany = arr.filter((item) => item.company_id === e.company_id);
+    let sumPastDue = dataByCompany?.reduce((sum, cur) => {
+      return sum + Number(cur.past_due);
+    }, 0);
+    let amountDue = sumPastDue - e.total_payments;
+    return {
+      company_id: e.company_id,
+      company_name: e.company_name,
+      invoice: e.invoice,
+      trip_start_date: e.trip_start_date,
+      past_due: e.past_due,
+      sum_past_due: sumPastDue,
+      total_payments: e.total_payments,
+      amount_due: amountDue,
+    };
+  });
+
   //sum all past due payments
   let totalPastDue = data.reduce((sum, cur) => {
     return sum + Number(cur.past_due);
   }, 0);
 
-  let totalPaid = data.reduce((sum, cur) => {
+  //get unique companies data
+  let uniqueData = [...new Map(newData.map((e) => [e.company_id, e])).values()];
+
+  let totalPaid = uniqueData.reduce((sum, cur) => {
     return sum + Number(cur.total_payments);
   }, 0);
 
-  let totalBalance = data.reduce((sum, cur) => {
+  let totalBalance = uniqueData.reduce((sum, cur) => {
     return sum + Number(cur.amount_due);
   }, 0);
 
@@ -178,41 +200,75 @@ const PendingFarmoutPayReport = (props) => {
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
-              <TableCell width="40%" align="left">
+              <TableCell width="44%" align="left">
                 Company
               </TableCell>
-              <TableCell width="20%" align="right">
+              <TableCell width="10%" align="left">
+                Date
+              </TableCell>
+              <TableCell width="10%" align="right">
+                Age
+              </TableCell>
+              <TableCell width="12%" align="right">
                 Past Due
               </TableCell>
-              <TableCell width="20%" align="right">
+              <TableCell width="12%" align="right">
                 Paid
               </TableCell>
-              <TableCell width="20%" align="right">
+              <TableCell width="12%" align="right">
                 Amount Due
               </TableCell>
             </TableHeader>
             <View>
-              {data?.map((row, index) => {
+              {uniqueData?.map((row, index) => {
+                const details = newData?.filter(
+                  (e) => e.company_id === row.company_id
+                );
                 return (
                   <View>
-                    <View style={[{ marginTop: 10 }, styles.text]}>
-                      <TableRow
-                        key={row.company_id}
-                        bgColor={index % 2 === 0 ? "#dcdcdc" : "white"}
-                      >
-                        <TableCell width="40%" align="left">
+                    <View
+                      style={[
+                        { borderBottom: 0.5, marginTop: 10 },
+                        styles.textBold,
+                      ]}
+                    >
+                      <TableRow key={row.company_id} bgColor="#dcdcdc">
+                        <TableCell width="64%" align="left">
                           {row?.company_name}
                         </TableCell>
-                        <TableCell width="20%" align="right">
-                          {currencyFormatter.format(row?.past_due)}
+                        <TableCell width="12%" align="right">
+                          {currencyFormatter.format(row?.sum_past_due)}
                         </TableCell>
-                        <TableCell width="20%" align="right">
+                        <TableCell width="12%" align="right">
                           {currencyFormatter.format(row?.total_payments)}
                         </TableCell>
-                        <TableCell width="20%" align="right">
+                        <TableCell width="12%" align="right">
                           {currencyFormatter.format(row?.amount_due)}
                         </TableCell>
                       </TableRow>
+                    </View>
+                    <View>
+                      {details?.map((item, index) => {
+                        return (
+                          <TableRow key={index}>
+                            <TableCell width="44%" align="left">
+                              {item.invoice}
+                            </TableCell>
+                            <TableCell width="10%" align="left">
+                              {dayjs(item.trip_start_date).format("l")}
+                            </TableCell>
+                            <TableCell width="10%" align="right">
+                              {dayjs(new Date()).diff(
+                                item.trip_start_date,
+                                "days"
+                              )}
+                            </TableCell>
+                            <TableCell width="12%" align="right">
+                              {currencyFormatter.format(item.past_due)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </View>
                   </View>
                 );
