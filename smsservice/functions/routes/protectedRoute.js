@@ -23,7 +23,7 @@ router.post("/", bodyParser.json(), async (req, res) => {
       to: data.to,
       body: `Hello ${data.name}.\n
       You have a trip on ${data.tripDate} at ${data.startTime} (in the ${data.startTimeOfDay}).\n
-      Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPTESTADDRESS}/${data.id}
+      Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPPRODADDRESS}/${data.id}
       \nTrip Details:
       Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
       Bus: ${data.bus}\n
