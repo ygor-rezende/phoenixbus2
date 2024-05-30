@@ -161,15 +161,16 @@ class Schedule {
       );
 
       //send SMS if needed
+      let smsResp = "";
       // if (
       //   detail.useFarmout === false &&
       //   detail.confirmed === true &&
       //   wasConfirmed === false
       // )
-      //   await this.sendSMS(smsData);
+      //   smsResp = await this.sendSMS(smsData);
 
       await client.query("COMMIT");
-      return res.json(`Schedule updated successfully`);
+      return res.json(`Schedule updated successfully. ${smsResp}`);
     } catch (err) {
       await client.query("ROLLBACK");
       console.error(err);
@@ -181,15 +182,17 @@ class Schedule {
 
   static async sendSMS(data) {
     //call post method on smsService
+    let response;
     if (os.hostname().indexOf("LAPTOP") > -1) {
-      let response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
+      response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
         data,
       });
     } else {
-      let response = await axios.post(`${process.env.SMSSERVICEPROD}/sendSMS`, {
+      response = await axios.post(`${process.env.SMSSERVICEPROD}/sendSMS`, {
         data,
       });
     }
+    return response?.data;
   }
 }
 

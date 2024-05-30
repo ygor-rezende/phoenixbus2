@@ -13,10 +13,12 @@ import {
   Switch,
   Checkbox,
   FormGroup,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useReducer } from "react";
+import { Fragment, useEffect, useReducer } from "react";
 import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -64,6 +66,7 @@ const initialState = {
   vehicleValidationData: [],
   specialEvents: "",
   confirmed: false,
+  isLoading: false,
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -203,7 +206,8 @@ export const ScheduleModal = (props) => {
           .concat("_", state.invoice, "_", new Date().toISOString())
       : null;
 
-    const spotTime = dayjs(state.start_time).subtract(15, "m").format("HH:mm");
+    //Show circular progress for loading info
+    setState({ isLoading: true });
 
     const response = await putServer("/updateSchedule", {
       detail: {
@@ -232,10 +236,10 @@ export const ScheduleModal = (props) => {
         name: state.driver,
         bus: state.vehicle,
         tripDate: dayjs(state.serviceDate).format("dddd, MMMM D, YYYY"),
-        spotTime: spotTime,
+        startTime: dayjs(state.startTime).format("HH:mm"),
         yardTime: dayjs(state.spotTime).format("HH:mm"),
-        spotTimeOfDay:
-          new Date(spotTime).getHours() > 12 ? "afternoon" : "morning",
+        startTimeOfDay:
+          new Date(state.startTime).getHours() > 12 ? "afternoon" : "morning",
         yardTimeOfDay:
           new Date(state.spotTime).getHours() > 12 ? "afternoon" : "morning",
       },
@@ -248,6 +252,7 @@ export const ScheduleModal = (props) => {
       setAuth({});
       navigate("/login", { state: { from: location }, replace: true });
     } else if (response?.error) {
+      setState({ isLoading: false });
       onError(response.error);
     }
 
@@ -295,6 +300,7 @@ export const ScheduleModal = (props) => {
       vehicleValidationData: [],
       specialEvents: "",
       confirmed: false,
+      isLoading: false,
     });
   }; //clearState
 
@@ -429,237 +435,203 @@ export const ScheduleModal = (props) => {
   };
 
   return (
-    <Modal
-      open={state.openModal}
-      onClose={handleCloseModal}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-      sx={{ zIndex: 2 }}
-    >
-      <Box sx={modalStile}>
-        <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
-          <IconButton onClick={handleCloseModal}>
-            <CloseIcon />
-          </IconButton>
-        </Tooltip>
+    <Fragment>
+      <Modal
+        open={state.openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+        sx={{ zIndex: 2 }}
+      >
+        <Box sx={modalStile}>
+          <Tooltip title="Close" style={{ alignSelf: "flex-end" }}>
+            <IconButton onClick={handleCloseModal}>
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
 
-        <Typography
-          id="modal-title"
-          variant="h6"
-          component="h2"
-          style={{ alignSelf: "center" }}
-        >
-          Editing Schedule
-        </Typography>
+          <Typography
+            id="modal-title"
+            variant="h6"
+            component="h2"
+            style={{ alignSelf: "center" }}
+          >
+            Editing Schedule
+          </Typography>
 
-        <FormControlLabel
-          style={{ alignSelf: "center" }}
-          label="Use Farm-out"
-          control={
-            <Switch checked={state.useFarmout} onChange={handleCheckFarmout} />
-          }
-        />
-
-        <FormGroup style={{ alignContent: "center" }}>
           <FormControlLabel
+            style={{ alignSelf: "center" }}
+            label="Use Farm-out"
             control={
-              <Checkbox
-                checked={state.confirmed}
-                onChange={handleCheckConfirmed}
+              <Switch
+                checked={state.useFarmout}
+                onChange={handleCheckFarmout}
               />
             }
-            label="Confirmed?"
           />
-        </FormGroup>
 
-        <Box sx={{ display: "flex" }}>
-          <Box className="modal2Columns">
-            <TextField
-              id="invoice"
-              className="modalField"
-              value={state.invoice}
-              label="Invoice"
-              type="text"
-              onChange={(e) => setState({ invoice: e.target.value })}
-              disabled
+          <FormGroup style={{ alignContent: "center" }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={state.confirmed}
+                  onChange={handleCheckConfirmed}
+                />
+              }
+              label="Confirmed?"
             />
+          </FormGroup>
 
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
-              <DateTimePicker
-                slotProps={{
-                  textField: {
-                    error: state.invalidField === "spotTime",
-                    helperText:
-                      state.invalidField === "spotTime"
-                        ? "Information required"
-                        : "",
-                    required: true,
-                  },
-                }}
+          <Box sx={{ display: "flex" }}>
+            <Box className="modal2Columns">
+              <TextField
+                id="invoice"
                 className="modalField"
-                label="Yard time"
-                id="spotTime"
-                ampm={false}
-                timezone="America/New_York"
-                value={state.spotTime}
-                onChange={(newValue) => setState({ spotTime: dayjs(newValue) })}
-                minDateTime={dayjs(state.serviceDate).set("hour", 0)}
-                maxDateTime={dayjs(state.serviceDate)
-                  .set("hour", 23)
-                  .set("minutes", 59)}
+                value={state.invoice}
+                label="Invoice"
+                type="text"
+                onChange={(e) => setState({ invoice: e.target.value })}
+                disabled
               />
 
-              <FormControl
-                error={state.invalidField === "startTime"}
-                className="modalField"
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="en"
               >
                 <DateTimePicker
-                  label="Service time"
-                  id="startTime"
-                  ampm={false}
-                  value={state.startTime}
-                  timezone="America/New_York"
-                  onChange={(newValue) =>
-                    setState({ startTime: dayjs(newValue) })
-                  }
-                  minDateTime={state.spotTime}
-                  maxDateTime={dayjs(state.serviceDate)
-                    .set("hour", 23)
-                    .set("minutes", 59)}
-                />
-                <FormHelperText>
-                  {state.invalidField === "startTime"
-                    ? "Information required"
-                    : ""}
-                </FormHelperText>
-              </FormControl>
-
-              <FormControl
-                error={state.invalidField === "endTime"}
-                className="modalField"
-              >
-                <DateTimePicker
-                  label="End time"
-                  id="endTime"
-                  ampm={false}
-                  value={state.endTime}
-                  timezone="America/New_York"
-                  onChange={(newValue) =>
-                    setState({
-                      endTime: dayjs(newValue),
-                    })
-                  }
-                  minDateTime={state.startTime}
-                  maxDateTime={dayjs(state.serviceDate)
-                    .set("hour", 23)
-                    .set("minutes", 59)}
-                />
-                <FormHelperText>
-                  {state.invalidField === "endTime"
-                    ? "Information required"
-                    : ""}
-                </FormHelperText>
-              </FormControl>
-            </LocalizationProvider>
-
-            <TextField
-              id="payment"
-              className="modalField"
-              label="Driver Payment $"
-              type="text"
-              inputProps={{ inputMode: "decimal", step: "0.01" }}
-              placeholder="Driver Payment $"
-              value={state.payment}
-              onChange={(e) => setState({ payment: e.target.value })}
-            />
-
-            <TextField
-              id="specialEvent"
-              className="modalField"
-              label="Special Events"
-              type="text"
-              placeholder="Special Events"
-              value={state.specialEvents}
-              onChange={(e) => setState({ specialEvents: e.target.value })}
-            />
-          </Box>
-          <Box className="modal2Columns">
-            {state.useFarmout && (
-              <div
-                id="company-box"
-                className="modalField"
-                style={{ display: "inline-block" }}
-              >
-                <Autocomplete
-                  id="company"
-                  className="autocomplete"
-                  value={state.company}
-                  onChange={handleCompanyChange}
-                  isOptionEqualToValue={(option, value) =>
-                    option.company === value
-                  }
-                  options={
-                    compData?.map((element) => {
-                      const company = {
-                        companyId: element.company_id,
-                        company: element.company_name,
-                      };
-                      return company;
-                    }) ?? []
-                  }
-                  sx={{ width: 200 }}
-                  getOptionLabel={(option) => option.company ?? option}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      required
-                      label="Company"
-                      error={state.invalidField === "company"}
-                      helperText={
-                        state.invalidField === "company"
+                  slotProps={{
+                    textField: {
+                      error: state.invalidField === "spotTime",
+                      helperText:
+                        state.invalidField === "spotTime"
                           ? "Information required"
-                          : ""
-                      }
-                    />
-                  )}
+                          : "",
+                      required: true,
+                    },
+                  }}
+                  className="modalField"
+                  label="Yard time"
+                  id="spotTime"
+                  ampm={false}
+                  timezone="America/New_York"
+                  value={state.spotTime}
+                  onChange={(newValue) =>
+                    setState({ spotTime: dayjs(newValue) })
+                  }
+                  minDateTime={dayjs(state.serviceDate).set("hour", 0)}
+                  maxDateTime={dayjs(state.serviceDate)
+                    .set("hour", 23)
+                    .set("minutes", 59)}
                 />
-              </div>
-            )}
 
-            {!state.useFarmout && (
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <FormControl
+                  error={state.invalidField === "startTime"}
+                  className="modalField"
+                >
+                  <DateTimePicker
+                    label="Service time"
+                    id="startTime"
+                    ampm={false}
+                    value={state.startTime}
+                    timezone="America/New_York"
+                    onChange={(newValue) =>
+                      setState({ startTime: dayjs(newValue) })
+                    }
+                    minDateTime={state.spotTime}
+                    maxDateTime={dayjs(state.serviceDate)
+                      .set("hour", 23)
+                      .set("minutes", 59)}
+                  />
+                  <FormHelperText>
+                    {state.invalidField === "startTime"
+                      ? "Information required"
+                      : ""}
+                  </FormHelperText>
+                </FormControl>
+
+                <FormControl
+                  error={state.invalidField === "endTime"}
+                  className="modalField"
+                >
+                  <DateTimePicker
+                    label="End time"
+                    id="endTime"
+                    ampm={false}
+                    value={state.endTime}
+                    timezone="America/New_York"
+                    onChange={(newValue) =>
+                      setState({
+                        endTime: dayjs(newValue),
+                      })
+                    }
+                    minDateTime={state.startTime}
+                    maxDateTime={dayjs(state.serviceDate)
+                      .set("hour", 23)
+                      .set("minutes", 59)}
+                  />
+                  <FormHelperText>
+                    {state.invalidField === "endTime"
+                      ? "Information required"
+                      : ""}
+                  </FormHelperText>
+                </FormControl>
+              </LocalizationProvider>
+
+              <TextField
+                id="payment"
+                className="modalField"
+                label="Driver Payment $"
+                type="text"
+                inputProps={{ inputMode: "decimal", step: "0.01" }}
+                placeholder="Driver Payment $"
+                value={state.payment}
+                onChange={(e) => setState({ payment: e.target.value })}
+              />
+
+              <TextField
+                id="specialEvent"
+                className="modalField"
+                label="Special Events"
+                type="text"
+                placeholder="Special Events"
+                value={state.specialEvents}
+                onChange={(e) => setState({ specialEvents: e.target.value })}
+              />
+            </Box>
+            <Box className="modal2Columns">
+              {state.useFarmout && (
                 <div
-                  id="driver-box"
+                  id="company-box"
                   className="modalField"
                   style={{ display: "inline-block" }}
                 >
                   <Autocomplete
-                    id="driver"
+                    id="company"
                     className="autocomplete"
-                    value={state.driver}
-                    onChange={handleDriverChange}
+                    value={state.company}
+                    onChange={handleCompanyChange}
                     isOptionEqualToValue={(option, value) =>
-                      option.driver === value
+                      option.company === value
                     }
                     options={
-                      empData?.map((element) => {
-                        const employee = {
-                          employeeId: element.employee_id,
-                          driver: element.fullname,
+                      compData?.map((element) => {
+                        const company = {
+                          companyId: element.company_id,
+                          company: element.company_name,
                         };
-                        return employee;
+                        return company;
                       }) ?? []
                     }
                     sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.driver ?? option}
+                    getOptionLabel={(option) => option.company ?? option}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         required
-                        label="Driver"
-                        error={state.invalidField === "driver"}
+                        label="Company"
+                        error={state.invalidField === "company"}
                         helperText={
-                          state.invalidField === "driver"
+                          state.invalidField === "company"
                             ? "Information required"
                             : ""
                         }
@@ -667,137 +639,101 @@ export const ScheduleModal = (props) => {
                     )}
                   />
                 </div>
-                <div
-                  id="vehicle-box"
-                  className="modalField"
-                  style={{ display: "inline-block" }}
-                >
-                  <Autocomplete
-                    id="vehicle"
-                    className="autocomplete"
-                    value={state.vehicle}
-                    onChange={handleVehicleChange}
-                    isOptionEqualToValue={(option, value) =>
-                      option.vehicleName === value
-                    }
-                    options={
-                      vehData?.map((element) => {
-                        const vehicle = {
-                          vehicleId: element.vehicle_id,
-                          vehicleName: element.vehicle_name,
-                        };
-                        return vehicle;
-                      }) ?? []
-                    }
-                    sx={{ width: 200 }}
-                    getOptionLabel={(option) => option.vehicleName ?? option}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        required
-                        label="Vehicle"
-                        error={state.invalidField === "vehicle"}
-                        helperText={
-                          state.invalidField === "vehicle"
-                            ? "Information required"
-                            : ""
-                        }
-                      />
-                    )}
-                  />
-                </div>{" "}
-              </Box>
-            )}
+              )}
 
-            <div
-              id="from-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="from"
-                className="autocomplete"
-                value={state.from}
-                onChange={handleFromLocationChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.locationName === value
-                }
-                options={
-                  locData?.map((element) => {
-                    const location = {
-                      locationId: element.location_id,
-                      locationName: element.location_name,
-                    };
-                    return location;
-                  }) ?? []
-                }
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.locationName ?? option}
-                renderInput={(params) => (
-                  <TextField
-                    required
-                    {...params}
-                    label="From location"
-                    error={state.invalidField === "from"}
-                    helperText={
-                      state.invalidField === "from"
-                        ? "Information required"
-                        : ""
-                    }
-                  />
-                )}
-              />
-            </div>
+              {!state.useFarmout && (
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <div
+                    id="driver-box"
+                    className="modalField"
+                    style={{ display: "inline-block" }}
+                  >
+                    <Autocomplete
+                      id="driver"
+                      className="autocomplete"
+                      value={state.driver}
+                      onChange={handleDriverChange}
+                      isOptionEqualToValue={(option, value) =>
+                        option.driver === value
+                      }
+                      options={
+                        empData?.map((element) => {
+                          const employee = {
+                            employeeId: element.employee_id,
+                            driver: element.fullname,
+                          };
+                          return employee;
+                        }) ?? []
+                      }
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.driver ?? option}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          required
+                          label="Driver"
+                          error={state.invalidField === "driver"}
+                          helperText={
+                            state.invalidField === "driver"
+                              ? "Information required"
+                              : ""
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                  <div
+                    id="vehicle-box"
+                    className="modalField"
+                    style={{ display: "inline-block" }}
+                  >
+                    <Autocomplete
+                      id="vehicle"
+                      className="autocomplete"
+                      value={state.vehicle}
+                      onChange={handleVehicleChange}
+                      isOptionEqualToValue={(option, value) =>
+                        option.vehicleName === value
+                      }
+                      options={
+                        vehData?.map((element) => {
+                          const vehicle = {
+                            vehicleId: element.vehicle_id,
+                            vehicleName: element.vehicle_name,
+                          };
+                          return vehicle;
+                        }) ?? []
+                      }
+                      sx={{ width: 200 }}
+                      getOptionLabel={(option) => option.vehicleName ?? option}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          required
+                          label="Vehicle"
+                          error={state.invalidField === "vehicle"}
+                          helperText={
+                            state.invalidField === "vehicle"
+                              ? "Information required"
+                              : ""
+                          }
+                        />
+                      )}
+                    />
+                  </div>{" "}
+                </Box>
+              )}
 
-            <div
-              id="to-box"
-              className="modalField"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="to"
-                className="autocomplete"
-                value={state.to}
-                onChange={handleToLocationChange}
-                isOptionEqualToValue={(option, value) =>
-                  option.locationName === value
-                }
-                options={
-                  locData?.map((element) => {
-                    const location = {
-                      locationId: element.location_id,
-                      locationName: element.location_name,
-                    };
-                    return location;
-                  }) ?? []
-                }
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.locationName ?? option}
-                renderInput={(params) => (
-                  <TextField
-                    required
-                    {...params}
-                    label="To location"
-                    error={state.invalidField === "to"}
-                    helperText={
-                      state.invalidField === "to" ? "Information required" : ""
-                    }
-                  />
-                )}
-              />
-            </div>
-
-            {rowData?.service_code === "RT" && (
               <div
-                id="return-box"
+                id="from-box"
                 className="modalField"
                 style={{ display: "inline-block" }}
               >
                 <Autocomplete
-                  id="return"
+                  id="from"
                   className="autocomplete"
-                  value={state.return}
-                  onChange={handleReturnLocationChange}
+                  value={state.from}
+                  onChange={handleFromLocationChange}
                   isOptionEqualToValue={(option, value) =>
                     option.locationName === value
                   }
@@ -813,69 +749,154 @@ export const ScheduleModal = (props) => {
                   sx={{ width: 200 }}
                   getOptionLabel={(option) => option.locationName ?? option}
                   renderInput={(params) => (
-                    <TextField {...params} label="Return location" />
+                    <TextField
+                      required
+                      {...params}
+                      label="From location"
+                      error={state.invalidField === "from"}
+                      helperText={
+                        state.invalidField === "from"
+                          ? "Information required"
+                          : ""
+                      }
+                    />
                   )}
                 />
               </div>
-            )}
 
-            {rowData?.service_code === "RT" && (
-              <LocalizationProvider
-                dateAdapter={AdapterDayjs}
-                adapterLocale="en"
+              <div
+                id="to-box"
+                className="modalField"
+                style={{ display: "inline-block" }}
               >
-                <DateTimePicker
-                  label="Return PickUp time"
-                  className="modalField"
-                  id="returnTime"
-                  ampm={false}
-                  timezone="America/New_York"
-                  value={state.returnTime}
-                  onChange={(newValue) =>
-                    setState({ returnTime: dayjs(newValue) })
+                <Autocomplete
+                  id="to"
+                  className="autocomplete"
+                  value={state.to}
+                  onChange={handleToLocationChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.locationName === value
                   }
-                  minDateTime={state.startTime}
-                  maxDateTime={dayjs(state.serviceDate)
-                    .set("hour", 23)
-                    .set("minutes", 59)}
+                  options={
+                    locData?.map((element) => {
+                      const location = {
+                        locationId: element.location_id,
+                        locationName: element.location_name,
+                      };
+                      return location;
+                    }) ?? []
+                  }
+                  sx={{ width: 200 }}
+                  getOptionLabel={(option) => option.locationName ?? option}
+                  renderInput={(params) => (
+                    <TextField
+                      required
+                      {...params}
+                      label="To location"
+                      error={state.invalidField === "to"}
+                      helperText={
+                        state.invalidField === "to"
+                          ? "Information required"
+                          : ""
+                      }
+                    />
+                  )}
                 />
-              </LocalizationProvider>
-            )}
+              </div>
 
-            <TextField
-              id="instructions"
-              className="modalField"
-              label="Instructions"
-              type="text"
-              multiline
-              rows={4}
-              placeholder="Instructions"
-              value={state.instructions}
-              onChange={(e) => setState({ instructions: e.target.value })}
-            />
+              {rowData?.service_code === "RT" && (
+                <div
+                  id="return-box"
+                  className="modalField"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="return"
+                    className="autocomplete"
+                    value={state.return}
+                    onChange={handleReturnLocationChange}
+                    isOptionEqualToValue={(option, value) =>
+                      option.locationName === value
+                    }
+                    options={
+                      locData?.map((element) => {
+                        const location = {
+                          locationId: element.location_id,
+                          locationName: element.location_name,
+                        };
+                        return location;
+                      }) ?? []
+                    }
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.locationName ?? option}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Return location" />
+                    )}
+                  />
+                </div>
+              )}
+
+              {rowData?.service_code === "RT" && (
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="en"
+                >
+                  <DateTimePicker
+                    label="Return PickUp time"
+                    className="modalField"
+                    id="returnTime"
+                    ampm={false}
+                    timezone="America/New_York"
+                    value={state.returnTime}
+                    onChange={(newValue) =>
+                      setState({ returnTime: dayjs(newValue) })
+                    }
+                    minDateTime={state.startTime}
+                    maxDateTime={dayjs(state.serviceDate)
+                      .set("hour", 23)
+                      .set("minutes", 59)}
+                  />
+                </LocalizationProvider>
+              )}
+
+              <TextField
+                id="instructions"
+                className="modalField"
+                label="Instructions"
+                type="text"
+                multiline
+                rows={4}
+                placeholder="Instructions"
+                value={state.instructions}
+                onChange={(e) => setState({ instructions: e.target.value })}
+              />
+            </Box>
           </Box>
+          <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
+            <Button variant="contained" onClick={validateSave}>
+              Save
+            </Button>
+          </Box>
+          <CustomDialog
+            openDialog={state.openValidationDialog}
+            onConfirm={handleConfirmDialog}
+            onCancel={handleCancelDialog}
+            title={
+              state.validationDialogType === "driver"
+                ? "Driver already booked"
+                : "Vehicle already booked"
+            }
+            description={`The ${state.validationDialogType} ${
+              state.validationDialogType === "driver"
+                ? state.driver
+                : state.vehicle
+            } is already booked for a trip in this same day. Do you want to proceed?`}
+          />
         </Box>
-        <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button variant="contained" onClick={validateSave}>
-            Save
-          </Button>
-        </Box>
-        <CustomDialog
-          openDialog={state.openValidationDialog}
-          onConfirm={handleConfirmDialog}
-          onCancel={handleCancelDialog}
-          title={
-            state.validationDialogType === "driver"
-              ? "Driver already booked"
-              : "Vehicle already booked"
-          }
-          description={`The ${state.validationDialogType} ${
-            state.validationDialogType === "driver"
-              ? state.driver
-              : state.vehicle
-          } is already booked for a trip in this same day. Do you want to proceed?`}
-        />
-      </Box>
-    </Modal>
+      </Modal>
+      <Backdrop open={state.isLoading} sx={{ zIndex: 4 }}>
+        <CircularProgress color="primary" />
+      </Backdrop>
+    </Fragment>
   );
 };

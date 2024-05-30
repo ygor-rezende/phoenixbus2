@@ -31,6 +31,7 @@ const { Payments } = require("./classes/client_payments");
 const sendQuote = require("./controllers/emailController");
 const Email = require("./classes/emails");
 const { FarmoutPayments } = require("./classes/farmout_payments");
+const { SMS } = require("./classes/sms");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -835,7 +836,17 @@ app.get(
     res.json(response);
   }
 );
+//#endregion
 
+//#Region SMS
+app.get(
+  "/getsmsinfo",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await SMS.getSMSInfo();
+    res.json(response);
+  }
+);
 //#endregion
 
 if (os.hostname().indexOf("LAPTOP") > -1)
