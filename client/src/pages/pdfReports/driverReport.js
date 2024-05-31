@@ -287,13 +287,20 @@ const DriverReport = (props) => {
               <View style={styles.header}>
                 <View style={{ width: "17%" }}>
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Yard Time: </Text>
+                    <Text style={styles.textBold}>Yard: </Text>
                     {data?.spot_time
                       ? dayjs(data?.spot_time).format("HH:mm")
                       : ""}
                   </Text>
+                  {data?.spot_time && (
+                    <Text style={styles.text}>
+                      {dayjs(data?.spot_time).get("hour") < 12
+                        ? "(morning)"
+                        : ""}
+                    </Text>
+                  )}
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Spot time: </Text>
+                    <Text style={styles.textBold}>Spot: </Text>
                     {data?.start_time
                       ? dayjs(data?.start_time)
                           .subtract(15, "m")
@@ -301,7 +308,7 @@ const DriverReport = (props) => {
                       : ""}
                   </Text>
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Start time: </Text>
+                    <Text style={styles.textBold}>Start: </Text>
                     {data?.start_time
                       ? dayjs(data?.start_time).format("HH:mm")
                       : ""}
@@ -340,7 +347,7 @@ const DriverReport = (props) => {
                 <View style={{ width: "17%" }}>
                   {data?.return_location && (
                     <Text style={styles.text}>
-                      <Text style={styles.textBold}>Return PickUp time: </Text>
+                      <Text style={styles.textBold}>Return PickUp: </Text>
                       {data?.return_time
                         ? dayjs(data?.return_time).format("HH:mm")
                         : ""}
