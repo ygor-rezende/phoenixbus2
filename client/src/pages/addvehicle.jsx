@@ -11,6 +11,8 @@ import {
   Typography,
   FormControlLabel,
   Checkbox,
+  FormGroup,
+  Stack,
 } from "@mui/material";
 import { MuiColorInput } from "mui-color-input";
 import EnhancedTable from "../utils/table_generic";
@@ -44,6 +46,7 @@ const AddVehicle = () => {
   const [vehiclesData, setVehiclesData] = useState([]);
   const [onEditMode, setOnEditMode] = useState(false);
   const [status, setStatus] = useState("New Vehicle");
+  const [inactive, setInactive] = useState(false);
 
   const effectRun = useRef(false);
 
@@ -88,6 +91,8 @@ const AddVehicle = () => {
             maintenanceCheck: <Checkbox checked={item.maintenance} />,
             adaCheck: <Checkbox checked={item.ada} />,
             icon: <BusIcon color={item.vehicle_color} fontSize="small" />,
+            inactive: item.inactive,
+            inactiveCheck: <Checkbox checked={item.inactive} />,
           };
           return vehicles;
         });
@@ -181,6 +186,7 @@ const AddVehicle = () => {
           maintenance: maintenance,
           ada: ada,
           changeUser: auth.userName,
+          inactive: inactive,
         },
       });
 
@@ -214,6 +220,7 @@ const AddVehicle = () => {
     setAda(false);
     setOnEditMode(false);
     setStatus("New Vehicle");
+    setInactive(false);
     setIsdataUpdated(!isDataUpdated);
   };
 
@@ -229,6 +236,7 @@ const AddVehicle = () => {
     setMaintenance(false);
     setAda(false);
     setStatus("New Vehicle");
+    setInactive(false);
     setOnEditMode(false);
   };
 
@@ -265,6 +273,7 @@ const AddVehicle = () => {
     setTag(vehiclesData?.find((e) => e.id === id)?.tag);
     setMaintenance(vehiclesData?.find((e) => e.id === id)?.maintenance);
     setAda(vehiclesData?.find((e) => e.id === id)?.ada);
+    setInactive(vehiclesData?.find((e) => e.id === id)?.inactive);
   };
 
   //cancel editing when a checkbox is selected
@@ -305,6 +314,12 @@ const AddVehicle = () => {
       isPaddingDisabled: false,
       label: "ADA",
     },
+    {
+      id: "inactiveCheck",
+      isNumeric: false,
+      isPaddingDisabled: false,
+      label: "Sold?",
+    },
   ];
 
   return (
@@ -315,114 +330,127 @@ const AddVehicle = () => {
         </Typography>
         <form onSubmit={handleSubmit}>
           <Box className="fieldsbox1">
-            <TextField
-              id="vehicleName"
-              className="textfield"
-              required
-              label="Vehicle Name"
-              type="text"
-              placeholder="Vehicle Name"
-              value={vehicleName}
-              onChange={(e) => setVehicleName(e.target.value)}
-            />
-
-            <TextField
-              id="vehicleModel"
-              className="textfield"
-              required
-              label="Model"
-              type="text"
-              placeholder="Model"
-              value={vehicleModel}
-              onChange={(e) => setVehicleModel(e.target.value)}
-            />
-
-            <div
-              id="vehicle-year-box"
-              className="textfield"
-              style={{ display: "inline-block" }}
-            >
-              <Autocomplete
-                id="year-options"
-                className="autocomplete"
-                required
-                value={vehicleYear}
-                onChange={(e, newValue) => setVehicleYear(newValue)}
-                options={yearList()}
-                sx={{ width: 200 }}
-                getOptionLabel={(option) => option.toString()}
-                renderInput={(params) => (
-                  <TextField required {...params} label="Year" />
-                )}
-              />
-            </div>
-
-            <MuiColorInput
-              id="vehicleColor"
-              className="textfield"
-              format="hex"
-              label="Color"
-              value={vehicleColor}
-              onChange={(color) => setVehicleColor(color)}
-              isAlphaHidden
-            />
-
-            <TextField
-              id="vin"
-              className="textfield"
-              label="VIN"
-              type="text"
-              placeholder="VIN"
-              value={vin}
-              onChange={(e) => setVin(e.target.value)}
-            />
-
-            <TextField
-              id="pax"
-              required
-              className="textfield"
-              label="PAX"
-              type="text"
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-            />
-
-            <TextField
-              id="tag"
-              className="textfield"
-              label="TAG"
-              type="text"
-              placeholder="TAG"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-            />
-
-            <FormControlLabel
-              id="maitenance"
-              className="textfield"
-              style={{ alignSelf: "center" }}
-              control={
-                <Checkbox
-                  checked={maintenance}
-                  onChange={(e) => setMaintenance(e.target.checked)}
+            <Stack direction="row">
+              <Box>
+                <TextField
+                  id="vehicleName"
+                  className="textfield"
+                  required
+                  label="Vehicle Name"
+                  type="text"
+                  placeholder="Vehicle Name"
+                  value={vehicleName}
+                  onChange={(e) => setVehicleName(e.target.value)}
                 />
-              }
-              label="In Maintenance"
-            />
 
-            <FormControlLabel
-              id="ada"
-              className="textfield"
-              style={{ alignSelf: "center" }}
-              control={
-                <Checkbox
-                  checked={ada}
-                  onChange={(e) => setAda(e.target.checked)}
+                <TextField
+                  id="vehicleModel"
+                  className="textfield"
+                  required
+                  label="Model"
+                  type="text"
+                  placeholder="Model"
+                  value={vehicleModel}
+                  onChange={(e) => setVehicleModel(e.target.value)}
                 />
-              }
-              label="ADA"
-            />
+
+                <div
+                  id="vehicle-year-box"
+                  className="textfield"
+                  style={{ display: "inline-block" }}
+                >
+                  <Autocomplete
+                    id="year-options"
+                    className="autocomplete"
+                    required
+                    value={vehicleYear}
+                    onChange={(e, newValue) => setVehicleYear(newValue)}
+                    options={yearList()}
+                    sx={{ width: 200 }}
+                    getOptionLabel={(option) => option.toString()}
+                    renderInput={(params) => (
+                      <TextField required {...params} label="Year" />
+                    )}
+                  />
+                </div>
+
+                <MuiColorInput
+                  id="vehicleColor"
+                  className="textfield"
+                  format="hex"
+                  label="Color"
+                  value={vehicleColor}
+                  onChange={(color) => setVehicleColor(color)}
+                  isAlphaHidden
+                />
+
+                <TextField
+                  id="vin"
+                  className="textfield"
+                  label="VIN"
+                  type="text"
+                  placeholder="VIN"
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value)}
+                />
+
+                <TextField
+                  id="pax"
+                  required
+                  className="textfield"
+                  label="PAX"
+                  type="text"
+                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                />
+
+                <TextField
+                  id="tag"
+                  className="textfield"
+                  label="TAG"
+                  type="text"
+                  placeholder="TAG"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                />
+              </Box>
+
+              <FormGroup sx={{ justifyContent: "left" }}>
+                <FormControlLabel
+                  id="maitenance"
+                  control={
+                    <Checkbox
+                      checked={maintenance}
+                      onChange={(e) => setMaintenance(e.target.checked)}
+                    />
+                  }
+                  label="In Maintenance"
+                />
+
+                <FormControlLabel
+                  id="ada"
+                  control={
+                    <Checkbox
+                      checked={ada}
+                      onChange={(e) => setAda(e.target.checked)}
+                    />
+                  }
+                  label="ADA"
+                />
+
+                <FormControlLabel
+                  id="inactive"
+                  control={
+                    <Checkbox
+                      checked={inactive}
+                      onChange={(e) => setInactive(e.target.checked)}
+                    />
+                  }
+                  label="Sold"
+                />
+              </FormGroup>
+            </Stack>
 
             <p></p>
             <Button variant="contained" type="submit">
