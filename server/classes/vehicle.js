@@ -109,7 +109,8 @@ class Vehicle {
         tag1 => '${vehicle.tag}'::TEXT, 
         maintenance1 => ${vehicle.maintenance}, 
         ada1 => ${vehicle.ada},
-        changeUser => '${vehicle.changeUser}'::TEXT)`
+        changeUser => '${vehicle.changeUser}'::TEXT,
+        inactive1 => ${vehicle.inactive}::BOOLEAN)`
       );
 
       return res.json(`Vehicle ${vehicle.name} updated`);
@@ -122,7 +123,7 @@ class Vehicle {
   static async getAllVehicleNames() {
     try {
       const result = await pool.query(
-        "Select vehicle_id, vehicle_name FROM vehicles WHERE maintenance = false ORDER BY vehicle_name"
+        "Select vehicle_id, vehicle_name FROM vehicles WHERE maintenance = false AND inactive = false ORDER BY vehicle_name"
       );
       //console.log(result.rows);
       return result.rows;
