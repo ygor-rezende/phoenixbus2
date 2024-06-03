@@ -245,7 +245,7 @@ class Service {
             const spot = detail.spot_time?.substring(11) || "";
             const start = detail.start_time?.substring(11) || "";
             const end = detail.end_time?.substring(11) || "";
-            const returnTime = detail.end_time?.substring(11) || "";
+            const returnTime = detail.return_time?.substring(11) || "";
 
             //Join date and time
             const newSpot = datePart.concat("T", spot);

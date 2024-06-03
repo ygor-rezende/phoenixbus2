@@ -18,6 +18,7 @@ class Schedule {
         `select 
         b.invoice,
         b.client_comments,
+        b.category,
         s.service_id,
         s.charge,
         s.service_date,
