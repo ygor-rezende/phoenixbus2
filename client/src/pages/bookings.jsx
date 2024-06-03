@@ -169,6 +169,7 @@ const initialState = {
   openSendEmailDialog: false,
   manualInvoiceError: false,
   isLoading: false,
+  openCategoryDialog: false,
 };
 
 export const Bookings = () => {
@@ -1413,6 +1414,10 @@ export const Bookings = () => {
     setState({ openSendEmailDialog: false });
   };
 
+  const handleCloseCategoryDiag = () => {
+    setState({ openCategoryDialog: false });
+  };
+
   //open dialog to show calendar to select dates of services
   const handleDuplicateDialog = (serviceId) => {
     //open dialog
@@ -1935,9 +1940,14 @@ export const Bookings = () => {
                       className="autocomplete"
                       required
                       value={state.category}
-                      onChange={(_, newValue) =>
-                        setState({ category: newValue })
-                      }
+                      onChange={(_, newValue) => {
+                        newValue !== "Particular"
+                          ? setState({ category: newValue })
+                          : setState({
+                              category: newValue,
+                              openCategoryDialog: true,
+                            });
+                      }}
                       options={categories}
                       sx={{ width: 200 }}
                       getOptionLabel={(option) => option.toString()}
@@ -2788,6 +2798,14 @@ export const Bookings = () => {
             description={emailDialogDescription}
           />
 
+          <CustomDialog
+            openDialog={state.openCategoryDialog}
+            onConfirm={handleCloseCategoryDiag}
+            useOK={true}
+            title="Particular Category Selected"
+            description="Note: For particular bookings the client must pay in advance."
+          />
+
           <Backdrop open={state.isLoading} sx={{ zIndex: 4 }}>
             <CircularProgress color="primary" />
           </Backdrop>
@@ -2795,4 +2813,4 @@ export const Bookings = () => {
       </div>
     </div>
   );
-}; //Quotes
+}; //Bookings

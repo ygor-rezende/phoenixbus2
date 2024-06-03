@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 
 const CustomDialog = (props) => {
-  const { openDialog, onConfirm, onCancel, title, description } = props;
+  const { openDialog, onConfirm, onCancel, title, description, useOK } = props;
 
   return (
     <Dialog
@@ -25,10 +25,18 @@ const CustomDialog = (props) => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onConfirm}>Yes</Button>
-        <Button onClick={onCancel} autoFocus>
-          No
-        </Button>
+        {useOK ? (
+          <Button onClick={onConfirm} autoFocus>
+            OK
+          </Button>
+        ) : (
+          <div>
+            <Button onClick={onConfirm}>Yes</Button>
+            <Button onClick={onCancel} autoFocus>
+              No
+            </Button>
+          </div>
+        )}
       </DialogActions>
     </Dialog>
   );

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   TextField,
   TableSortLabel,
+  Stack,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
@@ -106,6 +107,7 @@ export const ScheduleTable = (props) => {
     dateStart,
     dateEnd,
     smsData,
+    transactions,
   } = props;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -264,46 +266,68 @@ export const ScheduleTable = (props) => {
       </Box>
 
       <Divider />
-      <Box sx={{ display: "flex", justifyContent: "center", margin: "1em" }}>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
-          <DatePicker
-            label="Start Date"
-            id="startDate"
-            timezone="America/New_York"
-            value={startDate}
-            minDate={dayjs(endDate).subtract(30, "day")}
-            maxDate={endDate}
-            slotProps={{
-              textField: {
-                helperText: "Maximum timeframe: 30 days",
-              },
-              field: { clearable: true },
-            }}
-            onChange={(newValue) => setStartDate(dayjs(newValue))}
-          />
-          <DatePicker
-            label="End Date"
-            sx={{ ml: "1em" }}
-            id="endDate"
-            timezone="America/New_York"
-            value={endDate}
-            minDate={startDate}
-            maxDate={dayjs(startDate).add(30, "day")}
-            slotProps={{
-              textField: {
-                helperText: "Maximum timeframe: 30 days",
-              },
-              field: { clearable: true },
-            }}
-            onChange={(newValue) => setEndDate(dayjs(newValue))}
-          />
-        </LocalizationProvider>
-        <IconButton sx={{ ml: "1em" }} onClick={handleSearch}>
-          <Avatar sx={{ bgcolor: "primary.main" }}>
-            <SearchIcon />
-          </Avatar>
-        </IconButton>
-      </Box>
+      <Stack direction="row" alignContent="center" justifyContent="center">
+        <Box sx={{ display: "flex", justifyContent: "center", margin: "1em" }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en">
+            <DatePicker
+              label="Start Date"
+              id="startDate"
+              timezone="America/New_York"
+              sx={{ justifyContent: "center" }}
+              value={startDate}
+              minDate={dayjs(endDate).subtract(30, "day")}
+              maxDate={endDate}
+              slotProps={{
+                textField: {
+                  helperText: "Maximum timeframe: 30 days",
+                },
+                field: { clearable: true },
+              }}
+              onChange={(newValue) => setStartDate(dayjs(newValue))}
+            />
+            <DatePicker
+              label="End Date"
+              sx={{ ml: "1em", justifyContent: "center" }}
+              id="endDate"
+              timezone="America/New_York"
+              value={endDate}
+              minDate={startDate}
+              maxDate={dayjs(startDate).add(30, "day")}
+              slotProps={{
+                textField: {
+                  helperText: "Maximum timeframe: 30 days",
+                },
+                field: { clearable: true },
+              }}
+              onChange={(newValue) => setEndDate(dayjs(newValue))}
+            />
+          </LocalizationProvider>
+
+          <IconButton sx={{ ml: "1em" }} size="small" onClick={handleSearch}>
+            <Avatar sx={{ bgcolor: "primary.main" }}>
+              <SearchIcon />
+            </Avatar>
+          </IconButton>
+        </Box>
+        <Box marginLeft="4em" marginBottom="1em" marginTop="1em">
+          <Table size="small">
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ bgcolor: "orange" }}></TableCell>
+                <TableCell>Particular trip not paid</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ bgcolor: "aquamarine" }}></TableCell>
+                <TableCell>Farm-Out</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ bgcolor: "beige" }}></TableCell>
+                <TableCell>Dead-Head</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Box>
+      </Stack>
       <Divider />
       {isLoading ? (
         <Box sx={{ justifyContent: "center", marginTop: "1em" }}>
@@ -607,12 +631,20 @@ export const ScheduleTable = (props) => {
             {visibleRows?.map((row, index) => {
               //filter sms data
               let smsInfo = smsData?.find((e) => e.detail_id === row.detail_id);
+
+              //find amount due for each invoice
+              let amountDue = transactions?.find(
+                (e) => e.invoice === row.invoice
+              )?.amount_due;
               return (
                 <TableBody key={row.detail_id}>
                   <TableRow
                     key={index}
                     sx={{
-                      bgcolor: getBgColor(row),
+                      bgcolor:
+                        amountDue > 0 && row.category === "Particular"
+                          ? "orange"
+                          : getBgColor(row),
                       outlineWidth: "thin",
                       outlineStyle: "inset",
                       outlineColor: "gray",

@@ -88,6 +88,7 @@ export const Schedule = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [busSchedule, setBusSchedule] = useState([]);
   const [smsInfo, setSMSInfo] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
   const effectRun = useRef(false);
 
@@ -115,10 +116,14 @@ export const Schedule = () => {
       response = await getServer("/getallcompanynames", controller.signal);
       const companyRespData = response.data;
 
+      response = await getServer("/getamountduebyinvoice", controller.signal);
+      const transactionsRespData = response?.data;
+
       setEmployees(empRespData);
       setLocations(locRespData);
       setVehicles(vehRespData);
       setCompanies(companyRespData);
+      setTransactions(transactionsRespData);
     })();
 
     async function getTodaySchedule() {
@@ -360,6 +365,7 @@ export const Schedule = () => {
                     dateStart={startDate}
                     dateEnd={endDate}
                     smsData={smsInfo}
+                    transactions={transactions}
                   />
                 </Paper>
               </Grid>
