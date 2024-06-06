@@ -12,7 +12,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/confirmTrip", require("./routes/freeRoute"));
+app.use("/", require("./routes/freeRoute"));
 
 app.use(credentials);
 

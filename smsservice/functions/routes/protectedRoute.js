@@ -23,11 +23,11 @@ router.post("/", bodyParser.json(), async (req, res) => {
       to: data.to,
       body: `Hello ${data.name}.\n
       You have a trip on ${data.tripDate} at ${data.startTime} (in the ${data.startTimeOfDay}).\n
-      Please confirm this trip by clicking here: ${process.env.CONFIRMTRIPPRODADDRESS}/${data.id}
+      Click here to confirm or reject this trip: ${process.env.CONFIRMTRIPPRODADDRESS}/${data.id}
       \nTrip Details:
       Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
       Bus: ${data.bus}\n
-      Please refer to the Driver Order for more details.
+      Pleas check the Driver Order for more details: ${process.env.PDFFOLDERPATH}/driverReport_${data.detailId}.pdf
       Phoenix Bus Orlando.`,
     };
 

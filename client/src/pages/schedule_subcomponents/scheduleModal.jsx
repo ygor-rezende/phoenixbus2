@@ -67,6 +67,7 @@ const initialState = {
   specialEvents: "",
   confirmed: false,
   isLoading: false,
+  openSMSDialog: false,
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -301,6 +302,7 @@ export const ScheduleModal = (props) => {
       specialEvents: "",
       confirmed: false,
       isLoading: false,
+      openSMSDialog: false,
     });
   }; //clearState
 
@@ -363,6 +365,7 @@ export const ScheduleModal = (props) => {
       setState({
         employeeId: newValue.employeeId,
         driver: newValue.driver,
+        phone: newValue.phone,
       });
     }
   };
@@ -431,7 +434,13 @@ export const ScheduleModal = (props) => {
   };
 
   const handleCheckConfirmed = (e) => {
-    setState({ confirmed: e.target.checked });
+    let isChecked = e.target.checked;
+    if (isChecked && state.useFarmout === false) {
+      //display alert
+      setState({ openSMSDialog: true, confirmed: isChecked });
+    } else {
+      setState({ confirmed: isChecked });
+    }
   };
 
   return (
@@ -661,6 +670,7 @@ export const ScheduleModal = (props) => {
                           const employee = {
                             employeeId: element.employee_id,
                             driver: element.fullname,
+                            phone: element.phone,
                           };
                           return employee;
                         }) ?? []
@@ -892,9 +902,24 @@ export const ScheduleModal = (props) => {
                 : state.vehicle
             } is already booked for a trip in this same day. Do you want to proceed?`}
           />
+          <CustomDialog
+            openDialog={state.openSMSDialog}
+            onConfirm={() => setState({ openSMSDialog: false })}
+            useOK={true}
+            title="SMS Alert"
+            description="When saving this changes a SMS will be sent to the driver assigned to this trip."
+          />
         </Box>
       </Modal>
-      <Backdrop open={state.isLoading} sx={{ zIndex: 4 }}>
+      <Backdrop
+        open={state.isLoading}
+        sx={{ zIndex: 4, display: "flex", flexDirection: "column" }}
+      >
+        {state.useFarmout === false && state.confirmed && (
+          <Typography variant="h6" bgcolor="whitesmoke">
+            Please Wait, sending SMS to driver...
+          </Typography>
+        )}
         <CircularProgress color="primary" />
       </Backdrop>
     </Fragment>
