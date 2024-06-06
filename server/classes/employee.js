@@ -235,7 +235,7 @@ class Employee {
   static async getDrivers() {
     try {
       const result = await pool.query(
-        "Select employee_id, firstname || ' ' || lastname as fullname FROM employees WHERE title = 'Driver' ORDER BY firstname, lastname"
+        "Select employee_id, firstname || ' ' || lastname as fullname, phone FROM employees WHERE title = 'Driver' ORDER BY firstname, lastname"
       );
       return result.rows;
     } catch (err) {

@@ -1,5 +1,5 @@
-import React from "react";
-import {
+const React = require("react");
+const {
   Page,
   Text,
   Image,
@@ -7,15 +7,24 @@ import {
   StyleSheet,
   View,
   Font,
-} from "@react-pdf/renderer";
-import PhoenixLogo from "../../images/phoenix_logo.png";
-import PlaceIcon from "../../images/Location-Icon-1.png";
-import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
-import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
-import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
-import { Table, TableCell, TableHeader, TableRow } from "./Table";
+} = require("@react-pdf/renderer");
+const fs = require("fs");
+const path = require("path");
+const PhoenixLogo = fs.readFileSync(
+  path.join(__dirname, "../images/phoenix_logo.png")
+);
+const PlaceIcon = fs.readFileSync(
+  path.join(__dirname, "../images/Location-Icon-1.png")
+);
+const Roboto =
+  "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf";
+const RobotoBold =
+  "https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlvAx05IsDqlA.ttf";
+const RobotoItalic =
+  "https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu52xPKTM1K9nz.ttf";
+const { Table, TableCell, TableHeader, TableRow } = require("./Table");
 
-import dayjs from "dayjs";
+const dayjs = require("dayjs");
 
 Font.register({
   family: "Roboto",
@@ -287,13 +296,20 @@ const DriverReport = (props) => {
               <View style={styles.header}>
                 <View style={{ width: "17%" }}>
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Yard Time: </Text>
+                    <Text style={styles.textBold}>Yard: </Text>
                     {data?.spot_time
                       ? dayjs(data?.spot_time).format("HH:mm")
                       : ""}
                   </Text>
+                  {data?.spot_time && (
+                    <Text style={styles.text}>
+                      {dayjs(data?.spot_time).get("hour") < 12
+                        ? "(morning)"
+                        : ""}
+                    </Text>
+                  )}
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Spot time: </Text>
+                    <Text style={styles.textBold}>Spot: </Text>
                     {data?.start_time
                       ? dayjs(data?.start_time)
                           .subtract(15, "m")
@@ -301,7 +317,7 @@ const DriverReport = (props) => {
                       : ""}
                   </Text>
                   <Text style={styles.text}>
-                    <Text style={styles.textBold}>Start time: </Text>
+                    <Text style={styles.textBold}>Start: </Text>
                     {data?.start_time
                       ? dayjs(data?.start_time).format("HH:mm")
                       : ""}
@@ -340,7 +356,7 @@ const DriverReport = (props) => {
                 <View style={{ width: "17%" }}>
                   {data?.return_location && (
                     <Text style={styles.text}>
-                      <Text style={styles.textBold}>Return time: </Text>
+                      <Text style={styles.textBold}>Return PickUp: </Text>
                       {data?.return_time
                         ? dayjs(data?.return_time).format("HH:mm")
                         : ""}
@@ -437,4 +453,4 @@ const DriverReport = (props) => {
   );
 };
 
-export default DriverReport;
+module.exports = DriverReport;

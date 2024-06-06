@@ -15,9 +15,11 @@ const cors = require("cors");
 const express = require("express");
 const credentials = require("./middleware/credentials");
 const corsOptions = require("./config/corsOptions");
-const ROLES_LIST = require("./config/roles_list");
 
 const pdfService = express();
+
+//Route to serve static files
+pdfService.use("/newpdf", express.static("public"));
 
 //Handle fetch cookies credentials requirement
 pdfService.use(credentials);
@@ -25,10 +27,8 @@ pdfService.use(credentials);
 //Allow only a list of origins
 pdfService.use(cors(corsOptions));
 
-//Quotes
+//Routes to generate pdfs
 pdfService.use("/api/getpdf", require("./routes/pdf-routes"));
-
-pdfService.use("/newpdf", express.static("public"));
 
 if (os.hostname().indexOf("LAPTOP") > -1)
   pdfService.listen(PORT, () => console.log(`Server running on port ${PORT}`));

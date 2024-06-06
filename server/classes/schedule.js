@@ -161,14 +161,22 @@ class Schedule {
         ]
       );
 
+      //Get data for pdf creation
+      const result = await client.query(
+        `SELECT * FROM get_driver_pdf_data(detailid => ${detail.detailId})`
+      );
+      const pdfData = result.rows?.at(0);
+      //console.log(pdfData);
+
       //send SMS if needed
       let smsResp = "";
-      // if (
-      //   detail.useFarmout === false &&
-      //   detail.confirmed === true &&
-      //   wasConfirmed === false
-      // )
+      let pdfResp = "";
+      // if (detail.useFarmout === false && detail.confirmed === true) {
       //   smsResp = await this.sendSMS(smsData);
+
+      //   //request driver order pdf creation
+      //   pdfResp = await this.createDriverPdf(pdfData);
+      // }
 
       await client.query("COMMIT");
       return res.json(`Schedule updated successfully. ${smsResp}`);
@@ -186,7 +194,7 @@ class Schedule {
     let response;
     if (os.hostname().indexOf("LAPTOP") > -1) {
       response = await axios.post(`${process.env.SMSSERVICE}/sendSMS`, {
-        data,
+        data: data,
       });
     } else {
       response = await axios.post(`${process.env.SMSSERVICEPROD}/sendSMS`, {
@@ -194,7 +202,19 @@ class Schedule {
       });
     }
     return response?.data;
-  }
+  } //sendSMS
+
+  static async createDriverPdf(data) {
+    //call post method on pdfService
+    let response = await axios.post(
+      `${process.env.PDFSERVICE}/driverOrder/newfile`,
+      {
+        data,
+      }
+    );
+    console.log(response.data);
+    return response?.data;
+  } //createDriverPdf
 }
 
 module.exports = { Schedule };

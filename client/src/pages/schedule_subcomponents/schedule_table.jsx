@@ -956,12 +956,20 @@ export const ScheduleTable = (props) => {
                               {smsInfo?.detail_id && (
                                 <SmallBoldCell
                                   style={{
-                                    color: "black",
+                                    color:
+                                      smsInfo.confirmed_rejected === "r"
+                                        ? "red"
+                                        : "black",
                                     fontWeight: "normal",
                                   }}
                                 >
-                                  {smsInfo.confirmed_timestamp
-                                    ? dayjs(smsInfo.confirmed_timestamp)
+                                  {smsInfo.confirmed_rejected === "c"
+                                    ? "Confirmed on "
+                                    : smsInfo.confirmed_rejected === "r"
+                                    ? "Rejected on "
+                                    : ""}
+                                  {smsInfo.answer_timestamp
+                                    ? dayjs(smsInfo.answer_timestamp)
                                         .utc(true)
                                         .local()
                                         .format("LLL")
