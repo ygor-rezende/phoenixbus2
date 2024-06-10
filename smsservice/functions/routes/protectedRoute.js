@@ -4,7 +4,6 @@ const logger = require("firebase-functions/logger");
 const { getFirestore } = require("firebase-admin/firestore");
 const pool = require("../db");
 require("dotenv").config();
-
 const db = getFirestore();
 
 const router = express.Router();
@@ -27,7 +26,7 @@ router.post("/", bodyParser.json(), async (req, res) => {
       \nTrip Details:
       Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
       Bus: ${data.bus}\n
-      Pleas check the Driver Order for more details: ${process.env.PDFFOLDERPATH}/driverReport_${data.detailId}.pdf
+      Please check the Driver Order for more details: ${process.env.PDFFOLDERPATH}/driverReport_${data.detailId}.pdf
       Phoenix Bus Orlando.`,
     };
 

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const { logger } = require("firebase-functions");
+const scheduleSMS = require("../modules/scheduleSMS");
 
 //This route sends HTML page to driver to confirm or reject trip
 router.get("/page/:smsId", (req, res) => {
@@ -62,11 +63,11 @@ router.get("/response", async (req, res) => {
     await client.query("BEGIN");
 
     //Check if smsId exists
-    const response = await client.query(
-      `SELECT sms_id from sms WHERE sms_id = '${smsId}'`
+    let response = await client.query(
+      `SELECT sms_id, detail_id from sms WHERE sms_id = '${smsId}'`
     );
-
-    console.log(response.rowCount);
+    //console.log(response.rowCount);
+    const smsData = response.rows[0];
 
     if (response.rowCount < 1) {
       await client.query("COMMIT");
@@ -81,6 +82,17 @@ router.get("/response", async (req, res) => {
     await client.query(
       `CALL confirm_sms(smsid => '${smsId}'::TEXT, answer => '${answer}'::CHARACTER)`
     );
+
+    //Schedule reminder sms if needed
+    if (smsData.detail_id && answer == "c") {
+      //Get detail data
+      response = await client.query(
+        `SELECT * FROM get_details_for_sms(${smsData?.detail_id}::SMALLINT)`
+      );
+
+      const data = response.rows[0];
+      await scheduleSMS(data);
+    }
 
     //send response for driver
     await client.query("COMMIT");
@@ -107,6 +119,19 @@ router.get("/response", async (req, res) => {
   } finally {
     client.release();
   }
+});
+
+router.get("/test", async (req, res) => {
+  const mockData = {
+    firstname: "Ygor",
+    start_time: "2024-06-10T23:00:00Z",
+    yard_time: "2024-06-10T22:35:00Z",
+    vehicle_name: "Bus 1",
+    phone: "+14169303448",
+  };
+
+  //call the function
+  await scheduleSMS(mockData);
 });
 
 module.exports = router;
