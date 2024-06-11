@@ -17,7 +17,7 @@ router.post("/", bodyParser.json(), async (req, res) => {
       return;
     }
 
-    //build object to save in database
+    //build object to save in firestore collection to trigger sms
     const smsInfo = {
       to: data.to,
       body: `Hello ${data.name}.\n

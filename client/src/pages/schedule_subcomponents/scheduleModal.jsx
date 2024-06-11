@@ -203,8 +203,8 @@ export const ScheduleModal = (props) => {
   const handleUpdate = async () => {
     const smsId = state.driver
       ? state.driver
-          ?.substring(0, state.driver.indexOf(" "))
-          .concat("_", state.invoice, "_", new Date().toISOString())
+          ?.replace(" ", "_")
+          .concat("_", state.invoice, "_", state.detailId)
       : null;
 
     //Show circular progress for loading info
