@@ -22,8 +22,8 @@ router.get("/page/:smsId", (req, res) => {
       text-align: center;
       text-decoration: none;
       display: inline-block;
-      font-size: 30px;
-      margin: 4px 4px;
+      font-size: 40px;
+      margin: 4px 40px;
       cursor: pointer;
     }
     
