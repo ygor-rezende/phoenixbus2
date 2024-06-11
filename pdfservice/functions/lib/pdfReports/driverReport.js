@@ -21,10 +21,9 @@ const {
   TableHeader,
   TableRow
 } = require("./Table");
-const dayjs = require("dayjs");
-dayjs.extend(require("dayjs/plugin/utc"));
-dayjs.extend(require("dayjs/plugin/timezone"));
-dayjs.tz.setDefault("America/New_York");
+const {
+  localDayjs
+} = require("../helpers/localDayjs");
 Font.register({
   family: "Roboto",
   fonts: [{
@@ -202,7 +201,7 @@ const DriverReport = props => {
     src: PhoenixLogo
   })), /*#__PURE__*/React.createElement(Text, {
     style: styles.h2
-  }, dayjs.tz(data?.service_date).format("dddd, MMMM D, YYYY")), /*#__PURE__*/React.createElement(Text, {
+  }, localDayjs(data?.service_date).format("dddd, MMMM D, YYYY")), /*#__PURE__*/React.createElement(Text, {
     style: [styles.textBold, {
       textAlign: "center",
       marginBottom: 10
@@ -354,17 +353,17 @@ const DriverReport = props => {
     style: styles.text
   }, /*#__PURE__*/React.createElement(Text, {
     style: styles.textBold
-  }, "Yard: "), data?.spot_time ? dayjs.tz(data?.spot_time).format("HH:mm") : ""), data?.spot_time && /*#__PURE__*/React.createElement(Text, {
+  }, "Yard: "), data?.spot_time ? localDayjs(data?.spot_time).format("HH:mm") : ""), data?.spot_time && /*#__PURE__*/React.createElement(Text, {
     style: styles.text
-  }, dayjs.tz(data?.spot_time).get("hour") < 12 ? "(morning)" : ""), /*#__PURE__*/React.createElement(Text, {
-    style: styles.text
-  }, /*#__PURE__*/React.createElement(Text, {
-    style: styles.textBold
-  }, "Spot: "), data?.start_time ? dayjs.tz(data?.start_time).subtract(15, "m").format("HH:mm") : ""), /*#__PURE__*/React.createElement(Text, {
+  }, localDayjs(data?.spot_time).get("hour") < 12 ? "(morning)" : ""), /*#__PURE__*/React.createElement(Text, {
     style: styles.text
   }, /*#__PURE__*/React.createElement(Text, {
     style: styles.textBold
-  }, "Start: "), data?.start_time ? dayjs.tz(data?.start_time).format("HH:mm") : "")), /*#__PURE__*/React.createElement(View, {
+  }, "Spot: "), data?.start_time ? localDayjs(data?.start_time).subtract(15, "m").format("HH:mm") : ""), /*#__PURE__*/React.createElement(Text, {
+    style: styles.text
+  }, /*#__PURE__*/React.createElement(Text, {
+    style: styles.textBold
+  }, "Start: "), data?.start_time ? localDayjs(data?.start_time).format("HH:mm") : "")), /*#__PURE__*/React.createElement(View, {
     style: {
       width: "75%"
     }
@@ -408,7 +407,7 @@ const DriverReport = props => {
     style: styles.text
   }, /*#__PURE__*/React.createElement(Text, {
     style: styles.textBold
-  }, "Return PickUp: "), data?.return_time ? dayjs.tz(data?.return_time).format("HH:mm") : "")), /*#__PURE__*/React.createElement(View, {
+  }, "Return PickUp: "), data?.return_time ? localDayjs(data?.return_time).format("HH:mm") : "")), /*#__PURE__*/React.createElement(View, {
     style: {
       width: "75%"
     }
