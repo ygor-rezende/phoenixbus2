@@ -25,6 +25,9 @@ const RobotoItalic =
 const { Table, TableCell, TableHeader, TableRow } = require("./Table");
 
 const dayjs = require("dayjs");
+dayjs.extend(require("dayjs/plugin/utc"));
+dayjs.extend(require("dayjs/plugin/timezone"));
+dayjs.tz.setDefault("America/New_York");
 
 Font.register({
   family: "Roboto",
@@ -193,7 +196,7 @@ const DriverReport = (props) => {
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
         <Text style={styles.h2}>
-          {dayjs(data?.service_date).format("dddd, MMMM D, YYYY")}
+          {dayjs.tz(data?.service_date).format("dddd, MMMM D, YYYY")}
         </Text>
         <Text
           style={[styles.textBold, { textAlign: "center", marginBottom: 10 }]}
@@ -298,12 +301,12 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Yard: </Text>
                     {data?.spot_time
-                      ? dayjs(data?.spot_time).format("HH:mm")
+                      ? dayjs.tz(data?.spot_time).format("HH:mm")
                       : ""}
                   </Text>
                   {data?.spot_time && (
                     <Text style={styles.text}>
-                      {dayjs(data?.spot_time).get("hour") < 12
+                      {dayjs.tz(data?.spot_time).get("hour") < 12
                         ? "(morning)"
                         : ""}
                     </Text>
@@ -311,7 +314,8 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Spot: </Text>
                     {data?.start_time
-                      ? dayjs(data?.start_time)
+                      ? dayjs
+                          .tz(data?.start_time)
                           .subtract(15, "m")
                           .format("HH:mm")
                       : ""}
@@ -319,7 +323,7 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Start: </Text>
                     {data?.start_time
-                      ? dayjs(data?.start_time).format("HH:mm")
+                      ? dayjs.tz(data?.start_time).format("HH:mm")
                       : ""}
                   </Text>
                 </View>
@@ -358,7 +362,7 @@ const DriverReport = (props) => {
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>Return PickUp: </Text>
                       {data?.return_time
-                        ? dayjs(data?.return_time).format("HH:mm")
+                        ? dayjs.tz(data?.return_time).format("HH:mm")
                         : ""}
                     </Text>
                   )}

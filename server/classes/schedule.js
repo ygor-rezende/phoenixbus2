@@ -176,7 +176,6 @@ class Schedule {
       //request driver order pdf creation
       let pdfResp = await this.createDriverPdf(pdfData);
       logger.info(pdfResp);
-      console.log(pdfResp);
 
       //send SMS if needed
       let smsResp = "";
@@ -194,7 +193,6 @@ class Schedule {
     } catch (err) {
       await client.query("ROLLBACK");
       logger.error(err);
-      console.error(err);
       return res.status(500).json({ message: err.message });
     } finally {
       client.release();
