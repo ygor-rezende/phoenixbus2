@@ -186,7 +186,7 @@ class Schedule {
         smsResponse.rowCount < 1
       ) {
         console.log("Sending SMS");
-        smsResp = await this.sendSMS(smsData);
+        //smsResp = await this.sendSMS(smsData);
       }
 
       await client.query("COMMIT");

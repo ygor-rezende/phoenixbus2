@@ -38,8 +38,8 @@ router.get("/page/:smsId", (req, res) => {
     
     <div class="div">
       <h1>Please confirm or reject this trip.</h1>
-      <button class="button button1" type="button" onclick="location.href='${process.env.DRIVERRESPONSETESTADDRESS}?smsId=${smsId}&answer=c'" autofocus>Confirm</button>
-      <button class="button button2" type="button" onclick="location.href='${process.env.DRIVERRESPONSETESTADDRESS}?smsId=${smsId}&answer=r'">Reject</button>
+      <button class="button button1" type="button" onclick="location.href='${process.env.DRIVERRESPONSEPRODADDRESS}?smsId=${smsId}&answer=c'" autofocus>Confirm</button>
+      <button class="button button2" type="button" onclick="location.href='${process.env.DRIVERRESPONSEPRODADDRESS}?smsId=${smsId}&answer=r'">Reject</button>
     </div>
     
     </body>
