@@ -16,10 +16,12 @@ const sendMail = (mailOptions) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       logger.error(error);
+      return error.message;
     } else {
-      logger.log("Email response: " + info.response);
+      logger.log("Email response: " + info.envelope.to + ", " + info.accepted);
+      return info.response;
     }
   });
 };
 
-module.exports = {transporter, sendMail};
+module.exports = { transporter, sendMail };
