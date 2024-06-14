@@ -19,7 +19,7 @@ const emailClient = async (emailData, servicesData, transactionsData) => {
 
   const mailOptions = {
     from: process.env.SMTPUSER,
-    to: "ygor.rezende@gmail.com",
+    to: emailData.email,
     subject: `Invoice ${emailData.invoice}: Final Balance`,
     html: `<html>
     <div>
@@ -44,19 +44,21 @@ const emailClient = async (emailData, servicesData, transactionsData) => {
     attachments: [attachmentOptions],
   };
 
-  const response = sendMail(mailOptions);
+  const response = await sendMail(mailOptions);
   return response;
 };
 
-const emailAdmin = (data) => {
+const emailAdmin = async (data) => {
+  let text = data.join("\n");
+  logger.log("Admin email text: ", text);
   const mailOptions = {
     from: process.env.SMTPUSER,
     to: process.env.SMTPUSER,
     subject: `Client email reminder results`,
-    text: data?.join(),
+    text: text,
   };
 
-  const response = sendMail(mailOptions);
+  const response = await sendMail(mailOptions);
   return response;
 };
 

@@ -12,16 +12,14 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false, ciphers: "SSLv3" },
 });
 
-const sendMail = (mailOptions) => {
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      logger.error(error);
-      return error.message;
-    } else {
-      logger.log("Email response: " + info.envelope.to + ", " + info.accepted);
-      return info.response;
-    }
-  });
+const sendMail = async (mailOptions) => {
+  try {
+    let response = await transporter.sendMail(mailOptions);
+    return response.accepted.join() + " - OK";
+  } catch (err) {
+    logger.error(err.message);
+    return err.message;
+  }
 };
 
 module.exports = { transporter, sendMail };
