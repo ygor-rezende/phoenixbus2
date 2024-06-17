@@ -31,6 +31,8 @@ import {
 
 import GoogleAutoComplete from "../../api/google_place";
 
+import { validateEmail } from "../../utils/validators";
+
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
   ...upadatedProp,
@@ -245,7 +247,7 @@ export const FarmOut = () => {
       return;
     }
 
-    if (!state.email) {
+    if (!state.email || !validateEmail(state.email)) {
       setState({ invalidField: "email" });
       return;
     }
