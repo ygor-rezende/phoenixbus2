@@ -1,8 +1,13 @@
 const logger = require("firebase-functions/logger");
 const { sendMail } = require("./controllers/emailController");
 const requestInvoicePdf = require("./controllers/createAttachment");
+const { validateEmail } = require("./utils/validators");
 
 const emailClient = async (emailData, servicesData, transactionsData) => {
+  //validate email
+  if (!validateEmail(emailData.email))
+    return `Invalid email: ${emailData.email}. Invoice: ${emailData.invoice}, Agency: ${emailData.agency}.`;
+
   //Request invoice pdf creation
   const filename = await requestInvoicePdf(
     emailData,
