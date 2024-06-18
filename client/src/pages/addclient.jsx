@@ -28,6 +28,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../utils/table_generic";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import CloseIcon from "@mui/icons-material/Close";
@@ -46,6 +47,7 @@ import useAuth from "../hooks/useAuth";
 import GoogleAutoComplete from "../api/google_place";
 
 import { validateEmail } from "../utils/validators";
+import { getServiceName } from "../utils/getServiceName";
 
 const reducer = (prevState, upadatedProp) => ({
   ...prevState,
@@ -136,6 +138,7 @@ const initialState = {
   bookings: [],
   viewBookings: false,
   invoices: [],
+  showServices: new Map(),
 };
 
 export const AddClient = () => {
@@ -237,6 +240,8 @@ export const AddClient = () => {
           invoice: element.invoice,
           category: element.category,
           numPeople: element.num_people,
+          bookingDate: element.booking_date,
+          tripStartDate: element.trip_start_date,
         };
       });
       invoices = [...new Map(invoices.map((e) => [e["invoice"], e])).values()];
@@ -535,6 +540,18 @@ export const AddClient = () => {
     },
   ];
 
+  //showServices to true or false
+  const handleExpandShrink = (index) => {
+    let lines = new Map(state.showServices);
+    lines.set(index, !lines.get(index));
+    setState({ showServices: lines });
+  };
+
+  const handleCloseBookingsDialog = () => {
+    //shrink all services that are shown
+    setState({ viewBookings: false, showServices: new Map() });
+  };
+
   return (
     <div className="client-container">
       <div className="client-container-box">
@@ -798,7 +815,7 @@ export const AddClient = () => {
         </div>
 
         <Dialog
-          onClose={() => setState({ viewBookings: false })}
+          onClose={handleCloseBookingsDialog}
           open={state.viewBookings}
           maxWidth="lg"
           fullWidth
@@ -807,7 +824,7 @@ export const AddClient = () => {
             title="Close"
             style={{ alignSelf: "flex-end", paddingBottom: 0 }}
           >
-            <IconButton onClick={() => setState({ viewBookings: false })}>
+            <IconButton onClick={handleCloseBookingsDialog}>
               <CloseIcon />
             </IconButton>
           </Tooltip>
@@ -827,7 +844,7 @@ export const AddClient = () => {
           </Box>
 
           <DialogContent>
-            {state.invoices?.map((row) => {
+            {state.invoices?.map((row, index) => {
               return (
                 <Table
                   size="small"
@@ -836,8 +853,17 @@ export const AddClient = () => {
                 >
                   <TableHead>
                     <TableRow sx={{ bgcolor: "primary.main" }}>
-                      <TableCell colSpan={2} style={{ color: "white" }}>
-                        Invoice: {row.invoice}
+                      <TableCell
+                        colSpan={2}
+                        style={{ color: "white", fontWeight: "bold" }}
+                      >
+                        {row.invoice}
+                      </TableCell>
+                      <TableCell style={{ color: "white" }}>
+                        Booking Date: {dayjs(row.bookingDate).format("l")}
+                      </TableCell>
+                      <TableCell style={{ color: "white" }}>
+                        Trip Date: {dayjs(row.tripStartDate).format("l")}
                       </TableCell>
                       <TableCell colSpan={2} style={{ color: "white" }}>
                         Category: {row.category}
@@ -845,36 +871,77 @@ export const AddClient = () => {
                       <TableCell style={{ color: "white" }}>
                         {row.numPeople} people
                       </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell style={{ fontWeight: "bold" }}>
-                        Service
+                      <TableCell style={{ color: "white" }} align="right">
+                        {state.showServices.get(index) === true ? (
+                          <Tooltip title="Shrink">
+                            <IconButton
+                              onClick={() => handleExpandShrink(index)}
+                              size="small"
+                              sx={{ bgcolor: "whitesmoke" }}
+                            >
+                              <ExpandLessIcon color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Expand">
+                            <IconButton
+                              onClick={() => handleExpandShrink(index)}
+                              size="small"
+                              sx={{ bgcolor: "whitesmoke" }}
+                            >
+                              <ExpandMoreIcon color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </TableCell>
-                      <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
-                      <TableCell style={{ fontWeight: "bold" }}>Date</TableCell>
-                      <TableCell style={{ fontWeight: "bold" }}>Qty</TableCell>
-                      <TableCell style={{ fontWeight: "bold" }}>
-                        Charge
-                      </TableCell>
                     </TableRow>
+                    {state.showServices.get(index) === true ? (
+                      <TableRow>
+                        <TableCell style={{ fontWeight: "bold" }} colSpan={3}>
+                          Service
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }}>
+                          Service Date
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }} colSpan={2}>
+                          Type
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }}>
+                          Qty
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }} align="right">
+                          Charge
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
                   </TableHead>
-                  <TableBody>
-                    {state.bookings
-                      ?.filter((element) => element.invoice === row.invoice)
-                      ?.map((service) => {
-                        return (
-                          <TableRow key={service.service_id}>
-                            <TableCell>{service.service_name}</TableCell>
-                            <TableCell>{service.service_code}</TableCell>
-                            <TableCell>
-                              {dayjs(service.service_date).format("MM/DD/YYYY")}
-                            </TableCell>
-                            <TableCell>{service.qty}</TableCell>
-                            <TableCell>${service.charge}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
+                  {state.showServices.get(index) === true ? (
+                    <TableBody>
+                      {state.bookings
+                        ?.filter((element) => element.invoice === row.invoice)
+                        ?.map((service) => {
+                          return (
+                            <TableRow key={service.service_id}>
+                              <TableCell colSpan={3}>
+                                {service.service_name}
+                              </TableCell>
+                              <TableCell>
+                                {dayjs(service.service_date).format(
+                                  "MM/DD/YYYY"
+                                )}
+                              </TableCell>
+                              <TableCell colSpan={2}>
+                                {getServiceName(service.service_code)}
+                              </TableCell>
+                              <TableCell>{service.qty}</TableCell>
+                              <TableCell align="right">
+                                ${service.charge}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  ) : null}
                 </Table>
               );
             })}
