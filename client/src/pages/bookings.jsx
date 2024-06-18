@@ -79,6 +79,8 @@ import QuoteReport from "./pdfReports/quote";
 import { Calendar } from "react-multi-date-picker";
 import { axiosPdfService } from "../api/axios";
 
+import { validateEmail } from "../utils/validators";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -430,6 +432,11 @@ export const Bookings = () => {
 
     if (!state.quotedCost && state.isQuote) {
       setState({ invalidField: "quotedCost" });
+      return;
+    }
+
+    if (state.responsibleEmail && !validateEmail(state.responsibleEmail)) {
+      setState({ invalidField: "responsibleEmail" });
       return;
     }
 
@@ -1865,10 +1872,16 @@ export const Bookings = () => {
                     className="textfield"
                     id="responsibleEmail"
                     label="Resp. Email"
-                    type="text"
+                    type="email"
                     placeholder="Resp. Email"
                     value={state.responsibleEmail}
                     onChange={handleOnChange}
+                    error={state.invalidField === "responsibleEmail"}
+                    helperText={
+                      state.invalidField === "responsibleEmail"
+                        ? "Information required"
+                        : ""
+                    }
                   />
                   <MuiTelInput
                     className="textfield"

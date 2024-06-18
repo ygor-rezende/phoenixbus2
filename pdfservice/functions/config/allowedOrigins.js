@@ -9,6 +9,7 @@ const allowedOrigins = [
   "https://phoenixbus.web.app",
   "https://phoenixbus.firebaseapp.com",
   "https://app-aybje326pa-uc.a.run.app",
+  "https://emailreminder-aybje326pa-uc.a.run.app",
 ];
 
 module.exports = allowedOrigins;

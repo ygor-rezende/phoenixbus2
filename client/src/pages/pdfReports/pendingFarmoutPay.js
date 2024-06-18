@@ -147,11 +147,16 @@ const PendingFarmoutPayReport = (props) => {
 
   //calculate amount due and past due by company
   let newData = data?.map((e, idx, arr) => {
-    let dataByCompany = arr.filter((item) => item.company_id === e.company_id);
+    let dataByCompany = arr.filter(
+      (item) => (item.company_id === e.company_id) & (item.amount_due > 0)
+    );
     let sumPastDue = dataByCompany?.reduce((sum, cur) => {
       return sum + Number(cur.past_due);
     }, 0);
-    let amountDue = sumPastDue - e.total_payments;
+    let totalAmountDue = sumPastDue - e.total_payments;
+    let totalPayments = dataByCompany?.reduce((sum, cur) => {
+      return sum + Number(cur.paid);
+    }, 0);
     return {
       company_id: e.company_id,
       company_name: e.company_name,
@@ -159,26 +164,26 @@ const PendingFarmoutPayReport = (props) => {
       trip_start_date: e.trip_start_date,
       past_due: e.past_due,
       sum_past_due: sumPastDue,
-      total_payments: e.total_payments,
-      amount_due: amountDue,
+      total_payments: totalPayments,
+      total_amount_due: totalAmountDue,
+      amount_due: e.amount_due,
+      paid: e.paid,
     };
   });
 
-  //sum all past due payments
-  let totalPastDue = data.reduce((sum, cur) => {
-    return sum + Number(cur.past_due);
-  }, 0);
-
   //get unique companies data
   let uniqueData = [...new Map(newData.map((e) => [e.company_id, e])).values()];
+
+  //sum all past due payments
+  let totalPastDue = uniqueData.reduce((sum, cur) => {
+    return sum + Number(cur.sum_past_due);
+  }, 0);
 
   let totalPaid = uniqueData.reduce((sum, cur) => {
     return sum + Number(cur.total_payments);
   }, 0);
 
-  let totalBalance = uniqueData.reduce((sum, cur) => {
-    return sum + Number(cur.amount_due);
-  }, 0);
+  let totalBalance = totalPastDue - totalPaid;
 
   //calculate the percentual of sales for each client and add it to data
 
@@ -222,7 +227,7 @@ const PendingFarmoutPayReport = (props) => {
             <View>
               {uniqueData?.map((row, index) => {
                 const details = newData?.filter(
-                  (e) => e.company_id === row.company_id
+                  (e) => e.company_id === row.company_id && e.amount_due > 0
                 );
                 return (
                   <View>
@@ -243,7 +248,9 @@ const PendingFarmoutPayReport = (props) => {
                           {currencyFormatter.format(row?.total_payments)}
                         </TableCell>
                         <TableCell width="12%" align="right">
-                          {currencyFormatter.format(row?.amount_due)}
+                          {currencyFormatter.format(
+                            row?.sum_past_due - row?.total_payments
+                          )}
                         </TableCell>
                       </TableRow>
                     </View>
@@ -265,6 +272,12 @@ const PendingFarmoutPayReport = (props) => {
                             </TableCell>
                             <TableCell width="12%" align="right">
                               {currencyFormatter.format(item.past_due)}
+                            </TableCell>
+                            <TableCell width="12%" align="right">
+                              {currencyFormatter.format(item.paid)}
+                            </TableCell>
+                            <TableCell width="12%" align="right">
+                              {currencyFormatter.format(item.amount_due)}
                             </TableCell>
                           </TableRow>
                         );

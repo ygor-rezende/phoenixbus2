@@ -51,7 +51,7 @@ class Service {
   static async getAllServices() {
     try {
       const result = await pool.query(
-        "Select * FROM services ORDER BY service_id ORDER BY service_date"
+        "Select * FROM services ORDER BY service_date"
       );
       //console.log(result.rows);
       return result.rows;

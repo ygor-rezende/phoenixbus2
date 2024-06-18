@@ -26,14 +26,14 @@ class FarmoutPayments {
         accountid => $1::INTEGER,
         amount => $2::NUMERIC,
         transaction_date => $3::TEXT,
-        payment_type => $4::TEXT,
+        invoice => $4::TEXT,
         doc_number => $5::TEXT
         )`,
         [
           payment.accountId,
           payment.amount,
           payment.transactionDate,
-          payment.paymentType,
+          payment.invoice,
           payment.docNumber,
         ]
       );
