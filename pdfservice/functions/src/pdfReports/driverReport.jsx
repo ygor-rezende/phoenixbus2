@@ -24,7 +24,7 @@ const RobotoItalic =
   "https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu52xPKTM1K9nz.ttf";
 const { Table, TableCell, TableHeader, TableRow } = require("./Table");
 
-const dayjs = require("dayjs");
+const { localDayjs } = require("../helpers/localDayjs");
 
 Font.register({
   family: "Roboto",
@@ -193,7 +193,7 @@ const DriverReport = (props) => {
           <Image style={styles.image} src={PhoenixLogo} />
         </View>
         <Text style={styles.h2}>
-          {dayjs(data?.service_date).format("dddd, MMMM D, YYYY")}
+          {localDayjs(data?.service_date).format("dddd, MMMM D, YYYY")}
         </Text>
         <Text
           style={[styles.textBold, { textAlign: "center", marginBottom: 10 }]}
@@ -298,12 +298,12 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Yard: </Text>
                     {data?.spot_time
-                      ? dayjs(data?.spot_time).format("HH:mm")
+                      ? localDayjs(data?.spot_time).format("HH:mm")
                       : ""}
                   </Text>
                   {data?.spot_time && (
                     <Text style={styles.text}>
-                      {dayjs(data?.spot_time).get("hour") < 12
+                      {localDayjs(data?.spot_time).get("hour") < 12
                         ? "(morning)"
                         : ""}
                     </Text>
@@ -311,7 +311,7 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Spot: </Text>
                     {data?.start_time
-                      ? dayjs(data?.start_time)
+                      ? localDayjs(data?.start_time)
                           .subtract(15, "m")
                           .format("HH:mm")
                       : ""}
@@ -319,7 +319,7 @@ const DriverReport = (props) => {
                   <Text style={styles.text}>
                     <Text style={styles.textBold}>Start: </Text>
                     {data?.start_time
-                      ? dayjs(data?.start_time).format("HH:mm")
+                      ? localDayjs(data?.start_time).format("HH:mm")
                       : ""}
                   </Text>
                 </View>
@@ -358,7 +358,7 @@ const DriverReport = (props) => {
                     <Text style={styles.text}>
                       <Text style={styles.textBold}>Return PickUp: </Text>
                       {data?.return_time
-                        ? dayjs(data?.return_time).format("HH:mm")
+                        ? localDayjs(data?.return_time).format("HH:mm")
                         : ""}
                     </Text>
                   )}

@@ -2,6 +2,7 @@ const axios = require("axios");
 const pool = require("../db");
 require("dotenv").config();
 const os = require("os");
+const logger = require("firebase-functions/logger");
 
 class Schedule {
   static async getSchedule(req, res) {
@@ -113,13 +114,14 @@ class Schedule {
       //Start transaction
       await client.query("BEGIN");
 
-      //get the confirmed field for later check
-      const response = await client.query(
-        `SELECT confirmed FROM service_details WHERE detail_id = ${detail.detailId}`
-      );
+      // //get the confirmed field for later check
+      // const response = await client.query(
+      //   `SELECT confirmed FROM service_details WHERE detail_id = ${detail.detailId}`
+      // );
 
-      const wasConfirmed = response.rows?.at(0)?.confirmed;
+      // const wasConfirmed = response.rows?.at(0)?.confirmed;
 
+      //Update service details
       await client.query(
         `CALL update_detail(
           spottime=>$1::TEXT,
@@ -161,28 +163,36 @@ class Schedule {
         ]
       );
 
+      //Check if SMS was sent before
+      const smsResponse = await client.query(
+        `SELECT 1 FROM sms WHERE sms_id = '${smsData.id}'`
+      );
+
       //Get data for pdf creation
       const result = await client.query(
         `SELECT * FROM get_driver_pdf_data(detailid => ${detail.detailId})`
       );
       const pdfData = result.rows?.at(0);
-      //console.log(pdfData);
+      //request driver order pdf creation
+      let pdfResp = await this.createDriverPdf(pdfData);
+      logger.info(pdfResp);
 
       //send SMS if needed
       let smsResp = "";
-      let pdfResp = "";
-      // if (detail.useFarmout === false && detail.confirmed === true) {
-      //   smsResp = await this.sendSMS(smsData);
-
-      //   //request driver order pdf creation
-      //   pdfResp = await this.createDriverPdf(pdfData);
-      // }
+      if (
+        detail.useFarmout === false &&
+        detail.confirmed === true &&
+        smsResponse.rowCount < 1
+      ) {
+        console.log("Sending SMS");
+        //smsResp = await this.sendSMS(smsData);
+      }
 
       await client.query("COMMIT");
       return res.json(`Schedule updated successfully. ${smsResp}`);
     } catch (err) {
       await client.query("ROLLBACK");
-      console.error(err);
+      logger.error(err);
       return res.status(500).json({ message: err.message });
     } finally {
       client.release();
@@ -212,7 +222,6 @@ class Schedule {
         data,
       }
     );
-    console.log(response.data);
     return response?.data;
   } //createDriverPdf
 }
