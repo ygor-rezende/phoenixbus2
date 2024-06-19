@@ -184,7 +184,7 @@ class Schedule {
         detail.confirmed === true &&
         smsResponse.rowCount < 1
       ) {
-        console.log("Sending SMS");
+        logger.log("Sending SMS");
         //smsResp = await this.sendSMS(smsData);
       }
 
