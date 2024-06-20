@@ -6,9 +6,34 @@ const scheduleSMS = require("../modules/scheduleSMS");
 const cancelSMSSchedule = require("../modules/cancelSchedule");
 
 //This route sends HTML page to driver to confirm or reject trip
-router.get("/page/:smsId", (req, res) => {
+router.get("/page/:smsId", async (req, res) => {
   try {
     const { smsId } = req.params;
+
+    //check if driver has responded this before
+    let response = await pool.query(
+      `SELECT 1 FROM sms WHERE sms_id = '${smsId}' AND confirmed_rejected IS NULL`
+    );
+    if (response.rowCount < 1)
+      return res.send(`<!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    
+    .div {text-align: center; position:relative; top:50%;}
+    html, body {height: 100%;}
+    </style>
+    </head>
+    <body>
+    
+    <div class="div">
+      <h1>You have responded to this trip already.</h1>
+      <h1>If you want to change your response, please contact dispatch.</h1>
+     
+    </div>
+    
+    </body>
+    </html>`);
 
     //send Page to driver
     return res.send(`<!DOCTYPE html>

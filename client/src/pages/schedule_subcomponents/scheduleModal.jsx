@@ -68,6 +68,8 @@ const initialState = {
   confirmed: false,
   isLoading: false,
   openSMSDialog: false,
+  openResendSMSDialog: false,
+  resendSMS: false,
 };
 
 const reducer = (prevState, updatedProp) => ({ ...prevState, ...updatedProp });
@@ -85,6 +87,7 @@ export const ScheduleModal = (props) => {
     onSave,
     startDate,
     endDate,
+    smsData,
   } = props;
 
   const [state, setState] = useReducer(reducer, initialState);
@@ -147,11 +150,6 @@ export const ScheduleModal = (props) => {
   };
 
   const validateSave = async () => {
-    //validate form
-    if (!isFormValid()) {
-      return;
-    }
-
     //check if driver has another booking for the same day
     const driverResponse = await getServer(
       `/checkdriverhastrip/${state.detailId}/${state.employeeId}/${state.serviceDate}`
@@ -201,11 +199,7 @@ export const ScheduleModal = (props) => {
   };
 
   const handleUpdate = async () => {
-    const smsId = state.driver
-      ? state.driver
-          ?.replace(" ", "_")
-          .concat("_", state.invoice, "_", state.detailId)
-      : null;
+    const smsId = buildSMSId();
 
     //Show circular progress for loading info
     setState({ isLoading: true });
@@ -231,6 +225,7 @@ export const ScheduleModal = (props) => {
         changeUser: auth.userName,
       },
       smsData: {
+        resend: state.resendSMS,
         id: smsId,
         detailId: state.detailId,
         to: state.phone,
@@ -303,6 +298,8 @@ export const ScheduleModal = (props) => {
       confirmed: false,
       isLoading: false,
       openSMSDialog: false,
+      openResendSMSDialog: false,
+      resendSMS: false,
     });
   }; //clearState
 
@@ -441,6 +438,41 @@ export const ScheduleModal = (props) => {
     } else {
       setState({ confirmed: isChecked });
     }
+  };
+
+  const sendSMSCheck = () => {
+    //validate form
+    if (!isFormValid()) {
+      return;
+    }
+
+    //if confirmed is not checked or is a farmout continue to validateSave
+    if (state.confirmed === false || state.useFarmout === true) {
+      validateSave();
+      return;
+    }
+
+    //if is confirmed find if sms was sent before to the same driver
+    const smsId = buildSMSId();
+
+    let smsSent = smsData?.find((e) => e.sms_id === smsId) ? true : false;
+    if (smsSent) {
+      //display popup asking if they want to re-send the sms to the same driver
+      setState({ openResendSMSDialog: true });
+    }
+  };
+
+  const handleSetResponse = (sendSMS) => {
+    setState({ resendSMS: sendSMS, openResendSMSDialog: false });
+    validateSave();
+  };
+
+  const buildSMSId = () => {
+    return state.driver
+      ? state.driver
+          ?.replace(" ", "_")
+          .concat("_", state.invoice, "_", state.detailId)
+      : null;
   };
 
   return (
@@ -883,7 +915,7 @@ export const ScheduleModal = (props) => {
             </Box>
           </Box>
           <Box sx={{ marginLeft: "auto", marginRight: "auto" }}>
-            <Button variant="contained" onClick={validateSave}>
+            <Button variant="contained" onClick={sendSMSCheck}>
               Save
             </Button>
           </Box>
@@ -904,10 +936,17 @@ export const ScheduleModal = (props) => {
           />
           <CustomDialog
             openDialog={state.openSMSDialog}
-            onConfirm={() => setState({ openSMSDialog: false })}
-            useOK={true}
+            onCancel={true}
             title="SMS Alert"
             description="When saving this changes a SMS will be sent to the driver assigned to this trip."
+          />
+
+          <CustomDialog
+            openDialog={state.openResendSMSDialog}
+            onConfirm={() => handleSetResponse(true)}
+            onCancel={() => handleSetResponse(false)}
+            title="Re-Send SMS to driver?"
+            description={`Do you want to re-send a SMS to the driver ${state.driver}?`}
           />
         </Box>
       </Modal>

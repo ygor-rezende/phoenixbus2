@@ -15,13 +15,13 @@ async function createDriverOrderStream(data) {
 }
 
 //create pdf file
-async function createDriverOrderFile(data) {
+async function createDriverOrderFile(data, smsId) {
   try {
     //handle path to save
     let publicDir = path.resolve(__dirname, "../../public");
     //console.log(data);
     await renderToFile(
-      <DriverReport data={data} />,
+      <DriverReport data={data} smsId={smsId} />,
       `${publicDir}/driverReport_${data.detail_id}.pdf`
     );
     return `driverReport_${data.detail_id}.pdf`;

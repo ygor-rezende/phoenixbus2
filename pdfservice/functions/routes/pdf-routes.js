@@ -82,10 +82,10 @@ router.post(
   bodyParser.json(),
   async (req, res) => {
     try {
-      const { data } = req.body;
+      const { data, smsId } = req.body;
       const { responseType } = req.params;
 
-      if (!data)
+      if (!data || !smsId)
         return res.status(400).json({ message: "Bad request: Missing data." });
 
       if (responseType === "stream") {
@@ -96,7 +96,7 @@ router.post(
           console.log("Done streaming, response sent.")
         );
       } else if (responseType === "newfile") {
-        const filename = await createDriverOrderFile(data);
+        const filename = await createDriverOrderFile(data, smsId);
         res.status(200).json(filename);
       } else {
         return res

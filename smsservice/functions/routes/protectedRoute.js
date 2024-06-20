@@ -21,12 +21,11 @@ router.post("/", bodyParser.json(), async (req, res) => {
     const smsInfo = {
       to: data.to,
       body: `Hello ${data.name}.\n
-      You have a trip on ${data.tripDate} at ${data.startTime} (in the ${data.startTimeOfDay}).\n
-      Click here to confirm or reject this trip: ${process.env.CONFIRMTRIPPRODADDRESS}/${data.id}
+      You have a trip on ${data.tripDate} at ${data.startTime} (in the ${data.startTimeOfDay}).
       \nTrip Details:
       Yard Time: ${data.yardTime} (in the ${data.yardTimeOfDay})
       Bus: ${data.bus}\n
-      Please check the Driver Order for more details: ${process.env.PDFFOLDERPATH}/driverReport_${data.detailId}.pdf
+      Please check the Driver Order to confirm or reject this trip: ${process.env.PDFFOLDERPATH}/driverReport_${data.detailId}.pdf
       Phoenix Bus Orlando.`,
     };
 

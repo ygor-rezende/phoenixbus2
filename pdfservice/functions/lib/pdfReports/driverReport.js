@@ -6,7 +6,8 @@ const {
   Document,
   StyleSheet,
   View,
-  Font
+  Font,
+  Link
 } = require("@react-pdf/renderer");
 const fs = require("fs");
 const path = require("path");
@@ -158,7 +159,8 @@ const styles = StyleSheet.create({
 });
 const DriverReport = props => {
   const {
-    data
+    data,
+    smsId
   } = props;
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -190,6 +192,7 @@ const DriverReport = props => {
     }
     return null;
   }
+  const confirmationPage = `https://us-central1-phoenixintranet-8d6e8.cloudfunctions.net/smsService/page/${smsId}`;
   return /*#__PURE__*/React.createElement(Document, null, /*#__PURE__*/React.createElement(Page, {
     style: styles.body
   }, /*#__PURE__*/React.createElement(View, {
@@ -206,7 +209,14 @@ const DriverReport = props => {
       textAlign: "center",
       marginBottom: 10
     }]
-  }, "***MILITARY TIME (24-HOUR CLOCK)***"), /*#__PURE__*/React.createElement(View, {
+  }, "***MILITARY TIME (24-HOUR CLOCK)***"), /*#__PURE__*/React.createElement(View, null, /*#__PURE__*/React.createElement(Text, {
+    style: [styles.textBold, {
+      textAlign: "left",
+      marginBottom: 10
+    }]
+  }, "Please confirm or reject this trip by clicking", " ", /*#__PURE__*/React.createElement(Link, {
+    src: confirmationPage
+  }, "HERE"), ".")), /*#__PURE__*/React.createElement(View, {
     style: styles.tableSection
   }, /*#__PURE__*/React.createElement(Table, null, /*#__PURE__*/React.createElement(TableHeader, null, /*#__PURE__*/React.createElement(TableCell, {
     width: "50%",

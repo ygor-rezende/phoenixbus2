@@ -242,6 +242,14 @@ export const ScheduleTable = (props) => {
     setExpandAll(value);
   };
 
+  const getVerifiedIcon = (tripConfirmed, driverResponse) => {
+    if (tripConfirmed) {
+      if (driverResponse === "r") return <VerifiedIcon color="error" />;
+      else if (driverResponse === "c") return <VerifiedIcon color="success" />;
+      else return <VerifiedIcon color="disabled" />;
+    } else return "";
+  };
+
   return (
     <Fragment>
       <Box
@@ -792,7 +800,10 @@ export const ScheduleTable = (props) => {
                     </TableCell>
                     <TableCell align="left">{row?.special_events}</TableCell>
                     <TableCell align="center">
-                      {row?.confirmed ? <VerifiedIcon color="success" /> : ""}
+                      {getVerifiedIcon(
+                        row?.confirmed,
+                        smsInfo?.confirmed_rejected
+                      )}
                     </TableCell>
 
                     <TableCell padding="none" align="right">

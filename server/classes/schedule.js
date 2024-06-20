@@ -174,15 +174,16 @@ class Schedule {
       );
       const pdfData = result.rows?.at(0);
       //request driver order pdf creation
-      let pdfResp = await this.createDriverPdf(pdfData);
-      logger.info(pdfResp);
+      //let pdfResp = await this.createDriverPdf(pdfData, smsData.id);
+      //logger.info(pdfResp);
 
-      //send SMS if needed
+      //send SMS if needed: When never sent before or when user select to resend it
       let smsResp = "";
       if (
-        detail.useFarmout === false &&
-        detail.confirmed === true &&
-        smsResponse.rowCount < 1
+        (detail.useFarmout === false &&
+          detail.confirmed === true &&
+          smsResponse.rowCount < 1) ||
+        smsData.resend
       ) {
         logger.log("Sending SMS");
         //smsResp = await this.sendSMS(smsData);
@@ -214,15 +215,29 @@ class Schedule {
     return response?.data;
   } //sendSMS
 
-  static async createDriverPdf(data) {
+  static async createDriverPdf(data, smsId) {
     //call post method on pdfService
-    let response = await axios.post(
-      `${process.env.PDFSERVICE}/driverOrder/newfile`,
-      {
-        data,
-      }
-    );
-    return response?.data;
+    //SMSID is required for the link to confirm the trip
+    let response;
+    if (os.hostname().indexOf("LAPTOP") > -1) {
+      response = await axios.post(
+        `${process.env.PDFSERVICETEST}/driverOrder/newfile`,
+        {
+          data,
+          smsId,
+        }
+      );
+    } else {
+      response = await axios.post(
+        `${process.env.PDFSERVICE}/driverOrder/newfile`,
+        {
+          data,
+          smsId,
+        }
+      );
+    }
+
+    return response?.status;
   } //createDriverPdf
 }
 
