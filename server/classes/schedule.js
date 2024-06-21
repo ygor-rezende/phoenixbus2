@@ -193,7 +193,7 @@ class Schedule {
         smsData.resend
       ) {
         logger.log("Sending SMS");
-        smsResp = await this.sendSMS(smsData);
+        //smsResp = await this.sendSMS(smsData);
       }
 
       await client.query("COMMIT");
