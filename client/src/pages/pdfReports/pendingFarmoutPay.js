@@ -171,6 +171,9 @@ const PendingFarmoutPayReport = (props) => {
     };
   });
 
+  //remove items where sum past due are equal to 0
+  newData = newData?.filter((e) => e.sum_past_due > 0);
+
   //get unique companies data
   let uniqueData = [...new Map(newData.map((e) => [e.company_id, e])).values()];
 
@@ -185,8 +188,7 @@ const PendingFarmoutPayReport = (props) => {
 
   let totalBalance = totalPastDue - totalPaid;
 
-  //calculate the percentual of sales for each client and add it to data
-
+  //format totals
   totalPastDue = currencyFormatter.format(totalPastDue);
   totalPaid = currencyFormatter.format(totalPaid);
   totalBalance = currencyFormatter.format(totalBalance);
