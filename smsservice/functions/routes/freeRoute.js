@@ -86,6 +86,14 @@ router.get("/response", async (req, res) => {
   try {
     const { smsId, answer } = req.query;
     console.log(smsId, answer);
+
+    if (!smsId || !answer || (answer !== "r" && answer !== "c"))
+      return res
+        .status(400)
+        .send(
+          `<h1 style="text-align:center; position:relative; top:50%">Bad request: Status 400.</h1>`
+        );
+
     await client.query("BEGIN");
 
     //Check if smsId exists
@@ -109,8 +117,24 @@ router.get("/response", async (req, res) => {
       `CALL confirm_sms(smsid => '${smsId}'::TEXT, answer => '${answer}'::CHARACTER)`
     );
 
+    //send response for driver
+    await client.query("COMMIT");
+    res.status(200).send(
+      `${
+        answer == "c"
+          ? `<h1 style="text-align:center; position:relative; top:50%">
+              Trip confirmed successfully!
+            </h1>`
+          : `<h1 style="text-align:center; position:relative; top:50%">
+              Trip rejected successfully!
+            </h1>`
+      }`
+    );
+
     //Schedule reminder sms if driver confirmed trip
     if (smsData?.detail_id && answer == "c") {
+      //Begin another transaction for reminder sms
+      await client.query("BEGIN");
       //Get details data
       response = await client.query(
         `SELECT * FROM get_details_for_sms(${smsData?.detail_id}::SMALLINT)`
@@ -134,30 +158,17 @@ router.get("/response", async (req, res) => {
       if (scheduleMessageSid) {
         const cancelResponse = await cancelSMSSchedule(scheduleMessageSid);
       }
+      await client.query("COMMIT");
     }
-
-    //send response for driver
-    await client.query("COMMIT");
-    return res.status(200).send(
-      `${
-        answer == "c"
-          ? `<h1 style="text-align:center; position:relative; top:50%">
-              Trip confirmed successfully!
-            </h1>`
-          : `<h1 style="text-align:center; position:relative; top:50%">
-              Trip rejected successfully!
-            </h1>`
-      }`
-    );
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
     logger.error(err);
-    return res
-      .status(500)
-      .send(
-        `<h1 style="text-align:center; position:relative; top:50%">An error ocurred. Please try again.</h1>`
-      );
+    if (!res.headersSent)
+      return res
+        .status(500)
+        .send(
+          `<h1 style="text-align:center; position:relative; top:50%">An error ocurred. Please try again.</h1>`
+        );
   } finally {
     client.release();
   }

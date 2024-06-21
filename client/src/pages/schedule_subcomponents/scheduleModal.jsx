@@ -459,11 +459,11 @@ export const ScheduleModal = (props) => {
     if (smsSent) {
       //display popup asking if they want to re-send the sms to the same driver
       setState({ openResendSMSDialog: true });
-    }
+    } else validateSave();
   };
 
   const handleSetResponse = (sendSMS) => {
-    setState({ resendSMS: sendSMS, openResendSMSDialog: false });
+    setState({ resendSMS: (sendSMS) => sendSMS, openResendSMSDialog: false });
     validateSave();
   };
 
@@ -936,9 +936,10 @@ export const ScheduleModal = (props) => {
           />
           <CustomDialog
             openDialog={state.openSMSDialog}
-            onCancel={true}
+            onConfirm={() => setState({ openSMSDialog: false })}
+            useOK={true}
             title="SMS Alert"
-            description="When saving this changes a SMS will be sent to the driver assigned to this trip."
+            description="When saving this changes a SMS may be sent to the driver assigned to this trip."
           />
 
           <CustomDialog

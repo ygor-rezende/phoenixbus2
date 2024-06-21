@@ -177,6 +177,13 @@ class Schedule {
       //let pdfResp = await this.createDriverPdf(pdfData, smsData.id);
       //logger.info(pdfResp);
 
+      //If resending an sms to the same driver reset his previous response
+      logger.log(smsData.resend);
+      if (smsData.resend)
+        await client.query(
+          `CALL reset_sms_driver_response(smsid => '${smsData.id}'::TEXT)`
+        );
+
       //send SMS if needed: When never sent before or when user select to resend it
       let smsResp = "";
       if (
@@ -186,7 +193,7 @@ class Schedule {
         smsData.resend
       ) {
         logger.log("Sending SMS");
-        //smsResp = await this.sendSMS(smsData);
+        smsResp = await this.sendSMS(smsData);
       }
 
       await client.query("COMMIT");

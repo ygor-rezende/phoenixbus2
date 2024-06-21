@@ -58,10 +58,10 @@ router.post("/", bodyParser.json(), async (req, res) => {
 
       //Save result on database
       await pool.query(`CALL create_sms(
-        sms_id => '${data.id}'::TEXT,
+        smsid => '${data.id}'::TEXT,
         detail_id => ${data.detailId}::SMALLINT,
         to_phone => '${data.to}'::TEXT,
-        delivery_status => '${docInstance.data().delivery?.state}'::TEXT
+        deliverystatus => '${docInstance.data().delivery?.state}'::TEXT
       );`);
 
       //send response to client

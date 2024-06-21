@@ -881,7 +881,7 @@ export const ScheduleTable = (props) => {
 
                               {smsInfo?.detail_id && (
                                 <SmallBoldCell>
-                                  Driver confirmation?
+                                  Driver Confirmation?
                                 </SmallBoldCell>
                               )}
                             </TableRow>
@@ -953,7 +953,12 @@ export const ScheduleTable = (props) => {
                                       <MarkChatReadIcon color="success" />{" "}
                                       {localDayjs(
                                         smsInfo.delivery_timestamp
-                                      ).format("LLL")}
+                                      ).format("LLL")}{" "}
+                                      to{" "}
+                                      {smsInfo.sms_id?.substring(
+                                        0,
+                                        smsInfo.sms_id?.indexOf("_")
+                                      )}
                                     </div>
                                   ) : smsInfo.delivery_status === "ERROR" ? (
                                     <div>
