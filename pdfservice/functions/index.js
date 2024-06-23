@@ -9,8 +9,6 @@
 
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const PORT = 8080;
-const os = require("os");
 const cors = require("cors");
 const express = require("express");
 const credentials = require("./middleware/credentials");
@@ -29,8 +27,5 @@ pdfService.use(cors(corsOptions));
 
 //Routes to generate pdfs
 pdfService.use("/api/getpdf", require("./routes/pdf-routes"));
-
-if (os.hostname().indexOf("LAPTOP") > -1)
-  pdfService.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 exports.pdfService = onRequest(pdfService);

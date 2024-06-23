@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/en";
+import { localDayjs } from "../../utils/localDayjs";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -239,6 +240,14 @@ export const ScheduleTable = (props) => {
     });
     setExtendLine(lines);
     setExpandAll(value);
+  };
+
+  const getVerifiedIcon = (tripConfirmed, driverResponse) => {
+    if (tripConfirmed) {
+      if (driverResponse === "r") return <VerifiedIcon color="error" />;
+      else if (driverResponse === "c") return <VerifiedIcon color="success" />;
+      else return <VerifiedIcon color="disabled" />;
+    } else return "";
   };
 
   return (
@@ -791,7 +800,10 @@ export const ScheduleTable = (props) => {
                     </TableCell>
                     <TableCell align="left">{row?.special_events}</TableCell>
                     <TableCell align="center">
-                      {row?.confirmed ? <VerifiedIcon color="success" /> : ""}
+                      {getVerifiedIcon(
+                        row?.confirmed,
+                        smsInfo?.confirmed_rejected
+                      )}
                     </TableCell>
 
                     <TableCell padding="none" align="right">
@@ -869,7 +881,7 @@ export const ScheduleTable = (props) => {
 
                               {smsInfo?.detail_id && (
                                 <SmallBoldCell>
-                                  Driver confirmation?
+                                  Driver Confirmation?
                                 </SmallBoldCell>
                               )}
                             </TableRow>
@@ -939,10 +951,14 @@ export const ScheduleTable = (props) => {
                                   {smsInfo.delivery_status === "SUCCESS" ? (
                                     <div>
                                       <MarkChatReadIcon color="success" />{" "}
-                                      {dayjs(smsInfo.delivery_timestamp)
-                                        .utc(true)
-                                        .local()
-                                        .format("LLL")}
+                                      {localDayjs(
+                                        smsInfo.delivery_timestamp
+                                      ).format("LLL")}{" "}
+                                      to{" "}
+                                      {smsInfo.sms_id?.substring(
+                                        0,
+                                        smsInfo.sms_id?.indexOf("_")
+                                      )}
                                     </div>
                                   ) : smsInfo.delivery_status === "ERROR" ? (
                                     <div>
@@ -969,10 +985,9 @@ export const ScheduleTable = (props) => {
                                     ? "Rejected on "
                                     : ""}
                                   {smsInfo.answer_timestamp
-                                    ? dayjs(smsInfo.answer_timestamp)
-                                        .utc(true)
-                                        .local()
-                                        .format("LLL")
+                                    ? localDayjs(
+                                        smsInfo.answer_timestamp
+                                      ).format("LLL")
                                     : ""}
                                 </SmallBoldCell>
                               )}

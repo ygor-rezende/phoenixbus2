@@ -7,6 +7,7 @@ const {
   StyleSheet,
   View,
   Font,
+  Link,
 } = require("@react-pdf/renderer");
 const fs = require("fs");
 const path = require("path");
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
 });
 
 const DriverReport = (props) => {
-  const { data } = props;
+  const { data, smsId } = props;
 
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -183,6 +184,8 @@ const DriverReport = (props) => {
     return null;
   }
 
+  const confirmationPage = `https://us-central1-phoenixintranet-8d6e8.cloudfunctions.net/smsService/page/${smsId}`;
+
   return (
     <Document>
       <Page style={styles.body}>
@@ -200,6 +203,14 @@ const DriverReport = (props) => {
         >
           ***MILITARY TIME (24-HOUR CLOCK)***
         </Text>
+        <View>
+          <Text
+            style={[styles.textBold, { textAlign: "left", marginBottom: 10 }]}
+          >
+            Please confirm or reject this trip by clicking{" "}
+            <Link src={confirmationPage}>HERE</Link>.
+          </Text>
+        </View>
         <View style={styles.tableSection}>
           <Table>
             <TableHeader>
