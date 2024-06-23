@@ -1,14 +1,11 @@
 const React = require("react");
 const path = require("path");
 const {
-  renderToBuffer,
-  pdf,
   renderToStream,
   renderToFile
 } = require("@react-pdf/renderer");
 const QuoteReport = require("../pdfReports/quote");
 const dayjs = require("dayjs");
-const Invoice = require("../pdfReports/invoice");
 async function createQuoteStream(data) {
   try {
     return await renderToStream( /*#__PURE__*/React.createElement(QuoteReport, {
@@ -59,30 +56,7 @@ async function createQuoteFile(data) {
     return error;
   }
 }
-async function createInvoiceStream(data) {
-  try {
-    return await renderToStream( /*#__PURE__*/React.createElement(Invoice, {
-      date: dayjs(data.tripStartDate).format("dddd, MMMM D, YYYY"),
-      invoiceNum: data.invoice,
-      client: data.client,
-      passengers: data.passengers,
-      bookingDate: dayjs(data.bookingDate).format("MM/DD/YYYY"),
-      arrival: dayjs(data.arrival).format("MM/DD/YYYY"),
-      departure: dayjs(data.departure).format("dddd, MMMM D, YYYY"),
-      services: data.services,
-      deposit: data.deposit,
-      transactions: data.transactions,
-      poRef: data.poRef,
-      responsible: data.responsible,
-      responsibleEmail: data.responsibleEmail
-    }));
-  } catch (error) {
-    console.log(error);
-    return error;
-  }
-}
 module.exports = {
   createQuoteStream,
-  createInvoiceStream,
   createQuoteFile
 };

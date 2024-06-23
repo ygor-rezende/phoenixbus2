@@ -19,6 +19,11 @@ import {
   TableRow,
   TableCell,
   TableHead,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 
 import { UsePrivateGet, UsePrivatePost } from "../hooks/useFetchServer";
@@ -36,6 +41,8 @@ const FarmoutPayment = () => {
   const [data, setData] = useState([]);
   const [payments, setPayments] = useState([]);
   const [companyPayments, setCompanyPayments] = useState([]);
+  const [pendingPayments, setPendingPayments] = useState([]);
+  const [pendingInvoices, setPendingInvoices] = useState([]);
   const [company, setCompany] = useState(null);
   const [amount, setAmount] = useState(0.0);
   const [accountId, setAccountId] = useState(0);
@@ -48,6 +55,7 @@ const FarmoutPayment = () => {
   const [msg, setMsg] = useState("");
   const [openSnakbar, setOpenSnakbar] = useState(false);
   const [isDataUpdated, setIsdataUpdated] = useState(false);
+  const [invoiceSelected, setInvoiceSelected] = useState({});
 
   const effectRun = useRef(false);
   const { setAuth } = useAuth();
@@ -63,6 +71,10 @@ const FarmoutPayment = () => {
     const getData = async () => {
       const transactionsResp = await getServer(
         "/getFarmoutTransactions",
+        controller.signal
+      );
+      const pendingResponse = await getServer(
+        "/getPendingFarmoutPayments",
         controller.signal
       );
       const response = await getServer(
@@ -85,9 +97,13 @@ const FarmoutPayment = () => {
         //get payments information
         let payments = transactionsResp?.data;
 
+        //get pending info
+        let pending = pendingResponse?.data;
+
         if (isMounted) {
           setData(responseData);
           setPayments(payments);
+          setPendingPayments(pending);
         }
       }
     };
@@ -116,9 +132,9 @@ const FarmoutPayment = () => {
     const response = await postServer("/processFarmoutPayment", {
       payment: {
         accountId: accountId,
+        invoice: invoiceSelected?.invoice,
         amount: amount,
         transactionDate: date,
-        paymentType: payType,
         docNumber: docNum,
       },
     });
@@ -190,6 +206,9 @@ const FarmoutPayment = () => {
     setDate(dayjs(new Date()));
     setPayType("");
     setDocNum("");
+    setInvoiceSelected({});
+    setPendingInvoices([]);
+    setCompanyPayments([]);
     setIsdataUpdated(!isDataUpdated);
   };
 
@@ -198,23 +217,42 @@ const FarmoutPayment = () => {
       let companyPayments = payments?.filter(
         (e) => e.account_id === newValue.accountId
       );
+
+      //get pending invoices for this company
+      let pendingInvoices = pendingPayments
+        ?.filter((e) => e.company_id === newValue.companyId)
+        ?.filter((item) => item.amount_due > 0);
+
       setAccountId(newValue.accountId);
       setCompany(newValue.companyName);
       setBalance(newValue.balance);
       setCompanyPayments(companyPayments);
+      setPendingInvoices(pendingInvoices);
+      setInvoiceSelected({});
+      setAmount(0);
     } else {
       setAccountId(0);
       setCompany(null);
       setBalance(0);
+      setInvoiceSelected({});
+      setAmount(0);
+      setPendingInvoices([]);
+      setCompanyPayments([]);
     }
   };
-  const isDisabled = !company || !amount || !accountId || !date || !payType;
+  const isDisabled =
+    !company || !amount || !accountId || !date || !invoiceSelected?.invoice;
 
   const currencyFormatter = Intl.NumberFormat("en-Us", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
   });
+
+  const handleInvoiceClick = (index, invoice, amountDue) => {
+    setInvoiceSelected({ idx: index, invoice: invoice, amount: amountDue });
+    setAmount(amountDue);
+  };
 
   return (
     <Fragment>
@@ -311,7 +349,7 @@ const FarmoutPayment = () => {
                 size="small"
               />
             </Box>
-            <FormControl>
+            {/* <FormControl>
               <FormLabel sx={{ color: "secondary.main" }}>
                 Payment Type
               </FormLabel>
@@ -336,7 +374,53 @@ const FarmoutPayment = () => {
                   control={<Radio />}
                 />
               </RadioGroup>
-            </FormControl>
+            </FormControl> */}
+
+            <Box width="100%" maxWidth={260} bgcolor="white">
+              <Paper
+                elevation={1}
+                sx={{
+                  display: "inline-flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  maxWidth: 230,
+                  padding: "1em",
+                }}
+              >
+                <Typography variant="button" style={{ fontWeight: "bold" }}>
+                  Invoice
+                </Typography>
+                <Typography variant="button" style={{ fontWeight: "bold" }}>
+                  Amount Due
+                </Typography>
+              </Paper>
+              <List>
+                {pendingInvoices.map((item, index) => {
+                  return (
+                    <Box key={item.invoice}>
+                      <ListItemButton
+                        selected={invoiceSelected?.idx === index}
+                        onClick={(event) =>
+                          handleInvoiceClick(
+                            index,
+                            item.invoice,
+                            item.amount_due
+                          )
+                        }
+                      >
+                        <ListItemText style={{ textAlign: "start" }}>
+                          {item.invoice}
+                        </ListItemText>
+                        <ListItemText style={{ textAlign: "end" }}>
+                          {currencyFormatter.format(item.amount_due)}
+                        </ListItemText>
+                      </ListItemButton>
+                      <Divider></Divider>
+                    </Box>
+                  );
+                })}
+              </List>
+            </Box>
           </Box>
           <p></p>
           <Button
@@ -366,7 +450,7 @@ const FarmoutPayment = () => {
                   Document #
                 </TableCell>
                 <TableCell style={{ fontWeight: "bold", color: "whitesmoke" }}>
-                  Payment Type
+                  Invoice
                 </TableCell>
                 <TableCell style={{ fontWeight: "bold", color: "whitesmoke" }}>
                   Date
@@ -382,7 +466,7 @@ const FarmoutPayment = () => {
                 <TableRow>
                   <TableCell>{row.doc_number}</TableCell>
                   <TableCell style={{ textTransform: "capitalize" }}>
-                    {row.payment_type}
+                    {row.invoice}
                   </TableCell>
                   <TableCell>
                     {dayjs(row.transaction_date).format("l")}

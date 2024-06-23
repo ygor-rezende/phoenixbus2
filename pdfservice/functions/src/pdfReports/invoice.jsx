@@ -11,7 +11,7 @@ const {
 
 const fs = require("fs");
 const path = require("path");
-const dayjs = require("dayjs");
+const { localDayjs } = require("../helpers/localDayjs");
 
 const PhoenixLogo = fs.readFileSync(
   path.join(__dirname, "../images/phoenix_logo.png")
@@ -145,7 +145,6 @@ const Invoice = (props) => {
       return sum + Number(service.tax * service.charge * service.qty) / 100;
     }, 0);
 
-  //let credit = (totalInvoice * deposit) / 100;
   let totalAmount = totalInvoice - totPay + totalTax;
 
   let credit = currencyFormatter.format(totPay);
@@ -221,7 +220,7 @@ const Invoice = (props) => {
             {filteredServices?.map((service) => (
               <TableRow>
                 <TableCell align="left" width="17%">
-                  {dayjs(service.service_date).format("MM/DD/YYYY")}
+                  {localDayjs(service.service_date).format("MM/DD/YYYY")}
                 </TableCell>
                 <TableCell align="left" width="17%">
                   {service.service_name}

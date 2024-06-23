@@ -10,7 +10,9 @@ const {
 } = require("@react-pdf/renderer");
 const fs = require("fs");
 const path = require("path");
-const dayjs = require("dayjs");
+const {
+  localDayjs
+} = require("../helpers/localDayjs");
 const PhoenixLogo = fs.readFileSync(path.join(__dirname, "../images/phoenix_logo.png"));
 const Roboto = "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf";
 const RobotoBold = "https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlvAx05IsDqlA.ttf";
@@ -137,8 +139,6 @@ const Invoice = props => {
   })?.reduce((sum, service) => {
     return sum + Number(service.tax * service.charge * service.qty) / 100;
   }, 0);
-
-  //let credit = (totalInvoice * deposit) / 100;
   let totalAmount = totalInvoice - totPay + totalTax;
   let credit = currencyFormatter.format(totPay);
   totalAmount = currencyFormatter.format(totalAmount);
@@ -192,7 +192,7 @@ const Invoice = props => {
   }, "Total")), filteredServices?.map(service => /*#__PURE__*/React.createElement(TableRow, null, /*#__PURE__*/React.createElement(TableCell, {
     align: "left",
     width: "17%"
-  }, dayjs(service.service_date).format("MM/DD/YYYY")), /*#__PURE__*/React.createElement(TableCell, {
+  }, localDayjs(service.service_date).format("MM/DD/YYYY")), /*#__PURE__*/React.createElement(TableCell, {
     align: "left",
     width: "17%"
   }, service.service_name), /*#__PURE__*/React.createElement(TableCell, {

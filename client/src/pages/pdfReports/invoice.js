@@ -136,7 +136,6 @@ const Invoice = (props) => {
       return sum + Number(service.tax * service.charge * service.qty) / 100;
     }, 0);
 
-  //let credit = (totalInvoice * deposit) / 100;
   let totalAmount = totalInvoice - totPay + totalTax;
 
   let credit = currencyFormatter.format(totPay);

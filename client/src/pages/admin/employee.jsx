@@ -42,6 +42,7 @@ import useAuth from "../../hooks/useAuth";
 import { MuiTelInput } from "mui-tel-input";
 import EnhancedTable from "../../utils/table_generic";
 import GoogleAutoComplete from "../../api/google_place";
+import { validateEmail } from "../../utils/validators";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -296,7 +297,7 @@ export const Employee = () => {
       return;
     }
 
-    if (!state.email) {
+    if (!state.email || !validateEmail(state.email)) {
       setState({ invalidField: "email" });
       return;
     }

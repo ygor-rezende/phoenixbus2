@@ -37,7 +37,7 @@ BEGIN
 			JOIN clients cli ON cli.client_id = b.client_id
 			JOIN accounts ac ON ac.client_id = cli.client_id
 			FULL OUTER JOIN balances ba ON ba.invoice = b.invoice
-			WHERE ac.balance > 0 AND b.cost > 0 AND (b.cost - COALESCE(ba.amount_paid,0)) > 0AND b.is_quote = false AND b.trip_start_date::date < now() AND b.status != 'canceled'
+			WHERE (b.cost - COALESCE(ba.amount_paid,0)) > 0AND b.is_quote = false AND b.trip_start_date::date < now() AND b.status != 'canceled'
 			GROUP BY b.invoice, b.trip_start_date, b.cost, ba.amount_paid, ba.balance, cli.client_id, cli.agency, ac.balance, ac.total_payments
 			ORDER BY cli.agency, b.invoice
 	);
