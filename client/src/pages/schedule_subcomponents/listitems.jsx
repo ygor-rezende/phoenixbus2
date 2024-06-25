@@ -65,12 +65,14 @@ export const ScheduleListItems = (props) => {
 
   return (
     <Fragment>
-      <ListItemButton onClick={handleOpenCalendar}>
-        <ListItemIcon>
-          <AccessTimeIcon />
-        </ListItemIcon>
-        <ListItemText primary="View Calendar" />
-      </ListItemButton>
+      <Tooltip title="Monthly Calendar">
+        <ListItemButton onClick={handleOpenCalendar}>
+          <ListItemIcon>
+            <CalendarMonthIcon color="primary" />
+          </ListItemIcon>
+          <ListItemText primary="Monthly Calendar" />
+        </ListItemButton>
+      </Tooltip>
       <ListItemButton onClick={handlePrintBusList}>
         <ListItemIcon>
           <DirectionsBusIcon />

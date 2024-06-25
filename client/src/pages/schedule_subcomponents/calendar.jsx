@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UsePrivateGet } from "../../hooks/useFetchServer";
+import dayjs from "dayjs";
 
 export default function Calendar() {
   const [data, setData] = useState([]);
@@ -18,13 +19,22 @@ export default function Calendar() {
   useEffect(() => {
     let isMounted = true;
     let controller = new AbortController();
+
     //get today's date, month, year
-    let today = new Date();
-    let month = today.getMonth();
-    let year = today.getFullYear();
+    const numOfMonths = 4;
+    let today = dayjs(new Date());
+    let month = today.get("month");
+    let year = today.get("year");
     let startDate = new Date(year, month, 1);
-    let endDate = new Date(year, month + 1, 0);
-    let lastDay = endDate.getDate();
+    let endDate = today.add(numOfMonths, "months").set("day", 1);
+
+    let months = [];
+    let years = [];
+    for (let i = 0; i < numOfMonths; i++) {
+      let curDate = today.add(i, "month");
+      months.push(curDate.get("month"));
+      years.push(curDate.get("year"));
+    }
 
     async function getMontlyData() {
       try {
@@ -35,7 +45,7 @@ export default function Calendar() {
 
         //get month schedule
         let response = await getServer(
-          `/getschedule/${dates}`,
+          `/getscheduleforcalendar/${dates}`,
           controller.signal
         );
 
@@ -56,8 +66,15 @@ export default function Calendar() {
     function calculateSummary(data) {
       //populate a date array with all days of month
       let dateArr = [];
-      for (let i = 1; i <= lastDay; i++) {
-        dateArr.push(new Date(year, month, i).toISOString()?.slice(0, 10));
+      for (let m = 0; m < numOfMonths; m++) {
+        let curMonth = months[m];
+        let curYear = years[m];
+        let lastDay = new Date(curYear, curMonth + 1, 0).getDate();
+        for (let i = 1; i <= lastDay; i++) {
+          dateArr.push(
+            new Date(curYear, curMonth, i).toISOString()?.slice(0, 10)
+          );
+        }
       }
 
       //filter the data for each day of month to calculate the summary per day

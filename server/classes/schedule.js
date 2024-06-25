@@ -102,7 +102,25 @@ class Schedule {
       console.error(err);
       return res.status(500).json({ message: err.message });
     }
-  }
+  } //getBusesDailySchedule
+
+  static async getScheduleForCalendar(req, res) {
+    try {
+      const { dates } = req.params;
+      let newDates = JSON.parse(dates);
+      if (!newDates || !newDates?.startDate || !newDates?.endDate)
+        return res.status(400).json("Bad request: Missing dates");
+
+      const response = await pool.query(
+        `SELECT * FROM get_schedule_for_calendar(start_date => '${newDates?.startDate}'::TEXT, end_date => '${newDates?.endDate}'::TEXT)`
+      );
+
+      return res.json(response.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    }
+  } //getScheduleForCalendar
 
   static async updateSchedule(req, res) {
     const client = await pool.connect();
