@@ -60,6 +60,7 @@ const App = () => {
               >
                 <Route path="/addclient" element={<AddClient />} />
                 <Route path="/servicelocations" element={<ServiceLocation />} />
+                <Route path="/bookings/:id" element={<Bookings />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/schedule" element={<Schedule />} />
                 <Route path="/farmout" element={<FarmOut />} />

@@ -69,7 +69,7 @@ import {
   UsePrivatePut,
 } from "../hooks/useFetchServer";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { pdf } from "@react-pdf/renderer";
 import Invoice from "./pdfReports/invoice";
@@ -175,6 +175,7 @@ const initialState = {
 };
 
 export const Bookings = () => {
+  const { id } = useParams();
   const [state, setState] = useReducer(reducer, initialState);
 
   const effectRun = useRef(false);
@@ -194,6 +195,10 @@ export const Bookings = () => {
     currency: "USD",
     minimumFractionDigits: 2,
   });
+
+  useEffect(() => {
+    if(id) handleItemClick(id);
+  }, [id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1654,6 +1659,12 @@ export const Bookings = () => {
   return (
     <div className="bookings-container">
       <div className="bookings-container-box">
+        {/* <Routes>
+          <Route
+            path="/:invoice"
+            action={({ params, request }) => handleItemClick(params.invoice)}
+          />
+        </Routes> */}
         <form>
           <Stack
             direction="row"

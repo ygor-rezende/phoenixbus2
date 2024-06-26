@@ -41,6 +41,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import { visuallyHidden } from "@mui/utils";
+import { Link } from "react-router-dom";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -662,7 +663,14 @@ export const ScheduleTable = (props) => {
                     <TableCell style={{ paddingRight: 6 }}>
                       {index + 1}
                     </TableCell>
-                    <TableCell>{row?.invoice}</TableCell>
+                    <TableCell>
+                      <Link
+                        to={`/bookings/${row?.invoice}`}
+                        title="Go to Invoice"
+                      >
+                        {row?.invoice}
+                      </Link>
+                    </TableCell>
                     <TableCell>{row?.agency}</TableCell>
                     <TableCell>{row?.service_code}</TableCell>
 

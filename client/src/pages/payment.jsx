@@ -19,11 +19,12 @@ import {
   TableRow,
   TableCell,
   TableHead,
+  Tooltip,
 } from "@mui/material";
 
 import { UsePrivateGet, UsePrivatePost } from "../hooks/useFetchServer";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import dayjs from "dayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -263,6 +264,14 @@ const Payment = () => {
               value={currencyFormatter.format(balance)}
               onChange={(e) => setAmount(e.target.value)}
             />
+            {invoice?.length > 0 && (
+              <Link
+                to={`/bookings/${invoice}`}
+                style={{ alignContent: "center" }}
+              >
+                Go to Invoice
+              </Link>
+            )}
           </Paper>
           <Box
             sx={{
