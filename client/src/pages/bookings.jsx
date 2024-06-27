@@ -197,7 +197,8 @@ export const Bookings = () => {
   });
 
   useEffect(() => {
-    if(id) handleItemClick(id);
+    if (id) handleItemClick(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -378,6 +379,7 @@ export const Bookings = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isDataUpdated]);
 
   //Get all bookings data

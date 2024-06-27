@@ -185,6 +185,7 @@ export const Schedule = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getSchedule = async (startDate, endDate) => {

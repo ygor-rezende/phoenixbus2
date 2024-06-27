@@ -168,9 +168,9 @@ const BusesReport = (props) => {
   });
 
   //create a unique list of vehicles
-  const uniqueVehicles = [
-    ...new Map(vehiclesData.map((e) => [e?.vehicle_id, e])).values(),
-  ];
+  // const uniqueVehicles = [
+  //   ...new Map(vehiclesData.map((e) => [e?.vehicle_id, e])).values(),
+  // ];
 
   return (
     <Document>

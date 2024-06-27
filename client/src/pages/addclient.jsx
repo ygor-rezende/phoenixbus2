@@ -214,6 +214,7 @@ export const AddClient = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isDataUpdated]);
 
   const handleBookingHistory = async (clientId) => {

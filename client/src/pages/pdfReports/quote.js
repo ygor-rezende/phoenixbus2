@@ -7,14 +7,11 @@ import {
   StyleSheet,
   View,
   Font,
-  PDFViewer,
 } from "@react-pdf/renderer";
 import PhoenixLogo from "../../images/phoenix_logo.png";
 import Roboto from "../../fonts/Roboto/Roboto-Regular.ttf";
 import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
-
-import dayjs from "dayjs";
 
 Font.register({
   family: "Roboto",

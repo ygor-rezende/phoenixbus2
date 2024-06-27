@@ -230,6 +230,7 @@ export const DetailModal = (props) => {
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onEditMode, data]);
 
   const modalStile = {

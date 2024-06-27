@@ -11,6 +11,7 @@ const useLogout = () => {
       const response = await axios.get("/logout", {
         withCredentials: true,
       });
+      console.log("Logged out: ", response.statusText);
     } catch (err) {
       console.error(err);
     }

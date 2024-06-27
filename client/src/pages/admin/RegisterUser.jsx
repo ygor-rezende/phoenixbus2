@@ -97,6 +97,7 @@ const Register = () => {
       controler.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataUpdated]);
 
   const signUp = async () => {

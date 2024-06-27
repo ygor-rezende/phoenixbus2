@@ -165,6 +165,7 @@ export const ServiceLocation = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDataUpdated]);
 
   //Get all locations data
