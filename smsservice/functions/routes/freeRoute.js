@@ -6,9 +6,34 @@ const scheduleSMS = require("../modules/scheduleSMS");
 const cancelSMSSchedule = require("../modules/cancelSchedule");
 
 //This route sends HTML page to driver to confirm or reject trip
-router.get("/page/:smsId", (req, res) => {
+router.get("/page/:smsId", async (req, res) => {
   try {
     const { smsId } = req.params;
+
+    //check if driver has responded this before
+    let response = await pool.query(
+      `SELECT 1 FROM sms WHERE sms_id = '${smsId}' AND confirmed_rejected IS NULL`
+    );
+    if (response.rowCount < 1)
+      return res.send(`<!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    
+    .div {text-align: center; position:relative; top:50%;}
+    html, body {height: 100%;}
+    </style>
+    </head>
+    <body>
+    
+    <div class="div">
+      <h1>You have responded to this trip already.</h1>
+      <h1>If you want to change your response, please contact dispatch.</h1>
+     
+    </div>
+    
+    </body>
+    </html>`);
 
     //send Page to driver
     return res.send(`<!DOCTYPE html>
@@ -61,6 +86,14 @@ router.get("/response", async (req, res) => {
   try {
     const { smsId, answer } = req.query;
     console.log(smsId, answer);
+
+    if (!smsId || !answer || (answer !== "r" && answer !== "c"))
+      return res
+        .status(400)
+        .send(
+          `<h1 style="text-align:center; position:relative; top:50%">Bad request: Status 400.</h1>`
+        );
+
     await client.query("BEGIN");
 
     //Check if smsId exists
@@ -84,8 +117,24 @@ router.get("/response", async (req, res) => {
       `CALL confirm_sms(smsid => '${smsId}'::TEXT, answer => '${answer}'::CHARACTER)`
     );
 
+    //send response for driver
+    await client.query("COMMIT");
+    res.status(200).send(
+      `${
+        answer == "c"
+          ? `<h1 style="text-align:center; position:relative; top:50%">
+              Trip confirmed successfully!
+            </h1>`
+          : `<h1 style="text-align:center; position:relative; top:50%">
+              Trip rejected successfully!
+            </h1>`
+      }`
+    );
+
     //Schedule reminder sms if driver confirmed trip
     if (smsData?.detail_id && answer == "c") {
+      //Begin another transaction for reminder sms
+      await client.query("BEGIN");
       //Get details data
       response = await client.query(
         `SELECT * FROM get_details_for_sms(${smsData?.detail_id}::SMALLINT)`
@@ -109,30 +158,17 @@ router.get("/response", async (req, res) => {
       if (scheduleMessageSid) {
         const cancelResponse = await cancelSMSSchedule(scheduleMessageSid);
       }
+      await client.query("COMMIT");
     }
-
-    //send response for driver
-    await client.query("COMMIT");
-    return res.status(200).send(
-      `${
-        answer == "c"
-          ? `<h1 style="text-align:center; position:relative; top:50%">
-              Trip confirmed successfully!
-            </h1>`
-          : `<h1 style="text-align:center; position:relative; top:50%">
-              Trip rejected successfully!
-            </h1>`
-      }`
-    );
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
     logger.error(err);
-    return res
-      .status(500)
-      .send(
-        `<h1 style="text-align:center; position:relative; top:50%">An error ocurred. Please try again.</h1>`
-      );
+    if (!res.headersSent)
+      return res
+        .status(500)
+        .send(
+          `<h1 style="text-align:center; position:relative; top:50%">An error ocurred. Please try again.</h1>`
+        );
   } finally {
     client.release();
   }

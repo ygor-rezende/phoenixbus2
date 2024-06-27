@@ -407,6 +407,7 @@ export const Schedule = () => {
           compData={companies}
           startDate={startDate}
           endDate={endDate}
+          smsData={smsInfo}
         />
         <Snackbar
           open={error && openSnakbar}

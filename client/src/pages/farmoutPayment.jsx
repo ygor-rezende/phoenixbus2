@@ -376,19 +376,22 @@ const FarmoutPayment = () => {
               </RadioGroup>
             </FormControl> */}
 
-            <Box width="100%" maxWidth={260} bgcolor="white">
+            <Box width="100%" maxWidth={310} bgcolor="white">
               <Paper
                 elevation={1}
                 sx={{
                   display: "inline-flex",
                   justifyContent: "space-between",
                   width: "100%",
-                  maxWidth: 230,
+                  maxWidth: 280,
                   padding: "1em",
                 }}
               >
                 <Typography variant="button" style={{ fontWeight: "bold" }}>
                   Invoice
+                </Typography>
+                <Typography variant="button" style={{ fontWeight: "bold" }}>
+                  Date
                 </Typography>
                 <Typography variant="button" style={{ fontWeight: "bold" }}>
                   Amount Due
@@ -410,6 +413,11 @@ const FarmoutPayment = () => {
                       >
                         <ListItemText style={{ textAlign: "start" }}>
                           {item.invoice}
+                        </ListItemText>
+                        <ListItemText
+                          style={{ position: "absolute", left: "8em" }}
+                        >
+                          {dayjs(item.trip_start_date).format("l")}
                         </ListItemText>
                         <ListItemText style={{ textAlign: "end" }}>
                           {currencyFormatter.format(item.amount_due)}
