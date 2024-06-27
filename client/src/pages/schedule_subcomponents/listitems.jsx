@@ -1,10 +1,14 @@
-import { Fragment } from "react";
+import { Fragment, forwardRef, useState } from "react";
 import {
+  Dialog,
+  IconButton,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   ListSubheader,
+  Slide,
   Tooltip,
+  Box,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
@@ -13,13 +17,21 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import DateRangeIcon from "@mui/icons-material/DateRange";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import CloseIcon from "@mui/icons-material/Close";
 import { BusIcon } from "../../utils/busIcon";
 import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 import BusesReport from "../pdfReports/busReport";
+import Calendar from "./calendar";
+
+const Transition = forwardRef((props, ref) => {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 export const ScheduleListItems = (props) => {
   const { data, startDate, endDate } = props;
+
+  const [openCalendarDialog, setOpenCalendarDialog] = useState(false);
 
   const handlePrintBusList = () => {
     generateBusReport(
@@ -27,6 +39,14 @@ export const ScheduleListItems = (props) => {
         startDate === endDate ? startDate : startDate.concat("_", endDate)
       }`
     );
+  };
+
+  const handleOpenCalendar = () => {
+    setOpenCalendarDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenCalendarDialog(false);
   };
 
   const generateBusReport = async (filename) => {
@@ -45,12 +65,14 @@ export const ScheduleListItems = (props) => {
 
   return (
     <Fragment>
-      {/* <ListItemButton>
-        <ListItemIcon>
-          <AccessTimeIcon />
-        </ListItemIcon>
-        <ListItemText primary="Schedule by Time" />
-      </ListItemButton> */}
+      <Tooltip title="Monthly Calendar">
+        <ListItemButton onClick={handleOpenCalendar}>
+          <ListItemIcon>
+            <CalendarMonthIcon color="primary" />
+          </ListItemIcon>
+          <ListItemText primary="Monthly Calendar" />
+        </ListItemButton>
+      </Tooltip>
       <ListItemButton onClick={handlePrintBusList}>
         <ListItemIcon>
           <DirectionsBusIcon />
@@ -69,6 +91,24 @@ export const ScheduleListItems = (props) => {
         </ListItemIcon>
         <ListItemText primary="Schedule by Invoice" />
       </ListItemButton> */}
+
+      <Dialog
+        fullScreen
+        open={openCalendarDialog}
+        onClose={handleCloseDialog}
+        TransitionComponent={Transition}
+      >
+        <IconButton
+          onClick={handleCloseDialog}
+          aria-label="close"
+          style={{ alignSelf: "flex-end" }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <Box sx={{ padding: "1em" }}>
+          <Calendar />
+        </Box>
+      </Dialog>
     </Fragment>
   );
 };

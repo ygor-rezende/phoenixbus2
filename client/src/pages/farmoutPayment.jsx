@@ -28,7 +28,7 @@ import {
 
 import { UsePrivateGet, UsePrivatePost } from "../hooks/useFetchServer";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import dayjs from "dayjs";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -412,7 +412,12 @@ const FarmoutPayment = () => {
                         }
                       >
                         <ListItemText style={{ textAlign: "start" }}>
-                          {item.invoice}
+                          <Link
+                            to={`/bookings/${item.invoice}`}
+                            title="Go to Invoice"
+                          >
+                            {item.invoice}
+                          </Link>
                         </ListItemText>
                         <ListItemText
                           style={{ position: "absolute", left: "8em" }}
@@ -474,7 +479,9 @@ const FarmoutPayment = () => {
                 <TableRow>
                   <TableCell>{row.doc_number}</TableCell>
                   <TableCell style={{ textTransform: "capitalize" }}>
-                    {row.invoice}
+                    <Link to={`/bookings/${row.invoice}`} title="View Invoice">
+                      {row.invoice}
+                    </Link>
                   </TableCell>
                   <TableCell>
                     {dayjs(row.transaction_date).format("l")}
