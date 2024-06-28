@@ -97,6 +97,7 @@ const categories = [
   "Church",
   "Transportation Co.",
   "Particular",
+  "GSA",
   "Others",
 ];
 
