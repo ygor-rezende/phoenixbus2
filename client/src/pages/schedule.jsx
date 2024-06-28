@@ -334,6 +334,7 @@ export const Schedule = () => {
               data={data}
               startDate={startDate}
               endDate={endDate}
+              auth={auth}
             />
             <Divider sx={{ my: 1 }} />
             <TimeListItems onDatePick={pickDate} />

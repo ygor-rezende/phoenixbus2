@@ -1,12 +1,25 @@
-import { Avatar, Stack, Box, Typography, IconButton } from "@mui/material";
-import Sheet from "@mui/joy/Sheet";
+import {
+  Avatar,
+  Stack,
+  Box,
+  Typography,
+  IconButton,
+  Paper,
+} from "@mui/material";
 import { useState } from "react";
-import localDayJs from "../../utils/localDayjs";
+import { localDayjs } from "../../utils/localDayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function Bubble(props) {
-  const { content, variant, timestamp, sender, isDeleted, handleDelete } =
-    props;
+  const {
+    note_text,
+    variant,
+    datetime,
+    username,
+    isDeleted,
+    handleDelete,
+    loggedUser,
+  } = props;
   const isSent = variant === "sent";
   const [isHovered, setIsHovered] = useState(false);
 
@@ -18,15 +31,15 @@ export default function Bubble(props) {
         spacing={2}
         sx={{ mb: 0.25 }}
       >
-        <Typography>{sender === "You" ? sender : sender.name}</Typography>
-        <Typography>{localDayJs(timestamp).format("LL")}</Typography>
+        <Typography>{username === loggedUser ? "You" : username}</Typography>
+        <Typography>{localDayjs(datetime).format("LL")}</Typography>
       </Stack>
       <Box
         sx={{ position: "relative" }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Sheet
+        <Paper
           color={isSent ? "primary" : "neutral"}
           variant={isSent ? "solid" : "soft"}
           sx={{
@@ -38,9 +51,9 @@ export default function Bubble(props) {
           }}
         >
           <Typography sx={{ color: isSent ? "white" : "black" }}>
-            {content}
+            {note_text}
           </Typography>
-        </Sheet>
+        </Paper>
         {isHovered && isSent && (
           <Stack
             direction="row"

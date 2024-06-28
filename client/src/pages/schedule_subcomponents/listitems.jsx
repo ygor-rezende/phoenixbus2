@@ -18,15 +18,18 @@ import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 import BusesReport from "../pdfReports/busReport";
 import Calendar from "./calendar";
+import NotesPane from "../notes_components/notesPane";
+import MessageIcon from "@mui/icons-material/Message";
 
 const Transition = forwardRef((props, ref) => {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export const ScheduleListItems = (props) => {
-  const { data, startDate, endDate } = props;
+  const { data, startDate, endDate, auth } = props;
 
   const [openCalendarDialog, setOpenCalendarDialog] = useState(false);
+  const [openNotes, setOpenNotes] = useState(false);
 
   const handlePrintBusList = () => {
     generateBusReport(
@@ -74,13 +77,13 @@ export const ScheduleListItems = (props) => {
         </ListItemIcon>
         <ListItemText primary="Print List of Buses" />
       </ListItemButton>
-      {/* <ListItemButton>
+      <ListItemButton onClick={() => setOpenNotes(true)}>
         <ListItemIcon>
-          <PersonIcon />
+          <MessageIcon />
         </ListItemIcon>
-        <ListItemText primary="Schedule by Client" />
+        <ListItemText primary="Open Notes" />
       </ListItemButton>
-      <ListItemButton>
+      {/* <ListItemButton>
         <ListItemIcon>
           <ReceiptIcon />
         </ListItemIcon>
@@ -103,6 +106,11 @@ export const ScheduleListItems = (props) => {
         <Box sx={{ padding: "1em" }}>
           <Calendar />
         </Box>
+      </Dialog>
+
+      {/*Dialog to Notes*/}
+      <Dialog open={openNotes} onClose={() => setOpenNotes(false)}>
+        <NotesPane username={auth.userName} />
       </Dialog>
     </Fragment>
   );
