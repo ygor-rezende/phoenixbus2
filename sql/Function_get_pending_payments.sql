@@ -2,8 +2,7 @@ DROP FUNCTION IF EXISTS public.get_pending_payments();
 
 CREATE OR REPLACE FUNCTION public.get_pending_payments(
 	)
-    RETURNS TABLE(service_name text, invoice character varying, start_date character varying, cost numeric, amount_paid numeric, invoice_balance numeric,
-				  client_id character varying, agency character varying, account_balance numeric, received numeric) 
+    RETURNS TABLE(service_name text, invoice character varying, start_date character varying, cost numeric, amount_paid numeric, invoice_balance numeric, client_id character varying, agency character varying, account_balance numeric, received numeric) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -37,7 +36,7 @@ BEGIN
 			JOIN clients cli ON cli.client_id = b.client_id
 			JOIN accounts ac ON ac.client_id = cli.client_id
 			FULL OUTER JOIN balances ba ON ba.invoice = b.invoice
-			WHERE (b.cost - COALESCE(ba.amount_paid,0)) > 0AND b.is_quote = false AND b.trip_start_date::date < now() AND b.status != 'canceled'
+			WHERE (b.cost - COALESCE(ba.amount_paid,0)) > 0 AND b.is_quote = false AND b.trip_start_date::date < now() AND b.status != 'canceled'
 			GROUP BY b.invoice, b.trip_start_date, b.cost, ba.amount_paid, ba.balance, cli.client_id, cli.agency, ac.balance, ac.total_payments
 			ORDER BY cli.agency, b.invoice
 	);

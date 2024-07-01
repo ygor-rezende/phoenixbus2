@@ -679,6 +679,15 @@ app.get(
   }
 );
 
+app.get(
+  "/getscheduleforcalendar/:dates",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Schedule.getScheduleForCalendar(req, res);
+    return response;
+  }
+);
+
 app.put(
   "/updateSchedule",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch),

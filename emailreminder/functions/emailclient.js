@@ -2,11 +2,16 @@ const logger = require("firebase-functions/logger");
 const { sendMail } = require("./controllers/emailController");
 const requestInvoicePdf = require("./controllers/createAttachment");
 const { validateEmail } = require("./utils/validators");
+const { setTimeout } = require("timers/promises");
 
 const emailClient = async (emailData, servicesData, transactionsData) => {
   //validate email
-  if (!validateEmail(emailData.email))
+  if (!validateEmail(emailData.email)) {
+    logger.warn(
+      `Invalid email: ${emailData.email}. Invoice: ${emailData.invoice}, Agency: ${emailData.agency}.`
+    );
     return `Invalid email: ${emailData.email}. Invoice: ${emailData.invoice}, Agency: ${emailData.agency}.`;
+  }
 
   //Request invoice pdf creation
   const filename = await requestInvoicePdf(
@@ -49,7 +54,10 @@ const emailClient = async (emailData, servicesData, transactionsData) => {
     attachments: [attachmentOptions],
   };
 
-  const response = await sendMail(mailOptions);
+  //Create a delay to not overload the smtp server
+  const DELAY = 3 * 1000; //milliseconds
+
+  let response = await setTimeout(DELAY, await sendMail(mailOptions));
   return response;
 };
 

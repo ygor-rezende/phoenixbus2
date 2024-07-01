@@ -157,13 +157,13 @@ const Invoice = props => {
     style: styles.textBold
   }, "Date: ", date), /*#__PURE__*/React.createElement(Text, {
     style: styles.textBold
-  }, "Invoice #: ", invoiceNum), poRef && /*#__PURE__*/React.createElement(Text, {
+  }, "Invoice #: ", invoiceNum), poRef?.length > 0 && /*#__PURE__*/React.createElement(Text, {
     style: styles.textBold
   }, "PO/REF #: ", poRef))), /*#__PURE__*/React.createElement(View, {
     style: styles.header
   }, /*#__PURE__*/React.createElement(View, {
     style: styles.text
-  }, /*#__PURE__*/React.createElement(Text, null, "To: ", client.agency), /*#__PURE__*/React.createElement(Text, null, "Attn: ", client.contact), client.phone && /*#__PURE__*/React.createElement(Text, null, "Phone: ", client.phone), client.email && /*#__PURE__*/React.createElement(Text, null, "Email: ", client.email), client.address1 && /*#__PURE__*/React.createElement(Text, null, client.address1), client.address1 && /*#__PURE__*/React.createElement(Text, null, client.city, ", ", client.client_state), responsible && /*#__PURE__*/React.createElement(Text, null, "Responsible: ", responsible), responsibleEmail && /*#__PURE__*/React.createElement(Text, null, "Responsible Email: ", responsibleEmail)), /*#__PURE__*/React.createElement(View, {
+  }, /*#__PURE__*/React.createElement(Text, null, "To: ", client.agency), /*#__PURE__*/React.createElement(Text, null, "Attn: ", client.contact), client.phone?.length > 0 && /*#__PURE__*/React.createElement(Text, null, "Phone: ", client.phone), client.email?.length > 0 && /*#__PURE__*/React.createElement(Text, null, "Email: ", client.email), client.address1?.length > 0 && /*#__PURE__*/React.createElement(Text, null, client.address1), client.address1?.length > 0 && /*#__PURE__*/React.createElement(Text, null, client.city, ", ", client.client_state), responsible?.length > 0 && /*#__PURE__*/React.createElement(Text, null, "Responsible: ", responsible), responsibleEmail.length > 0 && /*#__PURE__*/React.createElement(Text, null, "Responsible Email: ", responsibleEmail)), /*#__PURE__*/React.createElement(View, {
     style: styles.tripBoard
   }, /*#__PURE__*/React.createElement(View, {
     style: [styles.textBold, styles.innerBoard]

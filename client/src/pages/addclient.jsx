@@ -42,7 +42,7 @@ import {
   UsePrivatePut,
 } from "../hooks/useFetchServer";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import GoogleAutoComplete from "../api/google_place";
 
@@ -857,7 +857,13 @@ export const AddClient = () => {
                         colSpan={2}
                         style={{ color: "white", fontWeight: "bold" }}
                       >
-                        {row.invoice}
+                        <Link
+                          to={`/bookings/${row.invoice}`}
+                          title="Go to Invoice"
+                          style={{ color: "white" }}
+                        >
+                          {row.invoice}
+                        </Link>
                       </TableCell>
                       <TableCell style={{ color: "white" }}>
                         Booking Date: {dayjs(row.bookingDate).format("l")}

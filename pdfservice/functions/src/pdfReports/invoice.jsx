@@ -160,23 +160,25 @@ const Invoice = (props) => {
             <Text style={styles.title}>Invoice / Receipt</Text>
             <Text style={styles.textBold}>Date: {date}</Text>
             <Text style={styles.textBold}>Invoice #: {invoiceNum}</Text>
-            {poRef && <Text style={styles.textBold}>PO/REF #: {poRef}</Text>}
+            {poRef?.length > 0 && (
+              <Text style={styles.textBold}>PO/REF #: {poRef}</Text>
+            )}
           </View>
         </View>
         <View style={styles.header}>
           <View style={styles.text}>
             <Text>To: {client.agency}</Text>
             <Text>Attn: {client.contact}</Text>
-            {client.phone && <Text>Phone: {client.phone}</Text>}
-            {client.email && <Text>Email: {client.email}</Text>}
-            {client.address1 && <Text>{client.address1}</Text>}
-            {client.address1 && (
+            {client.phone?.length > 0 && <Text>Phone: {client.phone}</Text>}
+            {client.email?.length > 0 && <Text>Email: {client.email}</Text>}
+            {client.address1?.length > 0 && <Text>{client.address1}</Text>}
+            {client.address1?.length > 0 && (
               <Text>
                 {client.city}, {client.client_state}
               </Text>
             )}
-            {responsible && <Text>Responsible: {responsible}</Text>}
-            {responsibleEmail && (
+            {responsible?.length > 0 && <Text>Responsible: {responsible}</Text>}
+            {responsibleEmail.length > 0 && (
               <Text>Responsible Email: {responsibleEmail}</Text>
             )}
           </View>
