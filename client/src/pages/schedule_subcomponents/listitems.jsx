@@ -71,18 +71,22 @@ export const ScheduleListItems = (props) => {
           <ListItemText primary="Monthly Calendar" />
         </ListItemButton>
       </Tooltip>
-      <ListItemButton onClick={handlePrintBusList}>
-        <ListItemIcon>
-          <DirectionsBusIcon />
-        </ListItemIcon>
-        <ListItemText primary="Print List of Buses" />
-      </ListItemButton>
-      <ListItemButton onClick={() => setOpenNotes(true)}>
-        <ListItemIcon>
-          <MessageIcon />
-        </ListItemIcon>
-        <ListItemText primary="Open Notes" />
-      </ListItemButton>
+      <Tooltip title="Print List of Buses">
+        <ListItemButton onClick={handlePrintBusList}>
+          <ListItemIcon>
+            <DirectionsBusIcon />
+          </ListItemIcon>
+          <ListItemText primary="Print List of Buses" />
+        </ListItemButton>
+      </Tooltip>
+      <Tooltip title="Notes">
+        <ListItemButton onClick={() => setOpenNotes(true)}>
+          <ListItemIcon>
+            <MessageIcon color="secondary" />
+          </ListItemIcon>
+          <ListItemText primary="Open Notes" />
+        </ListItemButton>
+      </Tooltip>
       {/* <ListItemButton>
         <ListItemIcon>
           <ReceiptIcon />
@@ -110,7 +114,10 @@ export const ScheduleListItems = (props) => {
 
       {/*Dialog to Notes*/}
       <Dialog open={openNotes} onClose={() => setOpenNotes(false)}>
-        <NotesPane username={auth.userName} />
+        <NotesPane
+          username={auth.userName}
+          onClose={() => setOpenNotes(false)}
+        />
       </Dialog>
     </Fragment>
   );

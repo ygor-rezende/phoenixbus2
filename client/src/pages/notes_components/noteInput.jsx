@@ -31,7 +31,7 @@ export default function NoteInput(props) {
           ref={textAreaRef}
           onChange={(e) => setTextAreaValue(e.target.value)}
           value={textAreaValue}
-          minRows={3}
+          rows={2}
           maxRows={10}
           multiline
           style={{ width: "400px" }}
@@ -44,8 +44,6 @@ export default function NoteInput(props) {
               sx={{
                 py: 1,
                 pr: 1,
-                borderTop: "1px solid",
-                borderColor: "divider",
               }}
             >
               <div></div>

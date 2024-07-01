@@ -4,9 +4,7 @@ const pool = require("../db");
 class Note {
   static async getNotes() {
     try {
-      const result = await pool.query(
-        `SELECT * FROM notes order by datetime desc`
-      );
+      const result = await pool.query(`SELECT * FROM notes order by datetime`);
       return result.rows;
     } catch (err) {
       logger.error("getNotes() error ", err);
@@ -24,7 +22,8 @@ class Note {
 
       //call procedure
       await pool.query(
-        `CALL create_note(note_text => '${note.text}'::TEXT, username => '${note.user}'::TEXT)`
+        `CALL create_note(note_text => $1::TEXT, username => $2::TEXT)`,
+        [note.text, note.user]
       );
 
       //send reponse

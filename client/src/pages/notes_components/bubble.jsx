@@ -13,6 +13,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 export default function Bubble(props) {
   const {
     note_text,
+    delete_timestamp,
     variant,
     datetime,
     username,
@@ -32,7 +33,7 @@ export default function Bubble(props) {
         sx={{ mb: 0.25 }}
       >
         <Typography>{username === loggedUser ? "You" : username}</Typography>
-        <Typography>{localDayjs(datetime).format("LL")}</Typography>
+        <Typography>{localDayjs(datetime).format("LLL")}</Typography>
       </Stack>
       <Box
         sx={{ position: "relative" }}
@@ -47,11 +48,17 @@ export default function Bubble(props) {
             borderRadius: "lg",
             borderTopRightRadius: isSent ? 0 : "lg",
             borderTopLeftRadius: isSent ? "lg" : 0,
-            backgroundColor: isSent ? "blue" : "whitesmoke",
+            backgroundColor: isDeleted
+              ? "secondary.main"
+              : isSent
+              ? "primary.main"
+              : "whitesmoke",
           }}
         >
           <Typography sx={{ color: isSent ? "white" : "black" }}>
-            {note_text}
+            {isDeleted
+              ? `${note_text} on ${localDayjs(delete_timestamp).format("LLL")}`
+              : note_text}
           </Typography>
         </Paper>
         {isHovered && isSent && (
