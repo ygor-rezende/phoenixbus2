@@ -19,7 +19,6 @@ import {
   TableRow,
   TableCell,
   TableHead,
-  Tooltip,
 } from "@mui/material";
 
 import { UsePrivateGet, UsePrivatePost } from "../hooks/useFetchServer";
@@ -111,6 +110,7 @@ const Payment = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDataUpdated]);
 
   const handleClose = (event, reason) => {

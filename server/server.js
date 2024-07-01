@@ -32,6 +32,7 @@ const sendQuote = require("./controllers/emailController");
 const Email = require("./classes/emails");
 const { FarmoutPayments } = require("./classes/farmout_payments");
 const { SMS } = require("./classes/sms");
+const { Note } = require("./classes/notes");
 
 //Handle fetch cookies credentials requirement
 app.use(credentials);
@@ -809,7 +810,7 @@ app.get(
 );
 //#endregion
 
-//#Region farmout payments
+//#region farmout payments
 app.get(
   "/getFarmoutAccounts",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.financial),
@@ -847,13 +848,42 @@ app.get(
 );
 //#endregion
 
-//#Region SMS
+//#region SMS
 app.get(
   "/getsmsinfo",
   verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
   async (req, res) => {
     let response = await SMS.getSMSInfo();
     res.json(response);
+  }
+);
+//#endregion
+
+//#region Notes
+app.get(
+  "/getnotes",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Note.getNotes();
+    res.json(response);
+  }
+);
+
+app.post(
+  "/createnote",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Note.createNote(req, res);
+    return response;
+  }
+);
+
+app.post(
+  "/deletenote",
+  verifyRoles(ROLES_LIST.admin, ROLES_LIST.dispatch, ROLES_LIST.sales),
+  async (req, res) => {
+    let response = await Note.deleteNote(req, res);
+    return response;
   }
 );
 //#endregion

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import useAuth from "../hooks/useAuth.js";
 import { NavLink, Link, useNavigate, Outlet } from "react-router-dom";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -20,7 +19,6 @@ import useLogout from "../hooks/useLogout.js";
 
 const APPBar = () => {
   const { auth } = useAuth();
-  const [anchorEl, setAnchorEl] = useState(null);
   const [anchorE2, setAnchorE2] = useState(null);
   const [anchorE3, setAnchorE3] = useState(null);
   const [anchorE4, setAnchorE4] = useState(null);
@@ -29,12 +27,6 @@ const APPBar = () => {
   const navigate = useNavigate();
   const logoutServer = useLogout();
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
   const handleCloseAccounting = () => {
     setAnchorE2(null);
   };
@@ -75,6 +67,7 @@ const APPBar = () => {
     { name: "FarmOut", link: "/farmout" },
   ];
 
+  // eslint-disable-next-line no-unused-vars
   const dispatchGroup = [ROLES.dispatch, ROLES.admin];
   const salesGroup = [ROLES.sales, ROLES.dispatch, ROLES.admin];
   const driverGroup = [ROLES.driver];

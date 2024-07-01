@@ -14,8 +14,6 @@ import RobotoBold from "../../fonts/Roboto/Roboto-Bold.ttf";
 import RobotoItalic from "../../fonts/Roboto/Roboto-Italic.ttf";
 import { Table, TableCell, TableHeader, TableRow } from "./Table";
 
-import dayjs from "dayjs";
-
 Font.register({
   family: "Roboto",
   fonts: [

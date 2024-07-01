@@ -1,46 +1,38 @@
-DROP TABLE IF EXISTS public.sms;
-
-CREATE TABLE IF NOT EXISTS public.sms
+DROP TABLE IF EXISTS public.notes;
+CREATE TABLE IF NOT EXISTS public.notes
 (
-    sms_id character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    to_phone character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    delivery_status character varying(10) COLLATE pg_catalog."default" NOT NULL,
-    delivery_timestamp timestamp without time zone NOT NULL,
-    confirmed_rejected character(1),
-    answer_timestamp timestamp without time zone,
-    detail_id smallint,
-    CONSTRAINT sms_pkey PRIMARY KEY (sms_id),
-    CONSTRAINT fk_detail_id FOREIGN KEY (detail_id)
-        REFERENCES public.service_details (detail_id) MATCH SIMPLE
+    note_id serial,
+    note_text text NOT NULL,
+    username character varying(255) NOT NULL,
+    datetime timestamp without time zone NOT NULL,
+    CONSTRAINT notes_pkey PRIMARY KEY (note_id),
+    CONSTRAINT fk_user FOREIGN KEY (username)
+        REFERENCES public.users (username) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
 );
 
-DROP PROCEDURE IF EXISTS public.confirm_sms(text);
-
-CREATE OR REPLACE PROCEDURE public.confirm_sms(
-	IN smsid text,
-	IN answer character)
+CREATE OR REPLACE PROCEDURE public.create_note(
+	IN note_text text,
+	IN username text)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
-  UPDATE sms SET confirmed_rejected = answer, answer_timestamp = now()
-  WHERE sms_id = smsid;
+	  INSERT INTO notes (note_text, username, datetime)
+	  VALUES (note_text, username, now());
 END;
 $BODY$;
 
-DROP PROCEDURE IF EXISTS public.create_sms(text, smallint, text, text);
-
-CREATE OR REPLACE PROCEDURE public.create_sms(
-	IN sms_id text,
-	IN detail_id smallint,
-	IN to_phone text,
-	IN delivery_status text)
+CREATE OR REPLACE PROCEDURE public.delete_note(
+	IN noteid integer,
+	IN changeuser text)
 LANGUAGE 'plpgsql'
 AS $BODY$
+DECLARE username character varying(255) := (SELECT username FROM notes WHERE note_id = noteid);
 BEGIN
-  INSERT INTO sms (sms_id, detail_id, to_phone, delivery_status, delivery_timestamp)
-  VALUES (sms_id, detail_id, to_phone, delivery_status, now());
+	IF(username = changeuser) THEN
+	  UPDATE notes SET note_text = 'note deleted on ' || TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD"T"HH24:MI:SS.000Z') WHERE note_id = noteid;
+	END IF;
 END;
 $BODY$;

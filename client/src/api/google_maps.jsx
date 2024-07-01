@@ -1,5 +1,4 @@
-import { useMemo, useRef, useEffect } from "react";
-import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { useRef, useEffect } from "react";
 
 const GoogleMaps = (props) => {
   const mapRef = useRef();
@@ -87,6 +86,7 @@ const GoogleMaps = (props) => {
     } //createButton
 
     initMap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin, destination]);
 
   return (

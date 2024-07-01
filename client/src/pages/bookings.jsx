@@ -97,6 +97,7 @@ const categories = [
   "Church",
   "Transportation Co.",
   "Particular",
+  "GSA",
   "Others",
 ];
 
@@ -172,6 +173,7 @@ const initialState = {
   manualInvoiceError: false,
   isLoading: false,
   openCategoryDialog: false,
+  viewInvoice: false,
 };
 
 export const Bookings = () => {
@@ -197,8 +199,11 @@ export const Bookings = () => {
   });
 
   useEffect(() => {
-    if(id) handleItemClick(id);
-  }, [id]);
+    if (state.viewInvoice) {
+      handleItemClick(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.viewInvoice]);
 
   useEffect(() => {
     let isMounted = true;
@@ -363,6 +368,7 @@ export const Bookings = () => {
             drivers: driversRespData,
             companiesData: companiesRespData,
             transactionsData: transactionsRespData,
+            viewInvoice: id ? true : false,
           });
       }
     }; //getAllData
@@ -378,7 +384,8 @@ export const Bookings = () => {
       controller.abort();
       effectRun.current = true;
     };
-  }, [state.isDataUpdated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.isDataUpdated, id]);
 
   //Get all bookings data
   const getBookingsData = () => {

@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import PropTypes from "prop-types";
 
 const GoogleAutoComplete = (props) => {
   const { updateFields, value, searchType } = props;
@@ -35,6 +34,7 @@ const GoogleAutoComplete = (props) => {
       );
 
     autoCompleteRef.current.addListener("place_changed", onPlaceChanged);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchType]);
 
   useEffect(() => {

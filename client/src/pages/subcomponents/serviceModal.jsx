@@ -85,6 +85,7 @@ export const ServiceModal = (props) => {
       }
       setOpenModal(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const modalStile = {

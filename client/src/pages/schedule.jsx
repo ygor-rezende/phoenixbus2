@@ -185,6 +185,7 @@ export const Schedule = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getSchedule = async (startDate, endDate) => {
@@ -333,6 +334,7 @@ export const Schedule = () => {
               data={data}
               startDate={startDate}
               endDate={endDate}
+              auth={auth}
             />
             <Divider sx={{ my: 1 }} />
             <TimeListItems onDatePick={pickDate} />

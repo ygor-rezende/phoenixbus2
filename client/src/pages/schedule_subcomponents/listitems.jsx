@@ -5,33 +5,31 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
   Slide,
   Tooltip,
   Box,
 } from "@mui/material";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
-import PersonIcon from "@mui/icons-material/Person";
-import ReceiptIcon from "@mui/icons-material/Receipt";
 import DateRangeIcon from "@mui/icons-material/DateRange";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CloseIcon from "@mui/icons-material/Close";
-import { BusIcon } from "../../utils/busIcon";
 import { pdf } from "@react-pdf/renderer";
 import * as FileSaver from "file-saver";
 import BusesReport from "../pdfReports/busReport";
 import Calendar from "./calendar";
+import NotesPane from "../notes_components/notesPane";
+import MessageIcon from "@mui/icons-material/Message";
 
 const Transition = forwardRef((props, ref) => {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export const ScheduleListItems = (props) => {
-  const { data, startDate, endDate } = props;
+  const { data, startDate, endDate, auth } = props;
 
   const [openCalendarDialog, setOpenCalendarDialog] = useState(false);
+  const [openNotes, setOpenNotes] = useState(false);
 
   const handlePrintBusList = () => {
     generateBusReport(
@@ -73,19 +71,23 @@ export const ScheduleListItems = (props) => {
           <ListItemText primary="Monthly Calendar" />
         </ListItemButton>
       </Tooltip>
-      <ListItemButton onClick={handlePrintBusList}>
-        <ListItemIcon>
-          <DirectionsBusIcon />
-        </ListItemIcon>
-        <ListItemText primary="Print List of Buses" />
-      </ListItemButton>
+      <Tooltip title="Print List of Buses">
+        <ListItemButton onClick={handlePrintBusList}>
+          <ListItemIcon>
+            <DirectionsBusIcon />
+          </ListItemIcon>
+          <ListItemText primary="Print List of Buses" />
+        </ListItemButton>
+      </Tooltip>
+      <Tooltip title="Notes">
+        <ListItemButton onClick={() => setOpenNotes(true)}>
+          <ListItemIcon>
+            <MessageIcon color="secondary" />
+          </ListItemIcon>
+          <ListItemText primary="Notes" />
+        </ListItemButton>
+      </Tooltip>
       {/* <ListItemButton>
-        <ListItemIcon>
-          <PersonIcon />
-        </ListItemIcon>
-        <ListItemText primary="Schedule by Client" />
-      </ListItemButton>
-      <ListItemButton>
         <ListItemIcon>
           <ReceiptIcon />
         </ListItemIcon>
@@ -108,6 +110,14 @@ export const ScheduleListItems = (props) => {
         <Box sx={{ padding: "1em" }}>
           <Calendar />
         </Box>
+      </Dialog>
+
+      {/*Dialog to Notes*/}
+      <Dialog open={openNotes} onClose={() => setOpenNotes(false)}>
+        <NotesPane
+          username={auth.userName}
+          onClose={() => setOpenNotes(false)}
+        />
       </Dialog>
     </Fragment>
   );

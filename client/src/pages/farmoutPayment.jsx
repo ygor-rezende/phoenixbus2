@@ -9,18 +9,12 @@ import {
   Box,
   Paper,
   Typography,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Stack,
   Table,
   TableRow,
   TableCell,
   TableHead,
   List,
-  ListItem,
   ListItemButton,
   ListItemText,
   Divider,
@@ -119,6 +113,7 @@ const FarmoutPayment = () => {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDataUpdated]);
 
   const handleClose = (event, reason) => {

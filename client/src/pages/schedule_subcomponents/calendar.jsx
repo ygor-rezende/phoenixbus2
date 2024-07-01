@@ -11,7 +11,7 @@ export default function Calendar() {
   const [events, setEvents] = useState([]);
 
   const effectRun = useRef(false);
-  const { setAuth, auth } = useAuth();
+  const { setAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const getServer = UsePrivateGet();
@@ -117,6 +117,7 @@ export default function Calendar() {
       controller.abort();
       effectRun.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

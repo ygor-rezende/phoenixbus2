@@ -251,6 +251,15 @@ export const ScheduleTable = (props) => {
     } else return "";
   };
 
+  const handleSetStartDate = (newValue) => {
+    if (newValue) {
+      if (!endDate) setEndDate(dayjs(newValue));
+      setStartDate(dayjs(newValue));
+    } else {
+      setStartDate(null);
+    }
+  };
+
   return (
     <Fragment>
       <Box
@@ -291,9 +300,9 @@ export const ScheduleTable = (props) => {
                 textField: {
                   helperText: "Maximum timeframe: 30 days",
                 },
-                field: { clearable: true },
+                field: { clearable: true, onClear: () => setStartDate(null) },
               }}
-              onChange={(newValue) => setStartDate(dayjs(newValue))}
+              onChange={(newValue) => handleSetStartDate(newValue)}
             />
             <DatePicker
               label="End Date"
@@ -307,9 +316,11 @@ export const ScheduleTable = (props) => {
                 textField: {
                   helperText: "Maximum timeframe: 30 days",
                 },
-                field: { clearable: true },
+                field: { clearable: true, onClear: () => setEndDate(null) },
               }}
-              onChange={(newValue) => setEndDate(dayjs(newValue))}
+              onChange={(newValue) =>
+                newValue ? setEndDate(dayjs(newValue)) : setEndDate(null)
+              }
             />
           </LocalizationProvider>
 
