@@ -114,7 +114,7 @@ export default function NotesPane(props) {
         height: { xs: "calc(90dvh - var(--Header-height))", lg: "90dvh" },
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "ActiveBorder",
+        backgroundColor: "Background",
       }}
     >
       <PaneHeader sender={username} onClose={onClose} />

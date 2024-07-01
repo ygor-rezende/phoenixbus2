@@ -23,8 +23,14 @@ export default function NoteInput(props) {
   };
 
   return (
-    <Box sx={{ px: 2, pb: 3 }}>
-      <FormControl>
+    <Box
+      sx={{
+        px: 2,
+        pb: 3,
+        backgroundColor: "whitesmoke",
+      }}
+    >
+      <FormControl style={{ width: "100%" }}>
         <OutlinedInput
           placeholder="Type your note here..."
           aria-label="Message"
@@ -34,7 +40,6 @@ export default function NoteInput(props) {
           rows={2}
           maxRows={10}
           multiline
-          style={{ width: "400px" }}
           endAdornment={
             <Stack
               direction="row"

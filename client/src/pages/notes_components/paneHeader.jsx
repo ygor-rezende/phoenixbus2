@@ -10,7 +10,7 @@ export default function PaneHeader(props) {
       sx={{
         borderBottom: "1px solid",
         borderColor: "darkgray",
-        backgroundColor: "white",
+        backgroundColor: "whitesmoke",
       }}
       py={{ xs: 2, md: 2 }}
       px={{ xs: 1, md: 2 }}

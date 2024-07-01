@@ -7,7 +7,7 @@ import {
   Paper,
 } from "@mui/material";
 import { useState } from "react";
-import { localDayjs } from "../../utils/localDayjs";
+import { localDayjs, localDayjs2 } from "../../utils/localDayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function Bubble(props) {
@@ -33,7 +33,7 @@ export default function Bubble(props) {
         sx={{ mb: 0.25 }}
       >
         <Typography>{username === loggedUser ? "You" : username}</Typography>
-        <Typography>{localDayjs(datetime).format("LLL")}</Typography>
+        <Typography>{localDayjs2(datetime).format("LLL")}</Typography>
       </Stack>
       <Box
         sx={{ position: "relative" }}

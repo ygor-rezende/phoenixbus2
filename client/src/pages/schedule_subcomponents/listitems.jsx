@@ -84,7 +84,7 @@ export const ScheduleListItems = (props) => {
           <ListItemIcon>
             <MessageIcon color="secondary" />
           </ListItemIcon>
-          <ListItemText primary="Open Notes" />
+          <ListItemText primary="Notes" />
         </ListItemButton>
       </Tooltip>
       {/* <ListItemButton>
